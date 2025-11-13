@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NHC Patients Manager — Gestion Patients v1.1.4</title>
+<title>NHC Patients Manager — Gestion Patients v1.1.5</title>
 <style>
 /* ===== Design System Variables ===== */
 :root {
@@ -3837,25 +3837,15 @@ body {
       localStorage.setItem('nhc-update-applied', updateData.version);
       console.log(`✅ Update marker saved: ${updateData.version}`);
 
-      // METHOD 1: Try using blob URL (more reliable than document.write)
-      try {
-        const blob = new Blob([updateData.fullHTML], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        console.log('🔄 Redirecting to new version via blob URL...');
-        window.location.replace(url);
-        return; // Stop execution here
-      } catch (blobError) {
-        console.warn('⚠️ Blob method failed, falling back to document.write:', blobError);
-      }
+      // Use document.write to replace the ENTIRE page
+      console.log('🔄 Replacing document with new version...');
 
-      // METHOD 2: Fallback to document.write (less reliable but widely supported)
-      console.log('🔄 Applying update via document.write...');
+      // Stop all current script execution
       document.open();
       document.write(updateData.fullHTML);
       document.close();
 
-      // The page will now load with the new HTML
-      // This code will not continue executing
+      // This code should not execute after document.write
     } else {
       console.error('❌ No fullHTML in update data');
     }
@@ -11036,7 +11026,7 @@ function loadScript(src) {
 }
 
 // ===== Update System =====
-const APP_VERSION = '1.1.4';
+const APP_VERSION = '1.1.5';
 const UPDATE_KEY = 'nhc-care-update';
 const UPDATE_HISTORY_KEY = 'nhc-care-update-history';
 const GITHUB_CONFIG_KEY = 'nhc-github-config';
@@ -11365,6 +11355,14 @@ async function installGithubUpdate() {
     return;
   }
 
+  // ALWAYS use localStorage method (legacy) for better compatibility
+  // The File System Access API creates a new file but users continue to open the old one
+  if (confirm(`Installer la mise à jour v${pendingUpdate.version} ?\n\n✅ Vos données (patients, ordonnances, switchs, rendez-vous) seront préservées\n⚠️ L'application sera rechargée\n\n💡 La mise à jour sera chargée depuis le localStorage au prochain chargement de cette page.`)) {
+    installUpdateLegacy();
+  }
+  return;
+
+  /* DÉSACTIVÉ: File System Access API pose problème
   // Check if File System Access API is supported
   if (!('showSaveFilePicker' in window)) {
     // Fallback: use the old method (localStorage replacement)
@@ -11372,7 +11370,7 @@ async function installGithubUpdate() {
       installUpdateLegacy();
     }
     return;
-  }
+  }*/
 
   try {
     if (!confirm(`Installer la mise à jour v${pendingUpdate.version} ?\n\n✅ Le fichier HTML sera remplacé automatiquement\n✅ Vos données (patients, ordonnances, switchs, rendez-vous) seront préservées\n⚠️ L'application sera rechargée après l'installation`)) {
