@@ -1,16 +1,15 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "fileName": "NHC-Patients-Manager-v1.0 (1).html",
   "downloadUrl": "https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/NHC-Patients-Manager-v1.0%20(1).html",
   "releaseDate": "2025-01-13",
   "releaseNotes": {
     "fr": [
-      "🚀 Système de mise à jour amélioré avec support changement de nom",
-      "✅ Détection automatique via version.json (fichier peut changer de nom)",
-      "📝 Affichage des notes de version lors des mises à jour",
-      "🔧 Filtrage complet des patients archivés dans toutes les vues",
-      "🐛 Correction des ordonnances manquantes pour patients archivés",
-      "📊 Amélioration du tableau de bord et des statistiques"
+      "🐛 Correction de l'erreur 'Cannot set properties of null' lors de la vérification des mises à jour",
+      "✅ Ajout de vérifications de sécurité pour tous les éléments DOM",
+      "🔍 Amélioration des logs de debugging pour le système de mise à jour",
+      "📦 Validation de la version HTML avant application de la mise à jour",
+      "🔧 Amélioration de la fonction installUpdateLegacy avec logs détaillés"
     ]
   },
   "minVersion": "1.0.0",
