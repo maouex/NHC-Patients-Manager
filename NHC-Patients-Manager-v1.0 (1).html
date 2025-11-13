@@ -433,6 +433,8 @@ body {
   padding: 1rem;
   border-bottom: 1px solid var(--border-light);
   font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table tbody tr {
@@ -1989,6 +1991,23 @@ body {
 @keyframes stroke {
   100% {
     stroke-dashoffset: 0;
+  }
+}
+
+/* ===== Responsive Optimizations ===== */
+@media (max-width: 768px) {
+  .table td,
+  .table th {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .table td,
+  .table th {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.8rem;
   }
 }
 </style>
@@ -4882,17 +4901,22 @@ function renderPatients() {
     sorted.sort((a, b) => (protoName(a.protoId) || 'ZZZ').localeCompare(protoName(b.protoId) || 'ZZZ'));
   }
   
+  if (sorted.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding: 2rem;">Aucun patient actif</td></tr>';
+    return;
+  }
+
   tbody.innerHTML = sorted.map(p => {
     const cycleInfo = getCycleFromDate(p.renewalDate);
     const cycleLabel = cycleInfo ? `${cycleInfo.name} ${cycleInfo.year}` : '—';
-    
+
     return `
       <tr style="cursor: pointer;" onclick="viewPatientDetails('${p.id}')" title="Cliquer pour voir les détails">
-        <td style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fullName(p)}</td>
-        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${protoName(p.protoId) || '—'}</td>
-        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${docName(p.docId) || '—'}</td>
-        <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${centerName(p.centerId) || '—'}</td>
-        <td style="white-space: nowrap;">${p.renewalDate ? `<div>${p.renewalDate}</div><div class="text-small text-muted">${cycleLabel}</div>` : '—'}</td>
+        <td style="font-weight: 600;">${fullName(p)}</td>
+        <td>${protoName(p.protoId) || '—'}</td>
+        <td>${docName(p.docId) || '—'}</td>
+        <td>${centerName(p.centerId) || '—'}</td>
+        <td>${p.renewalDate ? `<div>${p.renewalDate}</div><div class="text-small text-muted">${cycleLabel}</div>` : '—'}</td>
       </tr>
     `;
   }).join('');
