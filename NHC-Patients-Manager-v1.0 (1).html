@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NHC Patients Manager — Gestion Patients v1.1.2</title>
+<title>NHC Patients Manager — Gestion Patients v1.1.3</title>
 <style>
 /* ===== Design System Variables ===== */
 :root {
@@ -11036,7 +11036,7 @@ function loadScript(src) {
 }
 
 // ===== Update System =====
-const APP_VERSION = '1.1.2';
+const APP_VERSION = '1.1.3';
 const UPDATE_KEY = 'nhc-care-update';
 const UPDATE_HISTORY_KEY = 'nhc-care-update-history';
 const GITHUB_CONFIG_KEY = 'nhc-github-config';
@@ -11193,9 +11193,19 @@ async function checkUpdatesViaJson() {
     }
 
     // New version available
-    byId('availableVersion').textContent = 'v' + remoteVersion;
-    byId('updateAvailableNotice').style.display = 'block';
-    byId('btnDownloadUpdate').style.display = 'inline-flex';
+    const availableVersionEl = byId('availableVersion');
+    const updateAvailableNoticeEl = byId('updateAvailableNotice');
+    const btnDownloadUpdateEl = byId('btnDownloadUpdate');
+
+    if (availableVersionEl) {
+      availableVersionEl.textContent = 'v' + remoteVersion;
+    }
+    if (updateAvailableNoticeEl) {
+      updateAvailableNoticeEl.style.display = 'block';
+    }
+    if (btnDownloadUpdateEl) {
+      btnDownloadUpdateEl.style.display = 'inline-flex';
+    }
 
     // Build release notes
     let releaseNotes = '';
@@ -11229,12 +11239,16 @@ async function checkUpdatesViaJson() {
     showToast(`✨ Nouvelle version disponible: v${remoteVersion}`, 'success');
   } else if (comparison === 0) {
     showToast('✅ Vous utilisez déjà la dernière version', 'success');
-    byId('updateAvailableNotice').style.display = 'none';
-    byId('btnDownloadUpdate').style.display = 'none';
+    const updateNoticeEl = byId('updateAvailableNotice');
+    const downloadBtnEl = byId('btnDownloadUpdate');
+    if (updateNoticeEl) updateNoticeEl.style.display = 'none';
+    if (downloadBtnEl) downloadBtnEl.style.display = 'none';
   } else {
     showToast('ℹ️ Votre version locale est plus récente que celle sur GitHub', 'info');
-    byId('updateAvailableNotice').style.display = 'none';
-    byId('btnDownloadUpdate').style.display = 'none';
+    const noticeEl = byId('updateAvailableNotice');
+    const dlBtnEl = byId('btnDownloadUpdate');
+    if (noticeEl) noticeEl.style.display = 'none';
+    if (dlBtnEl) dlBtnEl.style.display = 'none';
   }
 }
 
@@ -11277,9 +11291,19 @@ async function checkUpdatesViaHtml() {
 
   if (comparison > 0) {
     // New version available
-    byId('availableVersion').textContent = 'v' + remoteVersion;
-    byId('updateAvailableNotice').style.display = 'block';
-    byId('btnDownloadUpdate').style.display = 'inline-flex';
+    const availableVersionEl = byId('availableVersion');
+    const updateAvailableNoticeEl = byId('updateAvailableNotice');
+    const btnDownloadUpdateEl = byId('btnDownloadUpdate');
+
+    if (availableVersionEl) {
+      availableVersionEl.textContent = 'v' + remoteVersion;
+    }
+    if (updateAvailableNoticeEl) {
+      updateAvailableNoticeEl.style.display = 'block';
+    }
+    if (btnDownloadUpdateEl) {
+      btnDownloadUpdateEl.style.display = 'inline-flex';
+    }
 
     // Store update info
     pendingUpdate = {
@@ -11304,12 +11328,16 @@ async function checkUpdatesViaHtml() {
     showToast(`✨ Nouvelle version disponible: v${remoteVersion}`, 'success');
   } else if (comparison === 0) {
     showToast('✅ Vous utilisez déjà la dernière version', 'success');
-    byId('updateAvailableNotice').style.display = 'none';
-    byId('btnDownloadUpdate').style.display = 'none';
+    const updateNoticeEl = byId('updateAvailableNotice');
+    const downloadBtnEl = byId('btnDownloadUpdate');
+    if (updateNoticeEl) updateNoticeEl.style.display = 'none';
+    if (downloadBtnEl) downloadBtnEl.style.display = 'none';
   } else {
     showToast('ℹ️ Votre version locale est plus récente que celle sur GitHub', 'info');
-    byId('updateAvailableNotice').style.display = 'none';
-    byId('btnDownloadUpdate').style.display = 'none';
+    const noticeEl = byId('updateAvailableNotice');
+    const dlBtnEl = byId('btnDownloadUpdate');
+    if (noticeEl) noticeEl.style.display = 'none';
+    if (dlBtnEl) dlBtnEl.style.display = 'none';
   }
 }
 
@@ -11324,8 +11352,10 @@ async function downloadGithubUpdate() {
   showToast('✅ Mise à jour prête à être installée !', 'success');
 
   // Show install button
-  byId('btnInstallUpdate').style.display = 'inline-flex';
-  byId('btnDownloadUpdate').style.display = 'none';
+  const installBtnEl = byId('btnInstallUpdate');
+  const downloadBtnEl = byId('btnDownloadUpdate');
+  if (installBtnEl) installBtnEl.style.display = 'inline-flex';
+  if (downloadBtnEl) downloadBtnEl.style.display = 'none';
 }
 
 // Install update and replace local file
