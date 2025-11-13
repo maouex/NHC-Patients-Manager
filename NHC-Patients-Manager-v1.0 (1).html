@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NHC Patients Manager — Gestion Patients v1.1.5</title>
+<title>NHC Patients Manager — Gestion Patients v1.1.7</title>
 <style>
 /* ===== Design System Variables ===== */
 :root {
@@ -3802,57 +3802,47 @@ body {
 // ===== AUTO-UPDATE SYSTEM - Execute FIRST before anything else =====
 (function() {
   const UPDATE_KEY = 'nhc-care-update';
-  const shouldApply = localStorage.getItem('nhc-apply-update-on-load');
 
-  if (!shouldApply) return;
-
+  // ALWAYS check if there's an update in localStorage (permanent override)
   const savedUpdate = localStorage.getItem(UPDATE_KEY);
   if (!savedUpdate) {
-    console.warn('⚠️ Update flag set but no update data found');
-    localStorage.removeItem('nhc-apply-update-on-load');
+    // No update stored, continue with normal file
     return;
   }
 
   try {
     const updateData = JSON.parse(savedUpdate);
 
-    // Remove the flag first to avoid infinite reload loop
-    localStorage.removeItem('nhc-apply-update-on-load');
-
     if (updateData.fullHTML) {
-      console.log(`🔄 Applying complete HTML replacement for version ${updateData.version}`);
-
-      // Validate that the HTML contains the expected version
+      // Extract version from the stored update
       const versionMatch = updateData.fullHTML.match(/<title>.*?v(\d+\.\d+\.\d+).*?<\/title>/);
       const htmlVersion = versionMatch ? versionMatch[1] : 'Unknown';
-      console.log(`📦 HTML version detected: ${htmlVersion}`);
 
-      if (htmlVersion === 'Unknown') {
-        console.error('❌ Could not detect version in update HTML');
-        alert('⚠️ Erreur: Impossible de détecter la version dans la mise à jour. L\'installation a été annulée.');
+      // Extract version from current file
+      const currentVersion = document.title.match(/v(\d+\.\d+\.\d+)/);
+      const currentVer = currentVersion ? currentVersion[1] : '0.0.0';
+
+      console.log(`🔄 AUTO-UPDATE: Stored version=${htmlVersion}, File version=${currentVer}`);
+
+      // If the stored version is different from the file, apply the update
+      if (htmlVersion !== currentVer) {
+        console.log(`✅ Applying stored update v${htmlVersion} over file v${currentVer}`);
+
+        // Replace the ENTIRE page content using innerHTML
+        // This works better than document.write()
+        document.open();
+        document.write(updateData.fullHTML);
+        document.close();
+
+        // Stop execution here - the new page will load
         return;
+      } else {
+        console.log(`ℹ️ Stored update version matches file version, no replacement needed`);
       }
-
-      // Save a marker that update was applied
-      localStorage.setItem('nhc-update-applied', updateData.version);
-      console.log(`✅ Update marker saved: ${updateData.version}`);
-
-      // Use document.write to replace the ENTIRE page
-      console.log('🔄 Replacing document with new version...');
-
-      // Stop all current script execution
-      document.open();
-      document.write(updateData.fullHTML);
-      document.close();
-
-      // This code should not execute after document.write
-    } else {
-      console.error('❌ No fullHTML in update data');
     }
   } catch (error) {
-    console.error('❌ Error applying update:', error);
-    alert('⚠️ Erreur lors de l\'application de la mise à jour: ' + error.message);
-    localStorage.removeItem('nhc-apply-update-on-load');
+    console.error('❌ Error in AUTO-UPDATE system:', error);
+    // Don't remove the update data on error, try again next time
   }
 })();
 
@@ -11026,7 +11016,7 @@ function loadScript(src) {
 }
 
 // ===== Update System =====
-const APP_VERSION = '1.1.5';
+const APP_VERSION = '1.1.7';
 const UPDATE_KEY = 'nhc-care-update';
 const UPDATE_HISTORY_KEY = 'nhc-care-update-history';
 const GITHUB_CONFIG_KEY = 'nhc-github-config';
@@ -11451,13 +11441,11 @@ function installUpdateLegacy() {
 
     console.log(`✅ HTML validated: version ${htmlVersion}`);
 
-    // Save the COMPLETE new HTML for replacement on next load
+    // Save the COMPLETE new HTML for PERMANENT replacement
+    // The AUTO-UPDATE script will check this on EVERY page load
     localStorage.setItem(UPDATE_KEY, JSON.stringify(pendingUpdate));
-    console.log('✅ Update data saved to localStorage');
-
-    // Mark that we need to apply update on next load
-    localStorage.setItem('nhc-apply-update-on-load', 'true');
-    console.log('✅ Update flag set');
+    console.log('✅ Update data saved to localStorage (permanent)');
+    console.log('💡 The update will be applied automatically on next page load and all future loads');
 
     // Save backup
     const backup = {
