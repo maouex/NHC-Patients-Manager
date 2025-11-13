@@ -4187,7 +4187,18 @@ function getPatientsByCycle(cycle, year) {
 function getUpcomingRenewals(daysAhead = 30) {
   return state.patients.filter(p => {
     const days = daysUntilRenewal(p.renewalDate);
-    return days !== null && days >= 0 && days <= daysAhead;
+    if (days === null || days < 0 || days > daysAhead) return false;
+
+    // Exclure les patients archivés dont la date de renouvellement est ultérieure à la date d'archivage
+    if ((p.status === 'temporary_pause' || p.status === 'permanent_pause') && p.pausedAt) {
+      const renewalDate = parseDate(p.renewalDate);
+      const pausedDate = new Date(p.pausedAt);
+      if (renewalDate && renewalDate > pausedDate) {
+        return false;
+      }
+    }
+
+    return true;
   }).sort((a, b) => {
     const daysA = daysUntilRenewal(a.renewalDate);
     const daysB = daysUntilRenewal(b.renewalDate);
@@ -4198,7 +4209,18 @@ function getUpcomingRenewals(daysAhead = 30) {
 function getExpiredOrdonnances() {
   return state.patients.filter(p => {
     const days = daysUntilRenewal(p.renewalDate);
-    return days !== null && days < 0;
+    if (days === null || days >= 0) return false;
+
+    // Exclure les patients archivés dont la date de renouvellement est ultérieure à la date d'archivage
+    if ((p.status === 'temporary_pause' || p.status === 'permanent_pause') && p.pausedAt) {
+      const renewalDate = parseDate(p.renewalDate);
+      const pausedDate = new Date(p.pausedAt);
+      if (renewalDate && renewalDate > pausedDate) {
+        return false;
+      }
+    }
+
+    return true;
   }).sort((a, b) => {
     const daysA = daysUntilRenewal(a.renewalDate);
     const daysB = daysUntilRenewal(b.renewalDate);
