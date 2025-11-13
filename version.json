@@ -1,15 +1,15 @@
 {
-  "version": "1.1.1",
+  "version": "1.1.2",
   "fileName": "NHC-Patients-Manager-v1.0 (1).html",
   "downloadUrl": "https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/NHC-Patients-Manager-v1.0%20(1).html",
   "releaseDate": "2025-01-13",
   "releaseNotes": {
     "fr": [
-      "🐛 Correction de l'erreur 'Cannot set properties of null' lors de la vérification des mises à jour",
-      "✅ Ajout de vérifications de sécurité pour tous les éléments DOM",
-      "🔍 Amélioration des logs de debugging pour le système de mise à jour",
-      "📦 Validation de la version HTML avant application de la mise à jour",
-      "🔧 Amélioration de la fonction installUpdateLegacy avec logs détaillés"
+      "🔧 CORRECTION MAJEURE: Amélioration du système de remplacement de document",
+      "✅ Utilisation de Blob URL (méthode plus fiable que document.write)",
+      "🔄 Fallback automatique vers document.write si Blob URL échoue",
+      "🐛 Résolution du problème où la version ne changeait pas après mise à jour",
+      "📊 Logs améliorés pour identifier la méthode utilisée"
     ]
   },
   "minVersion": "1.0.0",

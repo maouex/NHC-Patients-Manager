@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NHC Patients Manager — Gestion Patients v1.1.1</title>
+<title>NHC Patients Manager — Gestion Patients v1.1.2</title>
 <style>
 /* ===== Design System Variables ===== */
 :root {
@@ -3837,7 +3837,19 @@ body {
       localStorage.setItem('nhc-update-applied', updateData.version);
       console.log(`✅ Update marker saved: ${updateData.version}`);
 
-      // Replace the ENTIRE document with the new HTML
+      // METHOD 1: Try using blob URL (more reliable than document.write)
+      try {
+        const blob = new Blob([updateData.fullHTML], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        console.log('🔄 Redirecting to new version via blob URL...');
+        window.location.replace(url);
+        return; // Stop execution here
+      } catch (blobError) {
+        console.warn('⚠️ Blob method failed, falling back to document.write:', blobError);
+      }
+
+      // METHOD 2: Fallback to document.write (less reliable but widely supported)
+      console.log('🔄 Applying update via document.write...');
       document.open();
       document.write(updateData.fullHTML);
       document.close();
@@ -11024,7 +11036,7 @@ function loadScript(src) {
 }
 
 // ===== Update System =====
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.1.2';
 const UPDATE_KEY = 'nhc-care-update';
 const UPDATE_HISTORY_KEY = 'nhc-care-update-history';
 const GITHUB_CONFIG_KEY = 'nhc-github-config';
