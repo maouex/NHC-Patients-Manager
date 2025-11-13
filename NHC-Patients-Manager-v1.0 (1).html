@@ -3842,7 +3842,7 @@ function loadDB() {
       const parsed = JSON.parse(stored);
       state = { ...state, ...parsed };
     }
-    
+
     // Migration from old versions
     if (!stored) {
       const oldKeys = ['nhc-care-v1', 'nhc-care-v2', 'nhc-care-v3'];
@@ -3857,11 +3857,55 @@ function loadDB() {
         }
       }
     }
-    
+
+    // Ensure history array exists for all patients (backward compatibility)
+    let historyFixed = 0;
+    state.patients.forEach(patient => {
+      if (!patient.history) {
+        patient.history = [{
+          date: patient.createdAt || Date.now(),
+          type: 'created',
+          field: 'Création',
+          oldValue: '',
+          newValue: 'Patient importé (historique initialisé)'
+        }];
+        historyFixed++;
+      }
+    });
+
+    // Ensure history array exists for all appointments (backward compatibility)
+    state.appointments.forEach(apt => {
+      if (!apt.history) {
+        apt.history = [];
+      }
+    });
+
+    // Save if any fixes were made
+    if (historyFixed > 0) {
+      console.log(`✅ Historique initialisé pour ${historyFixed} patient(s)`);
+      saveDB();
+    }
+
     // Initialize demo data if empty
     if (state.patients.length === 0 && state.docs.length === 0) {
       initDemoData();
     }
+
+    // Log data integrity check
+    const patientHistoryCount = state.patients.reduce((total, p) => total + (p.history?.length || 0), 0);
+    const appointmentHistoryCount = state.appointments.reduce((total, a) => total + (a.history?.length || 0), 0);
+    console.log('📊 Data loaded:', {
+      patients: state.patients.length,
+      docs: state.docs.length,
+      centers: state.centers.length,
+      protos: state.protos.length,
+      switches: state.switches.length,
+      appointments: state.appointments.length,
+      patientHistoryEvents: patientHistoryCount,
+      appointmentHistoryEvents: appointmentHistoryCount,
+      totalHistoryEvents: patientHistoryCount + appointmentHistoryCount
+    });
+
   } catch (error) {
     console.error('Erreur chargement DB:', error);
     showToast('Erreur de chargement des données', 'error');
@@ -6978,7 +7022,12 @@ function exportJson() {
     exportDate: new Date().toISOString(),
     data: state  // Include ALL state data (patients, docs, centers, protos, switches, appointments)
   };
-  
+
+  // Count history events for verification
+  const patientHistoryCount = state.patients.reduce((total, p) => total + (p.history?.length || 0), 0);
+  const appointmentHistoryCount = state.appointments.reduce((total, a) => total + (a.history?.length || 0), 0);
+  const totalHistoryEvents = patientHistoryCount + appointmentHistoryCount;
+
   console.log('📦 Exporting backup with:', {
     version: backup.version,
     exportDate: backup.exportDate,
@@ -6987,20 +7036,26 @@ function exportJson() {
     centers: state.centers?.length || 0,
     protos: state.protos?.length || 0,
     switches: state.switches?.length || 0,
-    appointments: state.appointments?.length || 0
+    appointments: state.appointments?.length || 0,
+    patientHistoryEvents: patientHistoryCount,
+    appointmentHistoryEvents: appointmentHistoryCount,
+    totalHistoryEvents: totalHistoryEvents
   });
-  
+
   const data = JSON.stringify(backup, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  
+
   const a = document.createElement('a');
   a.href = url;
   a.download = `nhc-care-backup-${new Date().toISOString().split('T')[0]}.json`;
   a.click();
-  
+
   URL.revokeObjectURL(url);
-  showToast('Export réussi', 'success');
+
+  // Detailed success message
+  const message = `✅ Export réussi !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\nTotal: ${totalHistoryEvents} événements sauvegardés`;
+  showToast(message, 'success');
 }
 
 function exportRefs() {
@@ -8455,7 +8510,7 @@ async function performAutoSave() {
   if (!autoSaveConfig.enabled || !autoSaveConfig.fileHandle) {
     return;
   }
-  
+
   try {
     // Prepare data - Include EVERYTHING from state
     const data = {
@@ -8463,17 +8518,22 @@ async function performAutoSave() {
       exportDate: new Date().toISOString(),
       data: state  // Include ALL state data (patients, docs, centers, protos, switches, appointments, and any future additions)
     };
-    
+
+    // Count history events for verification
+    const patientHistoryCount = state.patients.reduce((total, p) => total + (p.history?.length || 0), 0);
+    const appointmentHistoryCount = state.appointments.reduce((total, a) => total + (a.history?.length || 0), 0);
+    const totalHistoryEvents = patientHistoryCount + appointmentHistoryCount;
+
     // Write to file
     const writable = await autoSaveConfig.fileHandle.createWritable();
     await writable.write(JSON.stringify(data, null, 2));
     await writable.close();
-    
+
     // Update last save time
     autoSaveConfig.lastSave = Date.now();
     saveAutoSaveConfig();
     updateAutoSaveUI();
-    
+
     console.log('✅ Auto-save completed:', new Date().toLocaleString());
     console.log('📊 Saved data:', {
       patients: state.patients?.length || 0,
@@ -8481,12 +8541,15 @@ async function performAutoSave() {
       centers: state.centers?.length || 0,
       protos: state.protos?.length || 0,
       switches: state.switches?.length || 0,
-      appointments: state.appointments?.length || 0
+      appointments: state.appointments?.length || 0,
+      patientHistoryEvents: patientHistoryCount,
+      appointmentHistoryEvents: appointmentHistoryCount,
+      totalHistoryEvents: totalHistoryEvents
     });
-    
+
   } catch (err) {
     console.error('❌ Auto-save failed:', err);
-    
+
     // If permission denied, ask to reconfigure
     if (err.name === 'NotAllowedError') {
       showToast('Permission refusée. Veuillez reconfigurer la sauvegarde automatique.', 'warning');
@@ -8545,21 +8608,21 @@ async function restoreFromAutoSave() {
     showToast('Utilisez l\'import JSON classique', 'info');
     return;
   }
-  
+
   if (!confirm('⚠️ Cette action va remplacer toutes vos données actuelles par celles de la sauvegarde automatique. Continuer ?')) {
     return;
   }
-  
+
   try {
     if (!autoSaveConfig.fileHandle) {
       showToast('Aucun fichier de sauvegarde configuré', 'warning');
       return;
     }
-    
+
     const file = await autoSaveConfig.fileHandle.getFile();
     const content = await file.text();
     const parsed = JSON.parse(content);
-    
+
     // Support both old and new backup formats
     let data;
     if (parsed.version && parsed.data) {
@@ -8570,7 +8633,12 @@ async function restoreFromAutoSave() {
       // Old format (direct data)
       data = parsed;
     }
-    
+
+    // Count history events for verification
+    const patientHistoryCount = (data.patients || []).reduce((total, p) => total + (p.history?.length || 0), 0);
+    const appointmentHistoryCount = (data.appointments || []).reduce((total, a) => total + (a.history?.length || 0), 0);
+    const totalHistoryEvents = patientHistoryCount + appointmentHistoryCount;
+
     // Restore ALL state data
     state = {
       patients: data.patients || [],
@@ -8580,21 +8648,26 @@ async function restoreFromAutoSave() {
       switches: data.switches || [],
       appointments: data.appointments || []
     };
-    
+
     console.log('📊 Restored data:', {
       patients: state.patients.length,
       docs: state.docs.length,
       centers: state.centers.length,
       protos: state.protos.length,
       switches: state.switches.length,
-      appointments: state.appointments.length
+      appointments: state.appointments.length,
+      patientHistoryEvents: patientHistoryCount,
+      appointmentHistoryEvents: appointmentHistoryCount,
+      totalHistoryEvents: totalHistoryEvents
     });
-    
+
     saveDB();
     render();
-    
-    showToast('✅ Données restaurées depuis la sauvegarde automatique !', 'success');
-    
+
+    // Detailed success message
+    const message = `✅ Restauration réussie !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\nTotal: ${totalHistoryEvents} événements restaurés`;
+    showToast(message, 'success');
+
   } catch (err) {
     console.error('Error restoring from auto-save:', err);
     showToast('Erreur lors de la restauration: ' + err.message, 'error');
@@ -10316,7 +10389,7 @@ function bindEvents() {
   byId('fileImport')?.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -10352,6 +10425,23 @@ function bindEvents() {
           throw new Error('Aucune donnée valide trouvée dans le fichier');
         }
 
+        // Count history events in the backup for verification
+        const patientHistoryCount = (data.patients || []).reduce((total, p) => total + (p.history?.length || 0), 0);
+        const appointmentHistoryCount = (data.appointments || []).reduce((total, a) => total + (a.history?.length || 0), 0);
+        const totalHistoryEvents = patientHistoryCount + appointmentHistoryCount;
+
+        console.log('📊 Data to import:', {
+          patients: data.patients?.length || 0,
+          docs: data.docs?.length || 0,
+          centers: data.centers?.length || 0,
+          protos: data.protos?.length || 0,
+          switches: data.switches?.length || 0,
+          appointments: data.appointments?.length || 0,
+          patientHistoryEvents: patientHistoryCount,
+          appointmentHistoryEvents: appointmentHistoryCount,
+          totalHistoryEvents: totalHistoryEvents
+        });
+
         if (confirm('Remplacer toutes les données ?')) {
           state = {
             patients: data.patients || [],
@@ -10363,7 +10453,10 @@ function bindEvents() {
           };
           saveDB();
           render();
-          showToast('Import réussi !', 'success');
+
+          // Detailed success message
+          const message = `✅ Import réussi !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\nTotal: ${totalHistoryEvents} événements restaurés`;
+          showToast(message, 'success');
         }
       } catch (error) {
         console.error('Import error:', error);
