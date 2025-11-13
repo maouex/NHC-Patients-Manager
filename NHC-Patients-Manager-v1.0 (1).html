@@ -6200,20 +6200,22 @@ function viewPatientDetails(id) {
 function openPatient(id) {
   const patient = state.patients.find(p => p.id === id);
   if (!patient) return;
-  
+
   currentPatientId = id;
   byId('modalTitle').textContent = 'Modifier le patient';
   byId('btnDeletePatient').classList.remove('hidden');
   byId('btnChangeStatus').classList.remove('hidden');
-  
-  // Fill form
+
+  // Populate selects FIRST so options are available
+  populateSelects();
+
+  // Fill form with patient data
   Object.keys(patient).forEach(key => {
     const el = byId(key);
     if (el) el.value = patient[key] || '';
   });
-  
+
   updateCycleInfo();
-  populateSelects();
   showModal(true);
 }
 
