@@ -904,7 +904,7 @@ body {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
-  z-index: 200;
+  z-index: 99;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -2639,34 +2639,6 @@ body {
   </main>
 </div>
 
-<!-- Patient Details Card Modal -->
-<div class="modal" id="patientDetailsModal">
-  <div class="modal-content" style="max-width: 800px;">
-    <div class="modal-header">
-      <h2 class="modal-title" id="detailsModalTitle">Détails du patient</h2>
-      <button class="modal-close" onclick="showModal(false, 'patientDetailsModal')">&times;</button>
-    </div>
-    
-    <div class="modal-body">
-      <div class="card" style="box-shadow: none; border: 1px solid var(--border);">
-        <div class="card-body">
-          <div id="patientDetailsContent"></div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="showModal(false, 'patientDetailsModal')">Fermer</button>
-      <button class="btn btn-primary" id="btnEditFromDetails">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-        </svg>
-        Modifier
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- Patient Modal -->
 <div class="modal" id="patientModal">
   <div class="modal-content">
@@ -3284,15 +3256,30 @@ function loadDB() {
 
 function saveDB() {
   try {
-    localStorage.setItem(DB_KEY, JSON.stringify(state));
-    
+    const dataStr = JSON.stringify(state);
+    const dataSize = new Blob([dataStr]).size;
+    const dataSizeMB = (dataSize / (1024 * 1024)).toFixed(2);
+
+    // Check approximate localStorage usage (typical limit is 5-10MB)
+    if (dataSize > 4 * 1024 * 1024) { // 4MB warning threshold
+      console.warn(`Taille des données importante: ${dataSizeMB}MB`);
+    }
+
+    localStorage.setItem(DB_KEY, dataStr);
+
     // Trigger auto-save if enabled (function defined later)
     if (typeof triggerAutoSave === 'function') {
       triggerAutoSave();
     }
   } catch (error) {
     console.error('Erreur sauvegarde DB:', error);
-    showToast('Erreur de sauvegarde', 'error');
+
+    // Check if it's a quota exceeded error
+    if (error.name === 'QuotaExceededError' || error.code === 22) {
+      showToast('⚠️ Espace de stockage insuffisant ! Exportez vos données et supprimez les anciens patients archivés.', 'error');
+    } else {
+      showToast('Erreur de sauvegarde: ' + (error.message || 'Erreur inconnue'), 'error');
+    }
   }
 }
 
@@ -5251,6 +5238,13 @@ function createComparisonChart(kpis, currentCycle, previousCycle) {
   // Check if Chart.js is available
   if (typeof Chart === 'undefined') {
     console.error('Chart.js is not loaded');
+    canvas.parentElement.innerHTML = `
+      <div style="padding: 2rem; text-align: center; background: var(--bg-tertiary); border-radius: var(--radius-lg); border: 2px dashed var(--border);">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">📊</div>
+        <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Impossible de charger les graphiques</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">La bibliothèque Chart.js n'a pas pu être chargée. Vérifiez votre connexion internet.</p>
+      </div>
+    `;
     return;
   }
   
@@ -5353,7 +5347,13 @@ function createComparisonChart(kpis, currentCycle, previousCycle) {
     
   } catch (error) {
     console.error('Error creating comparison chart:', error);
-    // Don't block the rest of the function if chart creation fails
+    canvas.parentElement.innerHTML = `
+      <div style="padding: 2rem; text-align: center; background: var(--bg-tertiary); border-radius: var(--radius-lg); border: 2px dashed var(--danger);">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
+        <p style="color: var(--danger); margin-bottom: 0.5rem;">Erreur lors de la création du graphique</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">${error.message || 'Une erreur inattendue s\'est produite'}</p>
+      </div>
+    `;
   }
 }
 
@@ -6403,69 +6403,80 @@ function exportRefs() {
 }
 
 function exportToExcel() {
-  // Préparer les données des patients
-  const sortBy = byId('sortPatients')?.value || 'name';
-  let sorted = [...state.patients];
-  
-  // Appliquer le tri actuel
-  if (sortBy === 'name') {
-    sorted.sort((a, b) => fullName(a).localeCompare(fullName(b)));
-  } else if (sortBy === 'recent') {
-    sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  } else if (sortBy === 'renewal') {
-    sorted.sort((a, b) => {
-      const dateA = parseDate(a.renewalDate);
-      const dateB = parseDate(b.renewalDate);
-      if (!dateA && !dateB) return 0;
-      if (!dateA) return 1;
-      if (!dateB) return -1;
-      return dateA - dateB;
+  try {
+    // Check if patients exist
+    if (!state.patients || state.patients.length === 0) {
+      showToast('Aucun patient à exporter', 'warning');
+      return;
+    }
+
+    // Préparer les données des patients
+    const sortBy = byId('sortPatients')?.value || 'name';
+    let sorted = [...state.patients];
+
+    // Appliquer le tri actuel
+    if (sortBy === 'name') {
+      sorted.sort((a, b) => fullName(a).localeCompare(fullName(b)));
+    } else if (sortBy === 'recent') {
+      sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } else if (sortBy === 'renewal') {
+      sorted.sort((a, b) => {
+        const dateA = parseDate(a.renewalDate);
+        const dateB = parseDate(b.renewalDate);
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        return dateA - dateB;
+      });
+    } else if (sortBy === 'doctor') {
+      sorted.sort((a, b) => (docName(a.docId) || 'ZZZ').localeCompare(docName(b.docId) || 'ZZZ'));
+    } else if (sortBy === 'center') {
+      sorted.sort((a, b) => (centerName(a.centerId) || 'ZZZ').localeCompare(centerName(b.centerId) || 'ZZZ'));
+    } else if (sortBy === 'protocol') {
+      sorted.sort((a, b) => (protoName(a.protoId) || 'ZZZ').localeCompare(protoName(b.protoId) || 'ZZZ'));
+    }
+
+    // Créer le CSV avec BOM pour Excel
+    const BOM = '\uFEFF';
+    let csv = BOM + 'Nom;Prénom;Date de naissance;Email;Téléphone;Adresse;Médecin;Centre;Matériel/Protocole;Date de renouvellement;Cycle;Notes\n';
+
+    sorted.forEach(p => {
+      const cycleInfo = getCycleFromDate(p.renewalDate);
+      const cycleLabel = cycleInfo ? `${cycleInfo.name} ${cycleInfo.year}` : '';
+
+      const row = [
+        p.lastName || '',
+        p.firstName || '',
+        p.dob || '',
+        p.email || '',
+        p.phone || '',
+        p.address || '',
+        docName(p.docId) || '',
+        centerName(p.centerId) || '',
+        protoName(p.protoId) || '',
+        p.renewalDate || '',
+        cycleLabel,
+        (p.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')
+      ];
+
+      csv += row.map(field => `"${field}"`).join(';') + '\n';
     });
-  } else if (sortBy === 'doctor') {
-    sorted.sort((a, b) => (docName(a.docId) || 'ZZZ').localeCompare(docName(b.docId) || 'ZZZ'));
-  } else if (sortBy === 'center') {
-    sorted.sort((a, b) => (centerName(a.centerId) || 'ZZZ').localeCompare(centerName(b.centerId) || 'ZZZ'));
-  } else if (sortBy === 'protocol') {
-    sorted.sort((a, b) => (protoName(a.protoId) || 'ZZZ').localeCompare(protoName(b.protoId) || 'ZZZ'));
+
+    // Créer le fichier et le télécharger
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `patients-nhc-care-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+    showToast(`✅ ${sorted.length} patient(s) exporté(s) vers Excel`, 'success');
+  } catch (error) {
+    console.error('Error exporting to Excel:', error);
+    showToast('❌ Erreur lors de l\'export Excel: ' + error.message, 'error');
   }
-  
-  // Créer le CSV avec BOM pour Excel
-  const BOM = '\uFEFF';
-  let csv = BOM + 'Nom;Prénom;Date de naissance;Email;Téléphone;Adresse;Médecin;Centre;Matériel/Protocole;Date de renouvellement;Cycle;Notes\n';
-  
-  sorted.forEach(p => {
-    const cycleInfo = getCycleFromDate(p.renewalDate);
-    const cycleLabel = cycleInfo ? `${cycleInfo.name} ${cycleInfo.year}` : '';
-    
-    const row = [
-      p.lastName || '',
-      p.firstName || '',
-      p.dob || '',
-      p.email || '',
-      p.phone || '',
-      p.address || '',
-      docName(p.docId) || '',
-      centerName(p.centerId) || '',
-      protoName(p.protoId) || '',
-      p.renewalDate || '',
-      cycleLabel,
-      (p.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')
-    ];
-    
-    csv += row.map(field => `"${field}"`).join(';') + '\n';
-  });
-  
-  // Créer le fichier et le télécharger
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `patients-nhc-care-${new Date().toISOString().split('T')[0]}.csv`;
-  a.click();
-  
-  URL.revokeObjectURL(url);
-  showToast(`${sorted.length} patient(s) exporté(s) vers Excel`, 'success');
 }
 
 // ===== Switch Management System =====
@@ -6542,7 +6553,33 @@ function saveSwitch() {
     showToast('Format de date invalide (JJ/MM/AAAA)', 'error');
     return;
   }
-  
+
+  // Validate date is a real date
+  const dateParts = formData.switchDate.split('/');
+  const day = parseInt(dateParts[0], 10);
+  const month = parseInt(dateParts[1], 10);
+  const year = parseInt(dateParts[2], 10);
+  const switchDate = new Date(year, month - 1, day);
+
+  if (isNaN(switchDate.getTime()) ||
+      switchDate.getDate() !== day ||
+      switchDate.getMonth() !== (month - 1) ||
+      switchDate.getFullYear() !== year) {
+    showToast('Date invalide. Vérifiez le jour, mois et année.', 'error');
+    return;
+  }
+
+  // Warn if date is more than 2 years in the past (except for completed switches)
+  if (formData.status !== 'completed') {
+    const twoYearsAgo = new Date();
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+    if (switchDate < twoYearsAgo) {
+      if (!confirm('⚠️ La date du switch est ancienne (> 2 ans). Êtes-vous sûr de vouloir continuer ?')) {
+        return;
+      }
+    }
+  }
+
   const patient = state.patients.find(p => p.id === formData.patientId);
   
   // Vérifier que le patient existe
@@ -9480,7 +9517,7 @@ function bindEvents() {
     reader.onload = () => {
       try {
         const parsed = JSON.parse(reader.result);
-        
+
         // Support both old and new backup formats
         let data;
         if (parsed.version && parsed.data) {
@@ -9491,7 +9528,26 @@ function bindEvents() {
           // Old format (direct data)
           data = parsed;
         }
-        
+
+        // Validate data structure
+        if (typeof data !== 'object' || data === null) {
+          throw new Error('Format de données invalide');
+        }
+
+        // Validate that arrays are actually arrays
+        const requiredFields = ['patients', 'docs', 'centers', 'protos', 'switches', 'appointments'];
+        for (const field of requiredFields) {
+          if (data[field] && !Array.isArray(data[field])) {
+            throw new Error(`Le champ '${field}' doit être un tableau`);
+          }
+        }
+
+        // Validate that at least one of the expected fields exists
+        const hasValidData = requiredFields.some(field => data[field] && Array.isArray(data[field]));
+        if (!hasValidData) {
+          throw new Error('Aucune donnée valide trouvée dans le fichier');
+        }
+
         if (confirm('Remplacer toutes les données ?')) {
           state = {
             patients: data.patients || [],
@@ -9503,11 +9559,15 @@ function bindEvents() {
           };
           saveDB();
           render();
-          showToast('Import réussi', 'success');
+          showToast('Import réussi !', 'success');
         }
       } catch (error) {
         console.error('Import error:', error);
-        showToast('Fichier invalide: ' + error.message, 'error');
+        if (error instanceof SyntaxError) {
+          showToast('❌ Fichier JSON invalide. Vérifiez le format du fichier.', 'error');
+        } else {
+          showToast('❌ ' + error.message, 'error');
+        }
       }
     };
     reader.readAsText(file);
@@ -9738,15 +9798,29 @@ async function exportCurrentCycleToPDF() {
     }
     
     showToast('Génération du PDF en cours...', 'info');
-    
+
     // Load jsPDF and autoTable if not already loaded
-    if (typeof window.jspdf === 'undefined') {
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    try {
+      if (typeof window.jspdf === 'undefined') {
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+        // Verify jsPDF loaded successfully
+        if (typeof window.jspdf === 'undefined') {
+          throw new Error('jsPDF n\'a pas pu être chargé');
+        }
+      }
+      if (typeof window.jspdf.jsPDF.API.autoTable === 'undefined') {
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js');
+        // Verify autoTable loaded successfully
+        if (typeof window.jspdf.jsPDF.API.autoTable === 'undefined') {
+          throw new Error('jsPDF autoTable n\'a pas pu être chargé');
+        }
+      }
+    } catch (scriptError) {
+      console.error('Error loading PDF libraries:', scriptError);
+      showToast('Impossible de charger les bibliothèques PDF. Vérifiez votre connexion internet.', 'error');
+      return;
     }
-    if (typeof window.jspdf.jsPDF.API.autoTable === 'undefined') {
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js');
-    }
-    
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({
       orientation: 'l',
@@ -10317,7 +10391,7 @@ window.state = state;
 
 // ===== Tutorial System =====
 let currentTutorialStep = 1;
-const totalTutorialSteps = 9;
+const totalTutorialSteps = 11;
 
 function startTutorial() {
   currentTutorialStep = 1;
@@ -10454,359 +10528,6 @@ window.CSV_FIELD_MAPPING = CSV_FIELD_MAPPING;
     <div class="tutorial-progress" id="tutorialProgress"></div>
     
     <div class="tutorial-content" id="tutorialContent">
-      <!-- Step 1: Page d'accueil / Bienvenue -->
-      <div class="tutorial-step active" data-step="1">
-        <div class="tutorial-step-number">🏠</div>
-        <h3>Bienvenue sur NHC Patient Manager</h3>
-        <p style="font-size: 1.1rem; margin-bottom: 2rem;">L'outil conçu pour gérer efficacement votre file active de patients.</p>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">📋</span>
-            À propos de cette application
-          </h4>
-          <p>Cette application vous permet de centraliser la gestion des <strong>patients</strong>, <strong>ordonnances</strong>, <strong>rendez-vous</strong> et <strong>switchs de pompe</strong>, tout en assurant la sauvegarde automatique de vos données et la mise à jour du logiciel.</p>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">🗺️</span>
-            Les grandes sections de l'application
-          </h4>
-          <ul>
-            <li><strong>🧭 Tableau de bord</strong> - Vue synthétique de votre activité</li>
-            <li><strong>👩‍⚕️ Patients</strong> - Gestion complète de votre file active</li>
-            <li><strong>📜 Ordonnances</strong> - Suivi par cycles et renouvellements</li>
-            <li><strong>🔄 Switch de pompe</strong> - Planification et gestion des changements</li>
-            <li><strong>📅 Suivi et rendez-vous</strong> - Organisation de vos consultations</li>
-            <li><strong>💾 Import / Export</strong> - Sauvegarde et migration des données</li>
-            <li><strong>⚙️ Mise à jour</strong> - Évolution continue du logiciel</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-tip">
-          <strong>⚡ Actions rapides</strong>
-          <p>L'application propose un bouton <strong>"Actions rapides"</strong> pour accéder instantanément aux fonctions clés comme le <strong>FastCheck Ordonnances</strong> qui vérifie la validité de toutes vos ordonnances en un clic !</p>
-        </div>
-      </div>
-      
-      <!-- Step 2: Tableau de bord -->
-      <div class="tutorial-step" data-step="2">
-        <div class="tutorial-step-number">🧭</div>
-        <h3>Tableau de bord - Vue d'ensemble</h3>
-        <p>Le tableau de bord est votre point de départ. Il vous donne une vision synthétique de votre activité et de la qualité de votre suivi.</p>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">📊</span>
-            Indicateurs principaux
-          </h4>
-          <ul>
-            <li><strong>Nombre total de patients</strong> dans votre file active</li>
-            <li><strong>Ordonnances à valider</strong> dans le cycle en cours</li>
-            <li><strong>Score moyen</strong> (qualité des données patients)</li>
-            <li><strong>Nombre de protocoles actifs</strong></li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">📅</span>
-            Suivis à venir
-          </h4>
-          <p>Liste des suivis patients prévus dans le mois et des ordonnances à renouveler prochainement</p>
-        </div>
-        
-        <div class="tutorial-tip">
-          <strong>💡 Astuce</strong>
-          <p>Le tableau de bord sert de <strong>synthèse rapide</strong> de votre activité et de la qualité de suivi. Consultez-le régulièrement pour ne rien manquer !</p>
-        </div>
-      </div>
-      
-      <!-- Step 3: Patients -->
-      <div class="tutorial-step" data-step="3">
-        <div class="tutorial-step-number">👩‍⚕️</div>
-        <h3>Patients - Gérer votre file active</h3>
-        <p>La section Patients centralise toutes les informations de votre file active avec des outils puissants de filtrage et d'export.</p>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">📋</span>
-            Vue complète de vos patients
-          </h4>
-          <p>Visualisez tous vos patients avec possibilité de :</p>
-          <ul>
-            <li><strong>Filtrer</strong> par médecin, centre, protocole, etc.</li>
-            <li><strong>Trier</strong> selon différents critères</li>
-            <li><strong>Exporter</strong> après filtrage pour vos rapports</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">➕</span>
-            Ajouter des patients
-          </h4>
-          <ul>
-            <li><strong>Ajout manuel</strong> via "Nouveau patient"</li>
-            <li><strong>Import global</strong> via un tableau CSV existant (pour récupérer vos données précédentes)</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-tip">
-          <strong>💡 Conseil</strong>
-          <p>Il est possible d'<strong>importer un tableau déjà existant</strong> pour éviter de repartir de zéro. Préparez votre fichier CSV et utilisez la fonction d'import !</p>
-        </div>
-      </div>
-      
-      <!-- Step 4: Ordonnances -->
-      <div class="tutorial-step" data-step="4">
-        <div class="tutorial-step-number">📜</div>
-        <h3>Ordonnances - Gestion par cycles</h3>
-        <p>La section Ordonnances est essentielle pour assurer un suivi fiable. Elle organise vos ordonnances par cycles.</p>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">🔄</span>
-            Cycles d'ordonnances
-          </h4>
-          <p>Vue complète des ordonnances organisées par :</p>
-          <ul>
-            <li><strong>Cycle 1, 2, 3</strong> avec navigation entre les années</li>
-            <li>Distinction visuelle claire selon le statut</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">🎨</span>
-            Codes couleur
-          </h4>
-          <ul>
-            <li><strong style="color: #f59e0b;">Orange</strong> - Ordonnances à renouveler (cycle en cours)</li>
-            <li><strong style="color: #ef4444;">Rouge</strong> - Ordonnances expirées</li>
-            <li><strong style="color: #10b981;">Vert</strong> - Ordonnances en règle</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">✓</span>
-            Renouvellement rapide
-          </h4>
-          <p>Possibilité de renouveler une ordonnance directement depuis cette page - cela met automatiquement à jour la fiche patient !</p>
-        </div>
-        
-        <div class="tutorial-tip">
-          <strong>⚡ FastCheck Ordonnances</strong>
-          <p>Cette page est essentielle à la fiabilité du suivi. Le <strong>FastCheck Ordonnances</strong> (accessible via Actions rapides) vous renvoie directement ici pour une correction rapide des dates manquantes ou incorrectes.</p>
-        </div>
-      </div>
-      
-      <!-- Step 5: Switch de pompe -->
-      <div class="tutorial-step" data-step="5">
-        <div class="tutorial-step-number">🔄</div>
-        <h3>Switch de pompe - Planification et gestion</h3>
-        <p>La section Switch vous permet de planifier et suivre tous les changements de pompe à insuline.</p>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">📆</span>
-            Timeline des switchs
-          </h4>
-          <p>Vue chronologique sur <strong>3 mois glissants</strong> (1 mois avant, 2 mois après) :</p>
-          <ul>
-            <li>Switchs passés</li>
-            <li>Switchs à venir</li>
-            <li>Codes couleur selon l'urgence</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">➕</span>
-            Planifier un switch
-          </h4>
-          <ul>
-            <li>Définir la date du changement</li>
-            <li>Sélectionner l'ancien et le nouveau protocole</li>
-            <li>Ajouter des notes si nécessaire</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">✅</span>
-            Validation automatique
-          </h4>
-          <p>Après validation d'un switch :</p>
-          <ul>
-            <li>Mise à jour automatique de la fiche patient</li>
-            <li>Réinitialisation du cycle d'ordonnance correspondant</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-tip">
-          <strong>💡 Important</strong>
-          <p>Un switch effectué implique un <strong>renouvellement d'ordonnance à prévoir</strong>. Pensez à mettre à jour les dates dans la section Ordonnances !</p>
-        </div>
-      </div>
-      
-      <!-- Step 6: Suivi & Rendez-vous -->
-      <div class="tutorial-step" data-step="6">
-        <div class="tutorial-step-number">📅</div>
-        <h3>Suivi & Rendez-vous - Organisation des consultations</h3>
-        <p>Gérez efficacement les suivis patients et les rendez-vous dans le temps.</p>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">➕</span>
-            Créer un rendez-vous
-          </h4>
-          <ul>
-            <li>Sélectionner le patient et la date</li>
-            <li>Choisir le type (consultation, formation, suivi)</li>
-            <li>Ajouter des notes</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">✓</span>
-            Valider un suivi
-          </h4>
-          <p>Une fois le suivi effectué :</p>
-          <ul>
-            <li>Marquer le rendez-vous comme "Effectué"</li>
-            <li>Reprogrammer le prochain rendez-vous immédiatement</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">📞</span>
-            Liste "À rappeler"
-          </h4>
-          <p>Si la date exacte n'est pas connue : saisissez le <strong>mois de suivi prévu</strong> → le patient apparaîtra dans la liste "À rappeler" pour planification ultérieure.</p>
-        </div>
-        
-        <div class="tutorial-tip">
-          <strong>💡 Logique de suivi</strong>
-          <p><strong>Planifier → Valider → Reprogrammer</strong> : c'est la base du suivi patient efficace !</p>
-        </div>
-      </div>
-      
-      <!-- Step 7: Import / Export & Sauvegarde -->
-      <div class="tutorial-step" data-step="7">
-        <div class="tutorial-step-number">💾</div>
-        <h3>Import / Export & Sauvegarde automatique</h3>
-        <p>Garantissez la sécurité et la continuité de vos données avec les outils d'import/export et la sauvegarde automatique.</p>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">📥</span>
-            Deux modes d'import
-          </h4>
-          <ul>
-            <li><strong>Ajout manuel</strong> - Saisie patient par patient</li>
-            <li><strong>Import global via CSV</strong> - Pour récupérer une base existante ou importer en masse</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">📤</span>
-            Export intelligent
-          </h4>
-          <p>Export possible <strong>après filtrage</strong> - extrayez uniquement les données dont vous avez besoin pour vos rapports.</p>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">🔒</span>
-            Sauvegarde automatique
-          </h4>
-          <p>Une fois activée, la sauvegarde se met à jour <strong>à chaque modification</strong>, garantissant :</p>
-          <ul>
-            <li>Récupération des données en cas de bug</li>
-            <li>Continuité même en changeant d'ordinateur</li>
-            <li>Sérénité totale</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-tip">
-          <strong>🔐 Sécurité</strong>
-          <p>Configurez la sauvegarde automatique dès maintenant dans la section Import/Export pour ne jamais perdre vos données !</p>
-        </div>
-      </div>
-      
-      <!-- Step 8: Mise à jour -->
-      <div class="tutorial-step" data-step="8">
-        <div class="tutorial-step-number">⚙️</div>
-        <h3>Mise à jour - Maintenir l'application à jour</h3>
-        <p>La section Mise à jour vous permet de bénéficier des dernières évolutions du logiciel.</p>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">🔄</span>
-            Téléchargement des nouvelles versions
-          </h4>
-          <p>Accédez facilement aux mises à jour du logiciel depuis cette section.</p>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">✨</span>
-            Mises à jour régulières
-          </h4>
-          <p>Chaque mise à jour apporte :</p>
-          <ul>
-            <li><strong>Nouvelles fonctionnalités</strong> - Pour améliorer votre productivité</li>
-            <li><strong>Correctifs</strong> - Pour une application stable et fiable</li>
-            <li><strong>Améliorations visuelles</strong> - Pour une meilleure expérience</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-tip">
-          <strong>💡 Conseil</strong>
-          <p>Vérifiez régulièrement cette page pour ne pas manquer les nouveautés et améliorations !</p>
-        </div>
-      </div>
-      
-      <!-- Step 9: Conclusion -->
-      <div class="tutorial-step" data-step="9">
-        <div class="tutorial-step-number">🎉</div>
-        <h3>Félicitations ! Vous êtes prêt</h3>
-        <p style="font-size: 1.1rem; margin-bottom: 2rem;">Vous êtes désormais prêt à utiliser <strong>NHC Patient Manager</strong> pour gérer efficacement votre file active de patients.</p>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">🚀</span>
-            Commencez dès maintenant
-          </h4>
-          <ul>
-            <li>Configurez vos référentiels (protocoles, médecins, centres)</li>
-            <li>Importez vos patients existants ou créez-en de nouveaux</li>
-            <li>Activez la sauvegarde automatique</li>
-            <li>Explorez le tableau de bord et les différentes sections</li>
-          </ul>
-        </div>
-        
-        <div class="tutorial-feature">
-          <h4>
-            <span class="tutorial-feature-icon">💡</span>
-            Besoin d'aide ?
-          </h4>
-          <p>Ce tutoriel est accessible à tout moment depuis le menu <strong>Aide / Tutoriel</strong>. N'hésitez pas à le relancer si besoin !</p>
-        </div>
-        
-        <div style="text-align: center; padding: 2rem 0; margin-top: 2rem; background: var(--bg-tertiary); border-radius: var(--radius-lg);">
-          <div style="font-size: 4rem; margin-bottom: 1rem;">🎊</div>
-          <p style="font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">Excellente utilisation !</p>
-          <p style="color: var(--text-secondary);">Cliquez sur "Terminer" pour commencer</p>
-        </div>
-      </div>
-    </div>
       <div class="tutorial-step active" data-step="1">
         <div class="tutorial-step-number">1</div>
         <h3>👋 Présentation de l'application</h3>
@@ -11209,7 +10930,7 @@ window.CSV_FIELD_MAPPING = CSV_FIELD_MAPPING;
         </label>
       </div>
       <div class="tutorial-step-indicator">
-        <span id="currentStepNum">1</span> / <span id="totalSteps">9</span>
+        <span id="currentStepNum">1</span> / <span id="totalSteps">11</span>
       </div>
       <div class="tutorial-nav-buttons">
         <button class="btn btn-secondary" id="tutorialPrevBtn" onclick="previousTutorialStep()">
