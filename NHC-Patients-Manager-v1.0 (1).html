@@ -3803,37 +3803,53 @@ body {
 (function() {
   const UPDATE_KEY = 'nhc-care-update';
   const shouldApply = localStorage.getItem('nhc-apply-update-on-load');
-  
+
   if (!shouldApply) return;
-  
+
   const savedUpdate = localStorage.getItem(UPDATE_KEY);
   if (!savedUpdate) {
+    console.warn('⚠️ Update flag set but no update data found');
     localStorage.removeItem('nhc-apply-update-on-load');
     return;
   }
-  
+
   try {
     const updateData = JSON.parse(savedUpdate);
-    
+
     // Remove the flag first to avoid infinite reload loop
     localStorage.removeItem('nhc-apply-update-on-load');
-    
+
     if (updateData.fullHTML) {
-      console.log(`Applying complete HTML replacement for version ${updateData.version}`);
-      
+      console.log(`🔄 Applying complete HTML replacement for version ${updateData.version}`);
+
+      // Validate that the HTML contains the expected version
+      const versionMatch = updateData.fullHTML.match(/<title>.*?v(\d+\.\d+\.\d+).*?<\/title>/);
+      const htmlVersion = versionMatch ? versionMatch[1] : 'Unknown';
+      console.log(`📦 HTML version detected: ${htmlVersion}`);
+
+      if (htmlVersion === 'Unknown') {
+        console.error('❌ Could not detect version in update HTML');
+        alert('⚠️ Erreur: Impossible de détecter la version dans la mise à jour. L\'installation a été annulée.');
+        return;
+      }
+
       // Save a marker that update was applied
       localStorage.setItem('nhc-update-applied', updateData.version);
-      
+      console.log(`✅ Update marker saved: ${updateData.version}`);
+
       // Replace the ENTIRE document with the new HTML
       document.open();
       document.write(updateData.fullHTML);
       document.close();
-      
+
       // The page will now load with the new HTML
       // This code will not continue executing
+    } else {
+      console.error('❌ No fullHTML in update data');
     }
   } catch (error) {
-    console.error('Error applying update:', error);
+    console.error('❌ Error applying update:', error);
+    alert('⚠️ Erreur lors de l\'application de la mise à jour: ' + error.message);
     localStorage.removeItem('nhc-apply-update-on-load');
   }
 })();
@@ -11187,8 +11203,16 @@ async function checkUpdatesViaJson() {
     };
 
     // Show update details
-    byId('updateInfo').style.display = 'block';
-    byId('updateDetails').textContent = `Version distante: ${remoteVersion}\nVersion actuelle: ${APP_VERSION}\nFichier: ${versionData.fileName}\nTaille: ${(pendingUpdate.fileSize / 1024).toFixed(2)} KB\nDate: ${versionData.releaseDate || 'N/A'}${releaseNotes}\n\n✨ Une nouvelle version est disponible !`;
+    const updateInfoEl = byId('updateInfo');
+    const updateDetailsEl = byId('updateDetails');
+
+    if (updateInfoEl) {
+      updateInfoEl.style.display = 'block';
+    }
+
+    if (updateDetailsEl) {
+      updateDetailsEl.textContent = `Version distante: ${remoteVersion}\nVersion actuelle: ${APP_VERSION}\nFichier: ${versionData.fileName}\nTaille: ${(pendingUpdate.fileSize / 1024).toFixed(2)} KB\nDate: ${versionData.releaseDate || 'N/A'}${releaseNotes}\n\n✨ Une nouvelle version est disponible !`;
+    }
 
     showToast(`✨ Nouvelle version disponible: v${remoteVersion}`, 'success');
   } else if (comparison === 0) {
@@ -11254,8 +11278,16 @@ async function checkUpdatesViaHtml() {
     };
 
     // Show update details
-    byId('updateInfo').style.display = 'block';
-    byId('updateDetails').textContent = `Version distante: ${remoteVersion}\nVersion actuelle: ${APP_VERSION}\nTaille: ${(pendingUpdate.fileSize / 1024).toFixed(2)} KB\n\n✨ Une nouvelle version est disponible !`;
+    const updateInfoEl = byId('updateInfo');
+    const updateDetailsEl = byId('updateDetails');
+
+    if (updateInfoEl) {
+      updateInfoEl.style.display = 'block';
+    }
+
+    if (updateDetailsEl) {
+      updateDetailsEl.textContent = `Version distante: ${remoteVersion}\nVersion actuelle: ${APP_VERSION}\nTaille: ${(pendingUpdate.fileSize / 1024).toFixed(2)} KB\n\n✨ Une nouvelle version est disponible !`;
+    }
 
     showToast(`✨ Nouvelle version disponible: v${remoteVersion}`, 'success');
   } else if (comparison === 0) {
@@ -11357,15 +11389,35 @@ async function installGithubUpdate() {
 // Legacy install method (localStorage replacement)
 function installUpdateLegacy() {
   if (!pendingUpdate || !pendingUpdate.fullHTML) {
+    console.error('❌ No pending update or HTML content');
+    showToast('❌ Aucune mise à jour disponible', 'error');
     return;
   }
 
   try {
+    console.log(`📦 Installing update v${pendingUpdate.version} (legacy mode)`);
+
+    // Validate the HTML before saving
+    const versionMatch = pendingUpdate.fullHTML.match(/<title>.*?v(\d+\.\d+\.\d+).*?<\/title>/);
+    const htmlVersion = versionMatch ? versionMatch[1] : null;
+
+    if (!htmlVersion) {
+      throw new Error('Impossible de détecter la version dans le fichier HTML');
+    }
+
+    if (htmlVersion !== pendingUpdate.version) {
+      console.warn(`⚠️ Version mismatch: expected ${pendingUpdate.version} but found ${htmlVersion}`);
+    }
+
+    console.log(`✅ HTML validated: version ${htmlVersion}`);
+
     // Save the COMPLETE new HTML for replacement on next load
     localStorage.setItem(UPDATE_KEY, JSON.stringify(pendingUpdate));
+    console.log('✅ Update data saved to localStorage');
 
     // Mark that we need to apply update on next load
     localStorage.setItem('nhc-apply-update-on-load', 'true');
+    console.log('✅ Update flag set');
 
     // Save backup
     const backup = {
@@ -11373,6 +11425,7 @@ function installUpdateLegacy() {
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('nhc-care-update-backup', JSON.stringify(backup));
+    console.log(`✅ Backup saved for version ${APP_VERSION}`);
 
     // Add to history
     const history = JSON.parse(localStorage.getItem(UPDATE_HISTORY_KEY) || '[]');
@@ -11384,14 +11437,16 @@ function installUpdateLegacy() {
     });
     if (history.length > 10) history.pop();
     localStorage.setItem(UPDATE_HISTORY_KEY, JSON.stringify(history));
+    console.log('✅ Update history saved');
 
     showToast('✅ Mise à jour installée ! Rechargement...', 'success');
 
+    console.log('🔄 Reloading page to apply update...');
     setTimeout(() => {
       window.location.reload();
     }, 1500);
   } catch (error) {
-    console.error('Error installing update:', error);
+    console.error('❌ Error installing update:', error);
     showToast('❌ Erreur lors de l\'installation: ' + error.message, 'error');
   }
 }
@@ -11467,12 +11522,23 @@ function handleUpdateFileSelect(event) {
       };
       
       pendingUpdate = updateData;
-      
+
       // Show update info
-      byId('updateInfo').style.display = 'block';
-      byId('updateDetails').textContent = `Version: ${version}\nChargée le: ${new Date().toLocaleString('fr-FR')}\nTaille: ${(content.length / 1024).toFixed(2)} KB\n\n⚠️ Cette mise à jour remplacera complètement l'application.\nVos données seront préservées.`;
-      
-      byId('btnInstallUpdate').style.display = 'inline-flex';
+      const updateInfoEl = byId('updateInfo');
+      const updateDetailsEl = byId('updateDetails');
+      const btnInstallEl = byId('btnInstallUpdate');
+
+      if (updateInfoEl) {
+        updateInfoEl.style.display = 'block';
+      }
+
+      if (updateDetailsEl) {
+        updateDetailsEl.textContent = `Version: ${version}\nChargée le: ${new Date().toLocaleString('fr-FR')}\nTaille: ${(content.length / 1024).toFixed(2)} KB\n\n⚠️ Cette mise à jour remplacera complètement l'application.\nVos données seront préservées.`;
+      }
+
+      if (btnInstallEl) {
+        btnInstallEl.style.display = 'inline-flex';
+      }
       
       showToast(`Mise à jour v${version} chargée avec succès !`, 'success');
     } catch (error) {
