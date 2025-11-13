@@ -3148,17 +3148,20 @@ body {
         </div>
         <div class="card-body">
           <div class="alert alert-info mb-3">
-            <strong>ℹ️ Mise à jour automatique via GitHub</strong><br>
-            Configurez votre dépôt GitHub pour recevoir automatiquement les mises à jour. L'application vérifiera les nouvelles versions depuis les releases GitHub et pourra se mettre à jour en un clic.
+            <strong>ℹ️ Mise à jour automatique via GitHub RAW</strong><br>
+            Configurez l'URL RAW de votre fichier HTML sur GitHub. L'application téléchargera automatiquement la dernière version et pourra se mettre à jour en un clic. Vos données sont toujours préservées.
           </div>
 
           <!-- GitHub Configuration -->
           <div class="mb-4">
-            <h4>⚙️ Configuration GitHub</h4>
+            <h4>⚙️ Configuration de mise à jour</h4>
             <div class="form-group">
-              <label for="githubRepoUrl">URL du dépôt GitHub</label>
-              <input type="text" id="githubRepoUrl" class="form-control" placeholder="https://github.com/username/repository" value="">
-              <small class="text-muted">Ex: https://github.com/maouex/NHC-Patients-Manager</small>
+              <label for="githubRawUrl">URL RAW du fichier HTML sur GitHub</label>
+              <input type="text" id="githubRawUrl" class="form-control" placeholder="https://raw.githubusercontent.com/..." value="">
+              <small class="text-muted">
+                Ex: https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/NHC-Patients-Manager.html<br>
+                💡 Pour obtenir l'URL RAW : Ouvrez votre fichier HTML sur GitHub → Cliquez sur "Raw" → Copiez l'URL
+              </small>
             </div>
             <div class="form-group mt-2">
               <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
@@ -10958,7 +10961,7 @@ const GITHUB_CONFIG_KEY = 'nhc-github-config';
 
 let pendingUpdate = null;
 let githubConfig = {
-  repoUrl: '',
+  rawUrl: '',
   autoCheck: false
 };
 
@@ -10969,9 +10972,9 @@ function loadGithubConfig() {
     if (stored) {
       githubConfig = JSON.parse(stored);
       // Update UI
-      const urlInput = byId('githubRepoUrl');
+      const urlInput = byId('githubRawUrl');
       const autoCheckbox = byId('autoCheckUpdates');
-      if (urlInput) urlInput.value = githubConfig.repoUrl || '';
+      if (urlInput) urlInput.value = githubConfig.rawUrl || '';
       if (autoCheckbox) autoCheckbox.checked = githubConfig.autoCheck || false;
     }
   } catch (e) {
@@ -10981,39 +10984,26 @@ function loadGithubConfig() {
 
 // Save GitHub configuration
 function saveGithubConfig() {
-  const urlInput = byId('githubRepoUrl');
+  const urlInput = byId('githubRawUrl');
   const autoCheckbox = byId('autoCheckUpdates');
 
   if (!urlInput) return;
 
   const url = urlInput.value.trim();
 
-  // Validate GitHub URL
-  if (url && !url.match(/^https?:\/\/(www\.)?github\.com\/[\w-]+\/[\w-]+\/?$/)) {
-    showToast('❌ URL GitHub invalide. Format attendu: https://github.com/username/repository', 'error');
+  // Validate GitHub RAW URL
+  if (url && !url.match(/^https?:\/\/raw\.githubusercontent\.com\/.+\.html$/)) {
+    showToast('❌ URL RAW invalide. Format attendu: https://raw.githubusercontent.com/username/repo/branch/file.html', 'error');
     return;
   }
 
   githubConfig = {
-    repoUrl: url,
+    rawUrl: url,
     autoCheck: autoCheckbox ? autoCheckbox.checked : false
   };
 
   localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(githubConfig));
-  showToast('✅ Configuration GitHub enregistrée !', 'success');
-}
-
-// Parse GitHub repo URL to get owner and repo name
-function parseGithubUrl(url) {
-  if (!url) return null;
-  const match = url.match(/github\.com\/([\w-]+)\/([\w-]+)/);
-  if (match) {
-    return {
-      owner: match[1],
-      repo: match[2]
-    };
-  }
-  return null;
+  showToast('✅ Configuration enregistrée !', 'success');
 }
 
 // Compare versions (semver)
@@ -11028,36 +11018,56 @@ function compareVersions(v1, v2) {
   return 0;
 }
 
-// Check for updates via GitHub API
-async function checkGithubUpdates() {
-  if (!githubConfig.repoUrl) {
-    showToast('⚠️ Veuillez d\'abord configurer l\'URL du dépôt GitHub', 'warning');
-    return;
+// Extract version from HTML content
+function extractVersionFromHTML(htmlContent) {
+  // Try to extract from title tag
+  const titleMatch = htmlContent.match(/<title>.*?v?(\d+\.\d+\.\d+).*?<\/title>/i);
+  if (titleMatch) {
+    return titleMatch[1];
   }
 
-  const repoInfo = parseGithubUrl(githubConfig.repoUrl);
-  if (!repoInfo) {
-    showToast('❌ URL GitHub invalide', 'error');
+  // Try to extract from APP_VERSION constant
+  const versionMatch = htmlContent.match(/const\s+APP_VERSION\s*=\s*['"](\d+\.\d+\.\d+)['"]/);
+  if (versionMatch) {
+    return versionMatch[1];
+  }
+
+  return null;
+}
+
+// Check for updates via GitHub RAW URL
+async function checkGithubUpdates() {
+  if (!githubConfig.rawUrl) {
+    showToast('⚠️ Veuillez d\'abord configurer l\'URL RAW du fichier HTML', 'warning');
     return;
   }
 
   try {
     showToast('🔍 Vérification des mises à jour...', 'info');
 
-    // Fetch latest release from GitHub API
-    const response = await fetch(`https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/releases/latest`);
+    // Fetch the HTML file directly from RAW URL
+    const response = await fetch(githubConfig.rawUrl + '?t=' + Date.now()); // Add timestamp to bypass cache
 
     if (!response.ok) {
-      if (response.status === 404) {
-        showToast('❌ Aucune release trouvée sur ce dépôt GitHub', 'error');
-      } else {
-        showToast('❌ Erreur lors de la vérification: ' + response.statusText, 'error');
-      }
+      showToast('❌ Erreur lors de la récupération: ' + response.statusText, 'error');
       return;
     }
 
-    const release = await response.json();
-    const latestVersion = release.tag_name.replace(/^v/, ''); // Remove 'v' prefix if present
+    const htmlContent = await response.text();
+
+    // Verify it's valid HTML
+    if (!htmlContent.includes('<!DOCTYPE html') && !htmlContent.includes('<html')) {
+      showToast('❌ Le fichier récupéré n\'est pas un fichier HTML valide', 'error');
+      return;
+    }
+
+    // Extract version from the downloaded HTML
+    const remoteVersion = extractVersionFromHTML(htmlContent);
+
+    if (!remoteVersion) {
+      showToast('❌ Impossible d\'extraire la version du fichier distant', 'error');
+      return;
+    }
 
     // Update last check time
     const lastCheckEl = byId('lastUpdateCheck');
@@ -11065,43 +11075,38 @@ async function checkGithubUpdates() {
       lastCheckEl.textContent = new Date().toLocaleString('fr-FR');
     }
 
+    console.log(`📊 Version comparison: Remote=${remoteVersion} vs Local=${APP_VERSION}`);
+
     // Compare versions
-    const comparison = compareVersions(latestVersion, APP_VERSION);
+    const comparison = compareVersions(remoteVersion, APP_VERSION);
 
     if (comparison > 0) {
       // New version available
-      byId('availableVersion').textContent = 'v' + latestVersion;
+      byId('availableVersion').textContent = 'v' + remoteVersion;
       byId('updateAvailableNotice').style.display = 'block';
       byId('btnDownloadUpdate').style.display = 'inline-flex';
 
-      // Find HTML asset in release
-      const htmlAsset = release.assets.find(asset => asset.name.endsWith('.html'));
+      // Store update info
+      pendingUpdate = {
+        version: remoteVersion,
+        downloadUrl: githubConfig.rawUrl,
+        fullHTML: htmlContent,
+        fileSize: new Blob([htmlContent]).size
+      };
 
-      if (htmlAsset) {
-        // Store update info
-        pendingUpdate = {
-          version: latestVersion,
-          downloadUrl: htmlAsset.browser_download_url,
-          releaseNotes: release.body || 'Pas de notes de version',
-          publishedAt: release.published_at,
-          assetName: htmlAsset.name,
-          assetSize: htmlAsset.size
-        };
+      // Show update details
+      byId('updateInfo').style.display = 'block';
+      byId('updateDetails').textContent = `Version distante: ${remoteVersion}\nVersion actuelle: ${APP_VERSION}\nTaille: ${(pendingUpdate.fileSize / 1024).toFixed(2)} KB\n\n✨ Une nouvelle version est disponible !`;
 
-        // Show update details
-        byId('updateInfo').style.display = 'block';
-        byId('updateDetails').textContent = `Version: ${latestVersion}\nPubliée le: ${new Date(release.published_at).toLocaleString('fr-FR')}\nTaille: ${(htmlAsset.size / 1024).toFixed(2)} KB\n\nNotes de version:\n${release.body || 'Aucune note'}`;
-
-        showToast(`✨ Nouvelle version disponible: v${latestVersion}`, 'success');
-      } else {
-        showToast('⚠️ Nouvelle version trouvée mais aucun fichier HTML attaché à la release', 'warning');
-      }
+      showToast(`✨ Nouvelle version disponible: v${remoteVersion}`, 'success');
     } else if (comparison === 0) {
-      showToast('✅ Vous utilisez la dernière version', 'success');
+      showToast('✅ Vous utilisez déjà la dernière version', 'success');
       byId('updateAvailableNotice').style.display = 'none';
       byId('btnDownloadUpdate').style.display = 'none';
     } else {
-      showToast('ℹ️ Votre version est plus récente que la dernière release', 'info');
+      showToast('ℹ️ Votre version locale est plus récente que celle sur GitHub', 'info');
+      byId('updateAvailableNotice').style.display = 'none';
+      byId('btnDownloadUpdate').style.display = 'none';
     }
   } catch (error) {
     console.error('Error checking GitHub updates:', error);
@@ -11109,41 +11114,19 @@ async function checkGithubUpdates() {
   }
 }
 
-// Download update from GitHub
+// Download update from GitHub (already done in check, this just confirms)
 async function downloadGithubUpdate() {
-  if (!pendingUpdate || !pendingUpdate.downloadUrl) {
-    showToast('❌ Aucune mise à jour à télécharger', 'error');
+  if (!pendingUpdate || !pendingUpdate.fullHTML) {
+    showToast('❌ Aucune mise à jour disponible', 'error');
     return;
   }
 
-  try {
-    showToast('⬇️ Téléchargement de la mise à jour...', 'info');
+  // The HTML is already downloaded in checkGithubUpdates
+  showToast('✅ Mise à jour prête à être installée !', 'success');
 
-    const response = await fetch(pendingUpdate.downloadUrl);
-    if (!response.ok) {
-      throw new Error('Erreur lors du téléchargement: ' + response.statusText);
-    }
-
-    const content = await response.text();
-
-    // Verify it's valid HTML
-    if (!content.includes('<!DOCTYPE html') && !content.includes('<html')) {
-      throw new Error('Le fichier téléchargé n\'est pas un fichier HTML valide');
-    }
-
-    // Store the full HTML content
-    pendingUpdate.fullHTML = content;
-
-    showToast('✅ Mise à jour téléchargée avec succès !', 'success');
-
-    // Show install button
-    byId('btnInstallUpdate').style.display = 'inline-flex';
-    byId('btnDownloadUpdate').style.display = 'none';
-
-  } catch (error) {
-    console.error('Error downloading update:', error);
-    showToast('❌ Erreur lors du téléchargement: ' + error.message, 'error');
-  }
+  // Show install button
+  byId('btnInstallUpdate').style.display = 'inline-flex';
+  byId('btnDownloadUpdate').style.display = 'none';
 }
 
 // Install update and replace local file
@@ -11505,7 +11488,7 @@ function init() {
   byId('currentVersion').textContent = 'v' + APP_VERSION;
 
   // Check for GitHub updates automatically if enabled
-  if (githubConfig.autoCheck && githubConfig.repoUrl) {
+  if (githubConfig.autoCheck && githubConfig.rawUrl) {
     setTimeout(() => {
       checkGithubUpdates();
     }, 2000); // Delay 2 seconds to not slow down initial load
