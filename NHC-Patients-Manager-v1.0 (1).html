@@ -3148,11 +3148,32 @@ body {
         </div>
         <div class="card-body">
           <div class="alert alert-info mb-3">
-            <strong>ℹ️ Comment ça marche ?</strong><br>
-            Lorsque vous recevez un fichier HTML de mise à jour par email, cliquez sur "Charger mise à jour" et sélectionnez le nouveau fichier. 
-            L'application se mettra à jour automatiquement sans remplacer votre fichier actuel, et toutes vos données seront préservées.
+            <strong>ℹ️ Mise à jour automatique via GitHub</strong><br>
+            Configurez votre dépôt GitHub pour recevoir automatiquement les mises à jour. L'application vérifiera les nouvelles versions depuis les releases GitHub et pourra se mettre à jour en un clic.
           </div>
-          
+
+          <!-- GitHub Configuration -->
+          <div class="mb-4">
+            <h4>⚙️ Configuration GitHub</h4>
+            <div class="form-group">
+              <label for="githubRepoUrl">URL du dépôt GitHub</label>
+              <input type="text" id="githubRepoUrl" class="form-control" placeholder="https://github.com/username/repository" value="">
+              <small class="text-muted">Ex: https://github.com/maouex/NHC-Patients-Manager</small>
+            </div>
+            <div class="form-group mt-2">
+              <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="checkbox" id="autoCheckUpdates" style="cursor: pointer;">
+                <span>Vérifier automatiquement les mises à jour au démarrage</span>
+              </label>
+            </div>
+            <button class="btn btn-primary mt-2" id="btnSaveGithubConfig">
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+              </svg>
+              Enregistrer la configuration
+            </button>
+          </div>
+
           <div class="mb-3">
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius-md);">
               <div>
@@ -3174,36 +3195,27 @@ body {
           </div>
           
           <div class="form-grid">
-            <button class="btn btn-primary" id="btnLoadUpdate">
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-              </svg>
-              Charger mise à jour
-            </button>
-            
-            <button class="btn btn-success" id="btnInstallUpdate" style="display: none;">
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-              </svg>
-              Installer la mise à jour
-            </button>
-            
-            <button class="btn btn-warning" id="btnRollback" style="display: none;">
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
-              </svg>
-              Revenir à la version précédente
-            </button>
-            
-            <button class="btn btn-secondary" id="btnCheckUpdate">
+            <button class="btn btn-primary" id="btnCheckUpdate">
               <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
               </svg>
               Vérifier les mises à jour
             </button>
+
+            <button class="btn btn-success" id="btnDownloadUpdate" style="display: none;">
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+              Télécharger la mise à jour
+            </button>
+
+            <button class="btn btn-primary" id="btnInstallUpdate" style="display: none;">
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+              </svg>
+              Installer et remplacer le fichier
+            </button>
           </div>
-          
-          <input type="file" id="updateFileInput" accept=".html" style="display: none;">
           
           <div class="mt-4" id="updateInfo" style="display: none;">
             <h4>📋 Informations sur la mise à jour</h4>
@@ -10579,16 +10591,10 @@ function bindEvents() {
   });
   
   // Update system events
-  byId('btnLoadUpdate')?.addEventListener('click', loadUpdateFile);
-  byId('updateFileInput')?.addEventListener('change', handleUpdateFileSelect);
-  byId('btnInstallUpdate')?.addEventListener('click', installUpdate);
-  byId('btnRollback')?.addEventListener('click', rollbackUpdate);
-  byId('btnCheckUpdate')?.addEventListener('click', () => {
-    byId('lastUpdateCheck').textContent = new Date().toLocaleString('fr-FR');
-    checkForUpdates();
-    renderUpdateHistory();
-    showToast('Verification terminee', 'success');
-  });
+  byId('btnSaveGithubConfig')?.addEventListener('click', saveGithubConfig);
+  byId('btnCheckUpdate')?.addEventListener('click', checkGithubUpdates);
+  byId('btnDownloadUpdate')?.addEventListener('click', downloadGithubUpdate);
+  byId('btnInstallUpdate')?.addEventListener('click', installGithubUpdate);
 }
 
 // ===== Legacy Functions =====
@@ -10948,8 +10954,309 @@ function loadScript(src) {
 const APP_VERSION = '1.0.0';
 const UPDATE_KEY = 'nhc-care-update';
 const UPDATE_HISTORY_KEY = 'nhc-care-update-history';
+const GITHUB_CONFIG_KEY = 'nhc-github-config';
 
 let pendingUpdate = null;
+let githubConfig = {
+  repoUrl: '',
+  autoCheck: false
+};
+
+// Load GitHub configuration
+function loadGithubConfig() {
+  try {
+    const stored = localStorage.getItem(GITHUB_CONFIG_KEY);
+    if (stored) {
+      githubConfig = JSON.parse(stored);
+      // Update UI
+      const urlInput = byId('githubRepoUrl');
+      const autoCheckbox = byId('autoCheckUpdates');
+      if (urlInput) urlInput.value = githubConfig.repoUrl || '';
+      if (autoCheckbox) autoCheckbox.checked = githubConfig.autoCheck || false;
+    }
+  } catch (e) {
+    console.error('Error loading GitHub config:', e);
+  }
+}
+
+// Save GitHub configuration
+function saveGithubConfig() {
+  const urlInput = byId('githubRepoUrl');
+  const autoCheckbox = byId('autoCheckUpdates');
+
+  if (!urlInput) return;
+
+  const url = urlInput.value.trim();
+
+  // Validate GitHub URL
+  if (url && !url.match(/^https?:\/\/(www\.)?github\.com\/[\w-]+\/[\w-]+\/?$/)) {
+    showToast('❌ URL GitHub invalide. Format attendu: https://github.com/username/repository', 'error');
+    return;
+  }
+
+  githubConfig = {
+    repoUrl: url,
+    autoCheck: autoCheckbox ? autoCheckbox.checked : false
+  };
+
+  localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(githubConfig));
+  showToast('✅ Configuration GitHub enregistrée !', 'success');
+}
+
+// Parse GitHub repo URL to get owner and repo name
+function parseGithubUrl(url) {
+  if (!url) return null;
+  const match = url.match(/github\.com\/([\w-]+)\/([\w-]+)/);
+  if (match) {
+    return {
+      owner: match[1],
+      repo: match[2]
+    };
+  }
+  return null;
+}
+
+// Compare versions (semver)
+function compareVersions(v1, v2) {
+  const parts1 = v1.replace(/^v/, '').split('.').map(Number);
+  const parts2 = v2.replace(/^v/, '').split('.').map(Number);
+
+  for (let i = 0; i < 3; i++) {
+    if ((parts1[i] || 0) > (parts2[i] || 0)) return 1;
+    if ((parts1[i] || 0) < (parts2[i] || 0)) return -1;
+  }
+  return 0;
+}
+
+// Check for updates via GitHub API
+async function checkGithubUpdates() {
+  if (!githubConfig.repoUrl) {
+    showToast('⚠️ Veuillez d\'abord configurer l\'URL du dépôt GitHub', 'warning');
+    return;
+  }
+
+  const repoInfo = parseGithubUrl(githubConfig.repoUrl);
+  if (!repoInfo) {
+    showToast('❌ URL GitHub invalide', 'error');
+    return;
+  }
+
+  try {
+    showToast('🔍 Vérification des mises à jour...', 'info');
+
+    // Fetch latest release from GitHub API
+    const response = await fetch(`https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/releases/latest`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        showToast('❌ Aucune release trouvée sur ce dépôt GitHub', 'error');
+      } else {
+        showToast('❌ Erreur lors de la vérification: ' + response.statusText, 'error');
+      }
+      return;
+    }
+
+    const release = await response.json();
+    const latestVersion = release.tag_name.replace(/^v/, ''); // Remove 'v' prefix if present
+
+    // Update last check time
+    const lastCheckEl = byId('lastUpdateCheck');
+    if (lastCheckEl) {
+      lastCheckEl.textContent = new Date().toLocaleString('fr-FR');
+    }
+
+    // Compare versions
+    const comparison = compareVersions(latestVersion, APP_VERSION);
+
+    if (comparison > 0) {
+      // New version available
+      byId('availableVersion').textContent = 'v' + latestVersion;
+      byId('updateAvailableNotice').style.display = 'block';
+      byId('btnDownloadUpdate').style.display = 'inline-flex';
+
+      // Find HTML asset in release
+      const htmlAsset = release.assets.find(asset => asset.name.endsWith('.html'));
+
+      if (htmlAsset) {
+        // Store update info
+        pendingUpdate = {
+          version: latestVersion,
+          downloadUrl: htmlAsset.browser_download_url,
+          releaseNotes: release.body || 'Pas de notes de version',
+          publishedAt: release.published_at,
+          assetName: htmlAsset.name,
+          assetSize: htmlAsset.size
+        };
+
+        // Show update details
+        byId('updateInfo').style.display = 'block';
+        byId('updateDetails').textContent = `Version: ${latestVersion}\nPubliée le: ${new Date(release.published_at).toLocaleString('fr-FR')}\nTaille: ${(htmlAsset.size / 1024).toFixed(2)} KB\n\nNotes de version:\n${release.body || 'Aucune note'}`;
+
+        showToast(`✨ Nouvelle version disponible: v${latestVersion}`, 'success');
+      } else {
+        showToast('⚠️ Nouvelle version trouvée mais aucun fichier HTML attaché à la release', 'warning');
+      }
+    } else if (comparison === 0) {
+      showToast('✅ Vous utilisez la dernière version', 'success');
+      byId('updateAvailableNotice').style.display = 'none';
+      byId('btnDownloadUpdate').style.display = 'none';
+    } else {
+      showToast('ℹ️ Votre version est plus récente que la dernière release', 'info');
+    }
+  } catch (error) {
+    console.error('Error checking GitHub updates:', error);
+    showToast('❌ Erreur lors de la vérification: ' + error.message, 'error');
+  }
+}
+
+// Download update from GitHub
+async function downloadGithubUpdate() {
+  if (!pendingUpdate || !pendingUpdate.downloadUrl) {
+    showToast('❌ Aucune mise à jour à télécharger', 'error');
+    return;
+  }
+
+  try {
+    showToast('⬇️ Téléchargement de la mise à jour...', 'info');
+
+    const response = await fetch(pendingUpdate.downloadUrl);
+    if (!response.ok) {
+      throw new Error('Erreur lors du téléchargement: ' + response.statusText);
+    }
+
+    const content = await response.text();
+
+    // Verify it's valid HTML
+    if (!content.includes('<!DOCTYPE html') && !content.includes('<html')) {
+      throw new Error('Le fichier téléchargé n\'est pas un fichier HTML valide');
+    }
+
+    // Store the full HTML content
+    pendingUpdate.fullHTML = content;
+
+    showToast('✅ Mise à jour téléchargée avec succès !', 'success');
+
+    // Show install button
+    byId('btnInstallUpdate').style.display = 'inline-flex';
+    byId('btnDownloadUpdate').style.display = 'none';
+
+  } catch (error) {
+    console.error('Error downloading update:', error);
+    showToast('❌ Erreur lors du téléchargement: ' + error.message, 'error');
+  }
+}
+
+// Install update and replace local file
+async function installGithubUpdate() {
+  if (!pendingUpdate || !pendingUpdate.fullHTML) {
+    showToast('❌ Aucune mise à jour téléchargée', 'error');
+    return;
+  }
+
+  // Check if File System Access API is supported
+  if (!('showSaveFilePicker' in window)) {
+    // Fallback: use the old method (localStorage replacement)
+    if (confirm(`⚠️ Votre navigateur ne supporte pas le remplacement automatique de fichier.\n\nVoulez-vous installer la mise à jour en mémoire ?\n\n✅ Vos données seront préservées\n⚠️ L'application sera rechargée\n\n💡 Pour un remplacement automatique du fichier, utilisez Chrome/Edge.`)) {
+      installUpdateLegacy();
+    }
+    return;
+  }
+
+  try {
+    if (!confirm(`Installer la mise à jour v${pendingUpdate.version} ?\n\n✅ Le fichier HTML sera remplacé automatiquement\n✅ Vos données (patients, ordonnances, switchs, rendez-vous) seront préservées\n⚠️ L'application sera rechargée après l'installation`)) {
+      return;
+    }
+
+    // Ask user to select the current HTML file to replace it
+    const fileHandle = await window.showSaveFilePicker({
+      suggestedName: 'NHC-Patients-Manager.html',
+      types: [{
+        description: 'Fichier HTML',
+        accept: {'text/html': ['.html']}
+      }]
+    });
+
+    // Write the new content
+    const writable = await fileHandle.createWritable();
+    await writable.write(pendingUpdate.fullHTML);
+    await writable.close();
+
+    // Save backup info
+    const backup = {
+      version: APP_VERSION,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('nhc-care-update-backup', JSON.stringify(backup));
+
+    // Add to history
+    const history = JSON.parse(localStorage.getItem(UPDATE_HISTORY_KEY) || '[]');
+    history.unshift({
+      version: pendingUpdate.version,
+      installedAt: new Date().toISOString(),
+      previousVersion: APP_VERSION,
+      source: 'GitHub'
+    });
+    if (history.length > 10) history.pop();
+    localStorage.setItem(UPDATE_HISTORY_KEY, JSON.stringify(history));
+
+    showToast('✅ Mise à jour installée ! Rechargement...', 'success');
+
+    // Reload after short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      showToast('❌ Installation annulée', 'info');
+    } else {
+      console.error('Error installing update:', error);
+      showToast('❌ Erreur lors de l\'installation: ' + error.message, 'error');
+    }
+  }
+}
+
+// Legacy install method (localStorage replacement)
+function installUpdateLegacy() {
+  if (!pendingUpdate || !pendingUpdate.fullHTML) {
+    return;
+  }
+
+  try {
+    // Save the COMPLETE new HTML for replacement on next load
+    localStorage.setItem(UPDATE_KEY, JSON.stringify(pendingUpdate));
+
+    // Mark that we need to apply update on next load
+    localStorage.setItem('nhc-apply-update-on-load', 'true');
+
+    // Save backup
+    const backup = {
+      version: APP_VERSION,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('nhc-care-update-backup', JSON.stringify(backup));
+
+    // Add to history
+    const history = JSON.parse(localStorage.getItem(UPDATE_HISTORY_KEY) || '[]');
+    history.unshift({
+      version: pendingUpdate.version,
+      installedAt: new Date().toISOString(),
+      previousVersion: APP_VERSION,
+      source: 'GitHub (legacy)'
+    });
+    if (history.length > 10) history.pop();
+    localStorage.setItem(UPDATE_HISTORY_KEY, JSON.stringify(history));
+
+    showToast('✅ Mise à jour installée ! Rechargement...', 'success');
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  } catch (error) {
+    console.error('Error installing update:', error);
+    showToast('❌ Erreur lors de l\'installation: ' + error.message, 'error');
+  }
+}
 
 function checkForUpdates() {
   const UPDATE_KEY = 'nhc-care-update';
@@ -11192,9 +11499,17 @@ function init() {
   render();
   
   // Initialize update system
+  loadGithubConfig();
   checkForUpdates();
   renderUpdateHistory();
   byId('currentVersion').textContent = 'v' + APP_VERSION;
+
+  // Check for GitHub updates automatically if enabled
+  if (githubConfig.autoCheck && githubConfig.repoUrl) {
+    setTimeout(() => {
+      checkGithubUpdates();
+    }, 2000); // Delay 2 seconds to not slow down initial load
+  }
   
   // Show welcome message if first time
   if (state.patients.length === 0 && !localStorage.getItem('nhc-welcome-shown')) {
