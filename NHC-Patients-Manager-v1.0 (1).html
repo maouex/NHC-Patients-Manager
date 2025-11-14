@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NHC Patients Manager — Gestion Patients v1.2.2</title>
+<title>NHC Patients Manager — Gestion Patients v1.3.0</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ===== Design System Variables ===== */
 :root {
@@ -3924,6 +3925,137 @@ body {
   </div>
 </div>
 
+<!-- Export Confirmation Modal -->
+<div class="modal" id="exportConfirmModal">
+  <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-header">
+      <h2>Options d'export</h2>
+      <button class="close-button" onclick="showModal(false, 'exportConfirmModal')">×</button>
+    </div>
+    <div class="modal-body" style="text-align: center; padding: 30px;">
+      <div style="font-size: 48px; margin-bottom: 20px;">📝</div>
+      <p style="font-size: 16px; margin-bottom: 30px; color: #64748b;">
+        Souhaitez-vous ajouter des commentaires à chaque patient avant l'export ?
+      </p>
+      <div id="exportConfirmSummary" style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="btn btn-secondary" onclick="proceedToExport('csv')" style="flex: 1;">
+          <svg style="width:18px;height:18px;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Non, export CSV direct
+        </button>
+        <button class="btn btn-primary" onclick="startPatientReview()" style="flex: 1;">
+          <svg style="width:18px;height:18px;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Oui, ajouter commentaires + PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Patient Review Modal -->
+<div class="modal" id="patientReviewModal">
+  <div class="modal-content" style="max-width: 800px;">
+    <div class="modal-header">
+      <h2>
+        <span id="reviewProgressText">Revue des patients (1 / 10)</span>
+      </h2>
+      <button class="close-button" onclick="cancelPatientReview()">×</button>
+    </div>
+    <div class="modal-body" style="padding: 30px;">
+      <!-- Progress bar -->
+      <div style="background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 30px; overflow: hidden;">
+        <div id="reviewProgressBar" style="background: linear-gradient(90deg, #3b82f6, #06b6d4); height: 100%; width: 0%; transition: width 0.3s;"></div>
+      </div>
+
+      <!-- Patient Card -->
+      <div id="reviewPatientCard" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+          <div>
+            <h3 id="reviewPatientName" style="margin: 0 0 5px 0; font-size: 22px;">Nom du patient</h3>
+            <p id="reviewPatientDob" style="margin: 0; opacity: 0.9; font-size: 14px;">Date de naissance</p>
+          </div>
+          <div id="reviewPatientStatus" style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+            STATUT
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px;">
+          <div>
+            <div style="opacity: 0.8; font-size: 12px; margin-bottom: 4px;">📧 Email</div>
+            <div id="reviewPatientEmail" style="font-size: 14px;">—</div>
+          </div>
+          <div>
+            <div style="opacity: 0.8; font-size: 12px; margin-bottom: 4px;">📞 Téléphone</div>
+            <div id="reviewPatientPhone" style="font-size: 14px;">—</div>
+          </div>
+          <div>
+            <div style="opacity: 0.8; font-size: 12px; margin-bottom: 4px;">👨‍⚕️ Médecin</div>
+            <div id="reviewPatientDoctor" style="font-size: 14px;">—</div>
+          </div>
+          <div>
+            <div style="opacity: 0.8; font-size: 12px; margin-bottom: 4px;">🏥 Centre</div>
+            <div id="reviewPatientCenter" style="font-size: 14px;">—</div>
+          </div>
+          <div>
+            <div style="opacity: 0.8; font-size: 12px; margin-bottom: 4px;">💊 Matériel/Protocole</div>
+            <div id="reviewPatientProtocol" style="font-size: 14px;">—</div>
+          </div>
+          <div>
+            <div style="opacity: 0.8; font-size: 12px; margin-bottom: 4px;">📅 Renouvellement</div>
+            <div id="reviewPatientRenewal" style="font-size: 14px;">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes existantes -->
+      <div id="reviewExistingNotes" style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none;">
+        <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 8px;">📋 Notes existantes :</div>
+        <div id="reviewExistingNotesContent" style="font-size: 14px; color: #334155;"></div>
+      </div>
+
+      <!-- Commentaire pour l'export -->
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #334155;">
+          💬 Commentaire pour l'export PDF :
+        </label>
+        <textarea
+          id="reviewCommentInput"
+          rows="4"
+          placeholder="Ajoutez un commentaire spécifique pour ce patient dans l'export PDF..."
+          style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical;"
+        ></textarea>
+        <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
+          Ce commentaire sera affiché uniquement dans l'export PDF
+        </div>
+      </div>
+
+      <!-- Navigation buttons -->
+      <div style="display: flex; gap: 10px; justify-content: space-between;">
+        <button class="btn btn-secondary" id="reviewPrevBtn" onclick="previousPatientReview()" disabled>
+          <svg style="width:18px;height:18px;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M15 19l-7-7 7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Précédent
+        </button>
+        <button class="btn btn-secondary" onclick="skipAllReview()" style="flex: 1;">
+          Passer tout
+        </button>
+        <button class="btn btn-primary" id="reviewNextBtn" onclick="nextPatientReview()">
+          <span id="reviewNextBtnText">Suivant</span>
+          <svg style="width:18px;height:18px;margin-left:8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -7739,6 +7871,11 @@ function getFilteredPatients() {
   });
 }
 
+// Global variables for patient review workflow
+let reviewPatients = [];
+let reviewCurrentIndex = 0;
+let reviewComments = {}; // Store comments: { patientId: comment }
+
 function executeAdvancedExport() {
   try {
     const filtered = getFilteredPatients();
@@ -7748,11 +7885,185 @@ function executeAdvancedExport() {
       return;
     }
 
-    // Sort by name
-    const sorted = [...filtered].sort((a, b) => fullName(a).localeCompare(fullName(b)));
+    // Store filtered patients for review workflow
+    reviewPatients = [...filtered].sort((a, b) => fullName(a).localeCompare(fullName(b)));
+    reviewComments = {}; // Reset comments
+    reviewCurrentIndex = 0;
 
+    // Update summary
+    const summaryDiv = byId('exportConfirmSummary');
+    summaryDiv.innerHTML = `<strong>${reviewPatients.length}</strong> patient(s) sélectionné(s) avec les filtres appliqués`;
+
+    // Close advanced export modal and show confirmation modal
+    showModal(false, 'advancedExportModal');
+    showModal(true, 'exportConfirmModal');
+  } catch (error) {
+    console.error('Error in advanced export:', error);
+    showToast('❌ Erreur lors de l\'export avancé: ' + error.message, 'error');
+  }
+}
+
+function proceedToExport(format) {
+  if (format === 'csv') {
+    exportToCSV(reviewPatients);
+    showModal(false, 'exportConfirmModal');
+  }
+}
+
+function startPatientReview() {
+  if (reviewPatients.length === 0) return;
+
+  reviewCurrentIndex = 0;
+  reviewComments = {};
+
+  showModal(false, 'exportConfirmModal');
+  showModal(true, 'patientReviewModal');
+
+  displayCurrentPatient();
+}
+
+function displayCurrentPatient() {
+  if (reviewCurrentIndex < 0 || reviewCurrentIndex >= reviewPatients.length) return;
+
+  const patient = reviewPatients[reviewCurrentIndex];
+  const progress = ((reviewCurrentIndex + 1) / reviewPatients.length) * 100;
+
+  // Update progress
+  byId('reviewProgressText').textContent = `Revue des patients (${reviewCurrentIndex + 1} / ${reviewPatients.length})`;
+  byId('reviewProgressBar').style.width = `${progress}%`;
+
+  // Update patient info
+  byId('reviewPatientName').textContent = fullName(patient);
+  byId('reviewPatientDob').textContent = patient.dob ? formatDateForExcel(patient.dob) : 'Date non renseignée';
+  byId('reviewPatientEmail').textContent = patient.email || '—';
+  byId('reviewPatientPhone').textContent = patient.phone || '—';
+  byId('reviewPatientDoctor').textContent = docName(patient.docId) || '—';
+  byId('reviewPatientCenter').textContent = centerName(patient.centerId) || '—';
+  byId('reviewPatientProtocol').textContent = protoName(patient.protoId) || '—';
+  byId('reviewPatientRenewal').textContent = patient.renewalDate ? formatDateForExcel(patient.renewalDate) : '—';
+
+  // Get and display status
+  const statusInfo = getPatientStatus(patient);
+  byId('reviewPatientStatus').textContent = statusInfo.label;
+  byId('reviewPatientStatus').style.background = statusInfo.background;
+
+  // Show existing notes if any
+  const existingNotesDiv = byId('reviewExistingNotes');
+  if (patient.notes && patient.notes.trim()) {
+    existingNotesDiv.style.display = 'block';
+    byId('reviewExistingNotesContent').textContent = patient.notes;
+  } else {
+    existingNotesDiv.style.display = 'none';
+  }
+
+  // Restore comment if already entered
+  byId('reviewCommentInput').value = reviewComments[patient.id] || '';
+
+  // Update navigation buttons
+  byId('reviewPrevBtn').disabled = reviewCurrentIndex === 0;
+
+  const nextBtn = byId('reviewNextBtn');
+  const nextBtnText = byId('reviewNextBtnText');
+  if (reviewCurrentIndex === reviewPatients.length - 1) {
+    nextBtnText.textContent = 'Terminer et générer PDF';
+  } else {
+    nextBtnText.textContent = 'Suivant';
+  }
+}
+
+function previousPatientReview() {
+  // Save current comment
+  const currentPatient = reviewPatients[reviewCurrentIndex];
+  const comment = byId('reviewCommentInput').value.trim();
+  if (comment) {
+    reviewComments[currentPatient.id] = comment;
+  } else {
+    delete reviewComments[currentPatient.id];
+  }
+
+  reviewCurrentIndex--;
+  displayCurrentPatient();
+}
+
+function nextPatientReview() {
+  // Save current comment
+  const currentPatient = reviewPatients[reviewCurrentIndex];
+  const comment = byId('reviewCommentInput').value.trim();
+  if (comment) {
+    reviewComments[currentPatient.id] = comment;
+  } else {
+    delete reviewComments[currentPatient.id];
+  }
+
+  if (reviewCurrentIndex === reviewPatients.length - 1) {
+    // Last patient - generate PDF
+    finishReviewAndGeneratePDF();
+  } else {
+    reviewCurrentIndex++;
+    displayCurrentPatient();
+  }
+}
+
+function skipAllReview() {
+  // Generate PDF with current comments only
+  finishReviewAndGeneratePDF();
+}
+
+function cancelPatientReview() {
+  showModal(false, 'patientReviewModal');
+  reviewPatients = [];
+  reviewComments = {};
+  reviewCurrentIndex = 0;
+}
+
+function getPatientStatus(patient) {
+  const renewalDate = parseDate(patient.renewalDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (!renewalDate) {
+    return { label: 'N/A', background: 'rgba(255,255,255,0.2)' };
+  }
+
+  const diffDays = Math.ceil((renewalDate - today) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return { label: '⚫ EXPIRÉ', background: 'rgba(0,0,0,0.4)' };
+  } else if (diffDays <= 7) {
+    return { label: '🔴 URGENT', background: 'rgba(239,68,68,0.8)' };
+  } else if (diffDays <= 30) {
+    return { label: '🟠 BIENTÔT', background: 'rgba(249,115,22,0.8)' };
+  } else {
+    return { label: '🟢 VALIDE', background: 'rgba(34,197,94,0.8)' };
+  }
+}
+
+function formatDateForExcel(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+}
+
+function calculateAge(dobStr) {
+  if (!dobStr) return '';
+  const dob = parseDate(dobStr);
+  if (!dob) return '';
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+function exportToCSV(patients) {
+  try {
     // Helper function to format date as DD/MM/YYYY
-    const formatDateForExcel = (dateStr) => {
+    const formatDate = (dateStr) => {
       if (!dateStr) return '';
       const parts = dateStr.split('-');
       if (parts.length === 3) {
@@ -7761,26 +8072,12 @@ function executeAdvancedExport() {
       return dateStr;
     };
 
-    // Helper function to calculate age
-    const calculateAge = (dobStr) => {
-      if (!dobStr) return '';
-      const dob = parseDate(dobStr);
-      if (!dob) return '';
-      const today = new Date();
-      let age = today.getFullYear() - dob.getFullYear();
-      const monthDiff = today.getMonth() - dob.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-        age--;
-      }
-      return age;
-    };
-
     // Créer le CSV avec BOM pour Excel et en-têtes améliorés
     const BOM = '\uFEFF';
     let csv = BOM + '═══ IDENTITÉ ═══;;;;═══ CONTACT ═══;;═══ MÉDICAL ═══;;;;═══ RENOUVELLEMENT ═══;;;;;\n';
     csv += 'Nom;Prénom;Date de naissance;Âge;Email;Téléphone;Adresse;Médecin traitant;Centre de soins;Matériel / Protocole;Date de renouvellement;Jours restants;Cycle;Statut;Indicateur;Notes\n';
 
-    sorted.forEach(p => {
+    patients.forEach(p => {
       const cycleInfo = getCycleFromDate(p.renewalDate);
       const cycleLabel = cycleInfo ? `${cycleInfo.name} ${cycleInfo.year}` : '';
 
@@ -7817,7 +8114,7 @@ function executeAdvancedExport() {
         // IDENTITÉ
         p.lastName || '',
         p.firstName || '',
-        formatDateForExcel(p.dob) || '',
+        formatDate(p.dob) || '',
         age,
         // CONTACT
         p.email || '',
@@ -7828,7 +8125,7 @@ function executeAdvancedExport() {
         centerName(p.centerId) || '',
         protoName(p.protoId) || '',
         // RENOUVELLEMENT
-        formatDateForExcel(p.renewalDate) || '',
+        formatDate(p.renewalDate) || '',
         daysRemaining,
         cycleLabel,
         status,
@@ -7851,14 +8148,183 @@ function executeAdvancedExport() {
 
     URL.revokeObjectURL(url);
 
-    // Close modal
-    showModal(false, 'advancedExportModal');
-
-    showToast(`✅ ${sorted.length} patient(s) exporté(s) avec filtres appliqués`, 'success');
+    showToast(`✅ ${patients.length} patient(s) exporté(s) vers CSV`, 'success');
   } catch (error) {
-    console.error('Error in advanced export:', error);
-    showToast('❌ Erreur lors de l\'export avancé: ' + error.message, 'error');
+    console.error('Error exporting to CSV:', error);
+    showToast('❌ Erreur lors de l\'export CSV: ' + error.message, 'error');
   }
+}
+
+function finishReviewAndGeneratePDF() {
+  showModal(false, 'patientReviewModal');
+
+  showToast('⏳ Génération du PDF en cours...', 'info');
+
+  setTimeout(() => {
+    try {
+      generatePDF(reviewPatients, reviewComments);
+      showToast(`✅ PDF généré avec succès pour ${reviewPatients.length} patient(s)`, 'success');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      showToast('❌ Erreur lors de la génération du PDF: ' + error.message, 'error');
+    }
+  }, 300);
+}
+
+function generatePDF(patients, comments) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  const cardWidth = pageWidth - (2 * margin);
+  let yPosition = margin;
+
+  // Title page
+  doc.setFontSize(24);
+  doc.setTextColor(59, 130, 246);
+  doc.text('NHC Patients Manager', pageWidth / 2, 30, { align: 'center' });
+
+  doc.setFontSize(16);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Rapport d\'export patients', pageWidth / 2, 45, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setTextColor(148, 163, 184);
+  const today = new Date();
+  doc.text(`Généré le ${today.toLocaleDateString('fr-FR')} à ${today.toLocaleTimeString('fr-FR')}`, pageWidth / 2, 55, { align: 'center' });
+
+  doc.setFontSize(14);
+  doc.setTextColor(51, 65, 85);
+  doc.text(`${patients.length} patient(s) inclus dans ce rapport`, pageWidth / 2, 70, { align: 'center' });
+
+  // Start patients on second page
+  doc.addPage();
+  yPosition = margin;
+
+  patients.forEach((patient, index) => {
+    const cardHeight = 85;
+    const commentText = comments[patient.id] || '';
+    const hasComment = commentText.length > 0;
+    const totalHeight = hasComment ? cardHeight + 25 : cardHeight;
+
+    // Check if we need a new page
+    if (yPosition + totalHeight > pageHeight - margin) {
+      doc.addPage();
+      yPosition = margin;
+    }
+
+    // Card background with gradient effect (simulated with rectangles)
+    doc.setFillColor(102, 126, 234);
+    doc.roundedRect(margin, yPosition, cardWidth, cardHeight, 3, 3, 'F');
+
+    // Patient number badge
+    doc.setFillColor(255, 255, 255, 0.2);
+    doc.circle(margin + 10, yPosition + 10, 8, 'F');
+    doc.setFontSize(12);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`${index + 1}`, margin + 10, yPosition + 12, { align: 'center' });
+
+    // Patient name
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text(fullName(patient), margin + 25, yPosition + 12);
+
+    // Status badge
+    const statusInfo = getPatientStatus(patient);
+    const statusX = pageWidth - margin - 35;
+    doc.setFillColor(255, 255, 255, 0.3);
+    doc.roundedRect(statusX, yPosition + 5, 30, 8, 2, 2, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text(statusInfo.label.replace(/[🟢🟠🔴⚫]/g, '').trim(), statusX + 15, yPosition + 10, { align: 'center' });
+
+    // Patient details grid
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+
+    const detailsY = yPosition + 22;
+    const col1X = margin + 8;
+    const col2X = margin + cardWidth / 2 + 4;
+    const lineHeight = 10;
+
+    // Column 1
+    doc.setTextColor(255, 255, 255, 0.7);
+    doc.text('Date de naissance', col1X, detailsY);
+    doc.setTextColor(255, 255, 255);
+    doc.text(patient.dob ? formatDateForExcel(patient.dob) + ` (${calculateAge(patient.dob)} ans)` : '—', col1X, detailsY + 4);
+
+    doc.setTextColor(255, 255, 255, 0.7);
+    doc.text('Email', col1X, detailsY + lineHeight);
+    doc.setTextColor(255, 255, 255);
+    doc.text(patient.email || '—', col1X, detailsY + lineHeight + 4);
+
+    doc.setTextColor(255, 255, 255, 0.7);
+    doc.text('Téléphone', col1X, detailsY + lineHeight * 2);
+    doc.setTextColor(255, 255, 255);
+    doc.text(patient.phone || '—', col1X, detailsY + lineHeight * 2 + 4);
+
+    doc.setTextColor(255, 255, 255, 0.7);
+    doc.text('Médecin traitant', col1X, detailsY + lineHeight * 3);
+    doc.setTextColor(255, 255, 255);
+    doc.text(docName(patient.docId) || '—', col1X, detailsY + lineHeight * 3 + 4);
+
+    // Column 2
+    doc.setTextColor(255, 255, 255, 0.7);
+    doc.text('Centre de soins', col2X, detailsY);
+    doc.setTextColor(255, 255, 255);
+    doc.text(centerName(patient.centerId) || '—', col2X, detailsY + 4);
+
+    doc.setTextColor(255, 255, 255, 0.7);
+    doc.text('Matériel / Protocole', col2X, detailsY + lineHeight);
+    doc.setTextColor(255, 255, 255);
+    doc.text(protoName(patient.protoId) || '—', col2X, detailsY + lineHeight + 4);
+
+    doc.setTextColor(255, 255, 255, 0.7);
+    doc.text('Date de renouvellement', col2X, detailsY + lineHeight * 2);
+    doc.setTextColor(255, 255, 255);
+    doc.text(patient.renewalDate ? formatDateForExcel(patient.renewalDate) : '—', col2X, detailsY + lineHeight * 2 + 4);
+
+    const renewalDate = parseDate(patient.renewalDate);
+    if (renewalDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((renewalDate - today) / (1000 * 60 * 60 * 24));
+
+      doc.setTextColor(255, 255, 255, 0.7);
+      doc.text('Jours restants', col2X, detailsY + lineHeight * 3);
+      doc.setTextColor(255, 255, 255);
+      doc.text(diffDays > 0 ? `${diffDays} jours` : `Expiré depuis ${Math.abs(diffDays)} jours`, col2X, detailsY + lineHeight * 3 + 4);
+    }
+
+    yPosition += cardHeight + 5;
+
+    // Comment box if exists
+    if (hasComment) {
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(margin, yPosition, cardWidth, 20, 2, 2, 'F');
+
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.setFont('helvetica', 'bold');
+      doc.text('💬 Commentaire :', margin + 5, yPosition + 5);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(51, 65, 85);
+      doc.setFontSize(9);
+      const lines = doc.splitTextToSize(commentText, cardWidth - 10);
+      doc.text(lines, margin + 5, yPosition + 10);
+
+      yPosition += 25;
+    }
+
+    yPosition += 5; // Space between cards
+  });
+
+  // Save PDF
+  doc.save(`patients-nhc-care-rapport-${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
 // ===== Switch Management System =====
@@ -11645,7 +12111,7 @@ function loadScript(src) {
 }
 
 // ===== NOUVEAU SYSTÈME DE MISE À JOUR - IndexedDB + SHA-256 =====
-const APP_VERSION = '1.2.2';
+const APP_VERSION = '1.3.0';
 const GITHUB_CONFIG_KEY = 'nhc-github-config';
 const DB_NAME = 'NHC_UpdateManager';
 const DB_VERSION = 1;
@@ -12263,6 +12729,12 @@ window.selectAllFilterDoctors = selectAllFilterDoctors;
 window.selectAllFilterProtocols = selectAllFilterProtocols;
 window.selectAllFilterCenters = selectAllFilterCenters;
 window.executeAdvancedExport = executeAdvancedExport;
+window.proceedToExport = proceedToExport;
+window.startPatientReview = startPatientReview;
+window.previousPatientReview = previousPatientReview;
+window.nextPatientReview = nextPatientReview;
+window.skipAllReview = skipAllReview;
+window.cancelPatientReview = cancelPatientReview;
 window.openSwitchModal = openSwitchModal;
 window.updateSwitchOldProto = updateSwitchOldProto;
 window.saveSwitch = saveSwitch;
