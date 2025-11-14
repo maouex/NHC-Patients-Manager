@@ -4689,7 +4689,12 @@ function showToast(message, type = 'info') {
 }
 
 function showModal(show, modalId = 'patientModal') {
+  console.log('showModal called', { show, modalId });
   const modal = byId(modalId);
+  if (!modal) {
+    console.error('Modal not found:', modalId);
+    return;
+  }
   if (show) {
     modal.classList.add('active');
   } else {
@@ -6445,17 +6450,22 @@ function deleteTemplate(id) {
 let currentPrescriptionPatientId = null;
 
 function openGeneratePrescriptionModal() {
+  console.log('openGeneratePrescriptionModal called', { currentPatientId });
+
   if (!currentPatientId) {
+    console.error('No currentPatientId');
     showToast('Aucun patient sélectionné', 'error');
     return;
   }
 
   const patient = state.patients.find(p => p.id === currentPatientId);
   if (!patient) {
+    console.error('Patient not found', currentPatientId);
     showToast('Patient introuvable', 'error');
     return;
   }
 
+  console.log('Patient found:', patient);
   currentPrescriptionPatientId = currentPatientId;
 
   // Fill patient info
