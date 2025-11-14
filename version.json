@@ -1,22 +1,19 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.0",
   "fileName": "NHC-Patients-Manager-v1.0 (1).html",
   "downloadUrl": "https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/NHC-Patients-Manager-v1.0%20(1).html",
   "releaseDate": "2025-01-14",
   "releaseNotes": {
     "fr": [
-      "🎉 NOUVELLE FONCTIONNALITÉ MAJEURE : Export PDF avec revue des patients !",
-      "📝 Avant l'export, choix entre export CSV direct ou revue avec commentaires",
-      "👥 Système de revue patient par patient avec navigation fluide",
-      "💬 Ajout de commentaires personnalisés pour chaque patient",
-      "📄 Génération PDF professionnelle avec cards élégantes",
-      "🎨 Design PDF avec dégradés et mise en page soignée",
-      "📊 Affichage complet des infos patient dans le PDF",
-      "⚡ Barre de progression et navigation (précédent/suivant)",
-      "🔄 Option 'Passer tout' pour générer le PDF rapidement",
-      "💾 Sauvegarde automatique des commentaires pendant la navigation"
+      "📄 Export PDF ultra-compact : 20 patients par page !",
+      "🔧 Correction des caractères étranges dans le PDF",
+      "📐 Format paysage optimisé pour plus de lisibilité",
+      "🎨 Design épuré avec lignes alternées",
+      "📊 Toutes les infos conservées sur 2 lignes compactes",
+      "🎯 Police réduite et espacement optimisé",
+      "🚀 Meilleure utilisation de l'espace (8-11mm par patient)"
     ]
   },
   "minVersion": "1.0.0",
-  "checksum": "38cfc9f38a17d832849c228d49be634f70b7f767f20087258659a25d35ccb794"
+  "checksum": "TO_BE_UPDATED"
 }
