@@ -1,17 +1,20 @@
 {
-  "version": "1.1.7",
+  "version": "1.1.8",
   "fileName": "NHC-Patients-Manager-v1.0 (1).html",
   "downloadUrl": "https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/NHC-Patients-Manager-v1.0%20(1).html",
-  "releaseDate": "2025-01-13",
+  "releaseDate": "2025-01-14",
   "releaseNotes": {
     "fr": [
-      "🧪 Version de test v1.1.7",
-      "✅ Pour tester la mise à jour depuis v1.1.6",
-      "🔄 Système AUTO-UPDATE permanent activé",
-      "📊 Ouvrez la console (F12) pour voir les logs détaillés",
-      "🎯 La version devrait changer après installation et rechargement"
+      "🚀 NOUVEAU SYSTÈME DE MISE À JOUR COMPLET",
+      "✅ Stockage dans IndexedDB (pas de limite de taille)",
+      "🔐 Vérification d'intégrité SHA-256",
+      "📦 Sauvegarde automatique de 3 versions",
+      "🔄 Rollback facile vers fichier original ou versions précédentes",
+      "⚡ Plus fiable et plus robuste",
+      "🛡️ Détection automatique de corruption",
+      "🎯 Fini les problèmes de localStorage"
     ]
   },
   "minVersion": "1.0.0",
-  "checksum": ""
+  "checksum": "75d04e578add4c71523696fd28a0467ef36a3d21a6021af8344ced0909102c46"
 }
