@@ -6545,6 +6545,17 @@ async function generatePrescriptionPDF() {
   }
 
   try {
+    // Ensure jsPDF is loaded
+    showToast('Génération de l\'ordonnance en cours...', 'info');
+
+    if (typeof window.jspdf === 'undefined') {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+      // Verify jsPDF loaded successfully
+      if (typeof window.jspdf === 'undefined') {
+        throw new Error('jsPDF n\'a pas pu être chargé');
+      }
+    }
+
     // Generate PDF based on template type
     if (templateId === 'default') {
       await generateDefaultPrescriptionPDF(patient, startDate, endDate, duration);
@@ -6568,7 +6579,7 @@ async function generatePrescriptionPDF() {
     showModal(false, 'generatePrescriptionModal');
   } catch (error) {
     console.error('Error generating prescription:', error);
-    showToast('Erreur lors de la génération de l\'ordonnance', 'error');
+    showToast('Erreur lors de la génération de l\'ordonnance: ' + error.message, 'error');
   }
 }
 
