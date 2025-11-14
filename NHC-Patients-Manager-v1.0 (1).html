@@ -6724,10 +6724,114 @@ async function generateDefaultPrescriptionPDF(patient, startDate, endDate, durat
 }
 
 async function generateFromUploadedTemplate(patient, template, startDate, endDate, duration) {
-  // This would require more complex template processing
-  // For now, fall back to default template
-  showToast('Génération depuis template uploadé - Utilisation du template par défaut pour le moment', 'info');
-  await generateDefaultPrescriptionPDF(patient, startDate, endDate, duration);
+  try {
+    showToast('Chargement du template Word...', 'info');
+
+    // Load required libraries if not already loaded
+    if (typeof window.PizZip === 'undefined') {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.6/pizzip.min.js');
+    }
+    if (typeof window.docxtemplater === 'undefined') {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.45.0/docxtemplater.min.js');
+    }
+    if (typeof window.saveAs === 'undefined') {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js');
+    }
+
+    // Get doctor information
+    const doctor = state.docs.find(d => d.id === patient.docId);
+    const doctorName = doctor ? doctor.name : 'Dr. [Nom du médecin]';
+
+    // Format dates
+    const startDateFormatted = formatDateForDisplay(new Date(startDate));
+    const endDateFormatted = formatDateForDisplay(new Date(endDate));
+    const birthDateFormatted = patient.dob ? formatDateForDisplay(new Date(patient.dob)) : '';
+    const currentDateFormatted = formatDateForDisplay(new Date());
+
+    // Prepare data for template replacement
+    const templateData = {
+      // Médecin
+      medecin_nom: doctorName,
+      nom_medecin: doctorName,
+      medecin: doctorName,
+      doctor_name: doctorName,
+
+      // Patient - nom complet
+      patient_nom: patient.lastName || '',
+      patient_prenom: patient.firstName || '',
+      nom_patient: patient.lastName || '',
+      prenom_patient: patient.firstName || '',
+      patient_nom_complet: `${patient.firstName || ''} ${patient.lastName || ''}`.trim(),
+      nom_complet: `${patient.firstName || ''} ${patient.lastName || ''}`.trim(),
+
+      // Date de naissance
+      patient_date_naissance: birthDateFormatted,
+      date_naissance: birthDateFormatted,
+      dob: birthDateFormatted,
+
+      // Dates ordonnance
+      date_debut: startDateFormatted,
+      date_debut_ordonnance: startDateFormatted,
+      start_date: startDateFormatted,
+
+      date_fin: endDateFormatted,
+      date_fin_ordonnance: endDateFormatted,
+      end_date: endDateFormatted,
+
+      // Date du jour
+      date_jour: currentDateFormatted,
+      date: currentDateFormatted,
+      current_date: currentDateFormatted,
+
+      // Autres informations utiles
+      duree: duration + ' mois',
+      duration: duration + ' months',
+      patient_id: patient.nhcId || patient.id || '',
+      cycle: patient.cycle || ''
+    };
+
+    // Convert base64 to ArrayBuffer
+    const base64Data = template.fileData.split(',')[1];
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    // Load the docx file
+    const zip = new window.PizZip(bytes);
+    const doc = new window.docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      delimiters: {
+        start: '{',
+        end: '}'
+      }
+    });
+
+    // Replace placeholders with data
+    doc.render(templateData);
+
+    // Generate the modified document
+    const output = doc.getZip().generate({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+
+    // Save the file
+    const fileName = `Ordonnance_${patient.firstName}_${patient.lastName}_${new Date().getTime()}.docx`;
+    window.saveAs(output, fileName);
+
+    showToast('Ordonnance générée avec succès !', 'success');
+  } catch (error) {
+    console.error('Error generating from template:', error);
+    showToast('Erreur lors de la génération: ' + error.message, 'error');
+
+    // Si erreur, afficher un message d'aide
+    if (error.message && error.message.includes('multi_error')) {
+      showToast('Vérifiez que les placeholders dans votre template Word utilisent la syntaxe {nom_du_champ}', 'warning');
+    }
+  }
 }
 
 function formatDateForDisplay(date) {
