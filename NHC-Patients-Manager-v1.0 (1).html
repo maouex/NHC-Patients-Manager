@@ -6726,16 +6726,56 @@ async function generateDefaultPrescriptionPDF(patient, startDate, endDate, durat
 async function generateFromUploadedTemplate(patient, template, startDate, endDate, duration) {
   try {
     showToast('Chargement du template Word...', 'info');
+    console.log('Starting template generation for patient:', patient);
 
-    // Load required libraries if not already loaded
-    if (typeof window.PizZip === 'undefined') {
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.6/pizzip.min.js');
+    // Load required libraries if not already loaded with better error handling
+    try {
+      if (typeof window.PizZip === 'undefined') {
+        console.log('Loading PizZip...');
+        await loadScript('https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js');
+        if (typeof window.PizZip === 'undefined') {
+          throw new Error('PizZip failed to load');
+        }
+        console.log('PizZip loaded successfully');
+      }
+    } catch (err) {
+      console.error('Error loading PizZip:', err);
+      throw new Error('Impossible de charger la bibliothèque PizZip. Vérifiez votre connexion internet.');
     }
-    if (typeof window.docxtemplater === 'undefined') {
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.45.0/docxtemplater.min.js');
+
+    try {
+      if (typeof window.docxtemplater === 'undefined' && typeof window.Docxtemplater === 'undefined') {
+        console.log('Loading docxtemplater...');
+        await loadScript('https://unpkg.com/docxtemplater@3.45.0/build/docxtemplater.min.js');
+
+        // Check both possible namespaces
+        if (typeof window.docxtemplater !== 'undefined') {
+          console.log('docxtemplater loaded as window.docxtemplater');
+        } else if (typeof window.Docxtemplater !== 'undefined') {
+          console.log('Docxtemplater loaded as window.Docxtemplater');
+          window.docxtemplater = window.Docxtemplater; // Normalize
+        } else {
+          throw new Error('docxtemplater failed to load');
+        }
+        console.log('docxtemplater loaded successfully');
+      }
+    } catch (err) {
+      console.error('Error loading docxtemplater:', err);
+      throw new Error('Impossible de charger la bibliothèque docxtemplater. Vérifiez votre connexion internet.');
     }
-    if (typeof window.saveAs === 'undefined') {
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js');
+
+    try {
+      if (typeof window.saveAs === 'undefined') {
+        console.log('Loading FileSaver...');
+        await loadScript('https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js');
+        if (typeof window.saveAs === 'undefined') {
+          throw new Error('FileSaver failed to load');
+        }
+        console.log('FileSaver loaded successfully');
+      }
+    } catch (err) {
+      console.error('Error loading FileSaver:', err);
+      throw new Error('Impossible de charger la bibliothèque FileSaver. Vérifiez votre connexion internet.');
     }
 
     // Get doctor information
@@ -6790,39 +6830,68 @@ async function generateFromUploadedTemplate(patient, template, startDate, endDat
       cycle: patient.cycle || ''
     };
 
+    console.log('Template data prepared:', templateData);
+    console.log('Template file data available:', !!template.fileData);
+
     // Convert base64 to ArrayBuffer
-    const base64Data = template.fileData.split(',')[1];
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-
-    // Load the docx file
-    const zip = new window.PizZip(bytes);
-    const doc = new window.docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true,
-      delimiters: {
-        start: '{',
-        end: '}'
+    try {
+      console.log('Converting base64 to binary...');
+      const base64Data = template.fileData.split(',')[1];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
       }
-    });
+      console.log('Binary conversion complete, size:', bytes.length, 'bytes');
 
-    // Replace placeholders with data
-    doc.render(templateData);
+      // Load the docx file
+      console.log('Loading docx file with PizZip...');
+      const zip = new window.PizZip(bytes);
+      console.log('PizZip loaded successfully');
 
-    // Generate the modified document
-    const output = doc.getZip().generate({
-      type: 'blob',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    });
+      console.log('Creating docxtemplater instance...');
+      const doc = new window.docxtemplater(zip, {
+        paragraphLoop: true,
+        linebreaks: true,
+        delimiters: {
+          start: '{',
+          end: '}'
+        }
+      });
+      console.log('docxtemplater instance created');
 
-    // Save the file
-    const fileName = `Ordonnance_${patient.firstName}_${patient.lastName}_${new Date().getTime()}.docx`;
-    window.saveAs(output, fileName);
+      // Replace placeholders with data
+      console.log('Rendering template with data...');
+      doc.render(templateData);
+      console.log('Template rendered successfully');
 
-    showToast('Ordonnance générée avec succès !', 'success');
+      // Generate the modified document
+      console.log('Generating output file...');
+      const output = doc.getZip().generate({
+        type: 'blob',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      });
+      console.log('Output file generated');
+
+      // Save the file
+      const fileName = `Ordonnance_${patient.firstName}_${patient.lastName}_${new Date().getTime()}.docx`;
+      console.log('Saving file as:', fileName);
+      window.saveAs(output, fileName);
+
+      showToast('Ordonnance générée avec succès !', 'success');
+    } catch (docError) {
+      console.error('Error processing document:', docError);
+
+      // Check for specific docxtemplater errors
+      if (docError.properties && docError.properties.errors) {
+        const errorMessages = docError.properties.errors.map(e =>
+          `${e.name}: ${e.message} (tag: ${e.properties.id})`
+        ).join('\n');
+        throw new Error('Erreurs dans le template:\n' + errorMessages);
+      }
+
+      throw docError;
+    }
   } catch (error) {
     console.error('Error generating from template:', error);
     showToast('Erreur lors de la génération: ' + error.message, 'error');
