@@ -8203,8 +8203,8 @@ function generatePDF(patients, comments) {
     const commentText = comments[patient.id] || '';
     const hasComment = commentText.length > 0;
 
-    // Compact patient height: 9mm per patient, 13.5mm if has comment
-    const patientHeight = hasComment ? 13.5 : 9;
+    // Compact patient height: 9mm per patient, 15mm if has comment (with proper spacing)
+    const patientHeight = hasComment ? 15 : 9;
 
     // Check if we need a new page (leave 10mm margin at bottom)
     if (yPosition + patientHeight > pageHeight - margin) {
@@ -8319,12 +8319,16 @@ function generatePDF(patients, comments) {
 
     // Comment if exists (on separate line, compact)
     if (hasComment) {
+      // Light background for better separation
+      doc.setFillColor(252, 252, 253);
+      doc.rect(margin + 28, yPosition, contentWidth - 28, 5, 'F');
+
       doc.setFontSize(6);
       doc.setTextColor(100, 116, 139);
       doc.setFont('helvetica', 'italic');
       const commentShort = commentText.length > 140 ? commentText.substring(0, 140) + '...' : commentText;
-      doc.text(`Note: ${commentShort}`, margin + 30, yPosition + 2);
-      yPosition += 4.5; // Increased spacing to prevent note truncation by separator line
+      doc.text(`Note: ${commentShort}`, margin + 30, yPosition + 3);
+      yPosition += 6; // More spacing to prevent note truncation
     }
 
     // Subtle separator line
