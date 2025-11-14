@@ -3927,26 +3927,26 @@ body {
 
 <!-- Export Confirmation Modal -->
 <div class="modal" id="exportConfirmModal">
-  <div class="modal-content" style="max-width: 500px;">
+  <div class="modal-content" style="max-width: 700px; max-height: 85vh;">
     <div class="modal-header">
       <h2>Options d'export</h2>
       <button class="close-button" onclick="showModal(false, 'exportConfirmModal')">×</button>
     </div>
-    <div class="modal-body" style="text-align: center; padding: 30px;">
+    <div class="modal-body" style="text-align: center; padding: 30px; overflow-y: auto;">
       <div style="font-size: 48px; margin-bottom: 20px;">📝</div>
       <p style="font-size: 16px; margin-bottom: 30px; color: #64748b;">
         Souhaitez-vous ajouter des commentaires à chaque patient avant l'export ?
       </p>
       <div id="exportConfirmSummary" style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
       </div>
-      <div style="display: flex; gap: 10px; justify-content: center;">
-        <button class="btn btn-secondary" onclick="proceedToExport('csv')" style="flex: 1;">
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-secondary" onclick="proceedToExport('csv')" style="flex: 1; min-width: 250px;">
           <svg style="width:18px;height:18px;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           Non, export CSV direct
         </button>
-        <button class="btn btn-primary" onclick="startPatientReview()" style="flex: 1;">
+        <button class="btn btn-primary" onclick="startPatientReview()" style="flex: 1; min-width: 250px;">
           <svg style="width:18px;height:18px;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
