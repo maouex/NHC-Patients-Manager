@@ -6470,7 +6470,7 @@ function openGeneratePrescriptionModal() {
 
   // Fill patient info
   byId('prescPatientName').textContent = fullName(patient);
-  byId('prescPatientDob').textContent = 'Né(e) le ' + formatDate(patient.dob);
+  byId('prescPatientDob').textContent = 'Né(e) le ' + formatDateFR(patient.dob);
   byId('prescDoctor').textContent = docName(patient.docId) || '-';
   byId('prescProtocol').textContent = protoName(patient.protoId) || '-';
 
@@ -6641,7 +6641,7 @@ async function generateDefaultPrescriptionPDF(patient, startDate, endDate, durat
   doc.text(`Nom: ${fullName(patient)}`, margin + 5, y);
 
   y += 6;
-  doc.text(`Date de naissance: ${formatDate(patient.dob)}  (${calculateAge(patient.dob)} ans)`, margin + 5, y);
+  doc.text(`Date de naissance: ${formatDateFR(patient.dob)}  (${calculateAge(patient.dob)} ans)`, margin + 5, y);
 
   y += 6;
   doc.text(`Code patient: ${patient.patientCode || 'Non renseigné'}`, margin + 5, y);
