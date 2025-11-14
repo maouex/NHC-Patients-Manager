@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NHC Patients Manager — Gestion Patients v1.2.0</title>
+<title>NHC Patients Manager — Gestion Patients v1.2.1</title>
 <style>
 /* ===== Design System Variables ===== */
 :root {
@@ -2362,6 +2362,12 @@ body {
               </svg>
               Export Excel
             </button>
+            <button class="btn btn-primary" onclick="openAdvancedExportModal()">
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"></path>
+              </svg>
+              Export avancé
+            </button>
           </div>
         </div>
         <div class="card-body">
@@ -3791,6 +3797,129 @@ body {
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Advanced Export Modal -->
+<div class="modal" id="advancedExportModal">
+  <div class="modal-content" style="max-width: 900px;">
+    <div class="modal-header">
+      <h2 class="modal-title">📊 Export Excel avancé - Filtres multiples</h2>
+      <button class="modal-close" onclick="showModal(false, 'advancedExportModal')">&times;</button>
+    </div>
+    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+
+      <!-- Filtres Médecins -->
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+          </svg>
+          Médecins
+        </h4>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <button class="btn btn-sm btn-secondary" onclick="selectAllFilterDoctors(true)">Tout sélectionner</button>
+          <button class="btn btn-sm btn-secondary" onclick="selectAllFilterDoctors(false)">Tout désélectionner</button>
+        </div>
+        <div id="filterDoctors" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.5rem;"></div>
+      </div>
+
+      <!-- Filtres Protocoles/Matériels -->
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"></path>
+            <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z"></path>
+            <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z"></path>
+          </svg>
+          Matériels / Protocoles
+        </h4>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <button class="btn btn-sm btn-secondary" onclick="selectAllFilterProtocols(true)">Tout sélectionner</button>
+          <button class="btn btn-sm btn-secondary" onclick="selectAllFilterProtocols(false)">Tout désélectionner</button>
+        </div>
+        <div id="filterProtocols" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.5rem;"></div>
+      </div>
+
+      <!-- Filtres Centres -->
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"></path>
+          </svg>
+          Centres
+        </h4>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <button class="btn btn-sm btn-secondary" onclick="selectAllFilterCenters(true)">Tout sélectionner</button>
+          <button class="btn btn-sm btn-secondary" onclick="selectAllFilterCenters(false)">Tout désélectionner</button>
+        </div>
+        <div id="filterCenters" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.5rem;"></div>
+      </div>
+
+      <!-- Filtres Statuts -->
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          Statuts
+        </h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+            <input type="checkbox" id="filterStatusValid" checked style="cursor: pointer;">
+            <span style="color: var(--success);">✅ Valide</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+            <input type="checkbox" id="filterStatusSoon" checked style="cursor: pointer;">
+            <span style="color: var(--info);">⏰ Bientôt à renouveler</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+            <input type="checkbox" id="filterStatusUrgent" checked style="cursor: pointer;">
+            <span style="color: var(--warning);">⚠️ Urgent</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+            <input type="checkbox" id="filterStatusExpired" checked style="cursor: pointer;">
+            <span style="color: var(--danger);">❌ Expiré</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Filtre par période -->
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+          </svg>
+          Période de renouvellement (optionnel)
+        </h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label for="filterDateFrom">Date de début</label>
+            <input type="date" id="filterDateFrom" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="filterDateTo">Date de fin</label>
+            <input type="date" id="filterDateTo" class="form-control">
+          </div>
+        </div>
+      </div>
+
+      <!-- Résumé des filtres -->
+      <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); border-left: 4px solid var(--primary);">
+        <h4 style="margin: 0 0 0.5rem 0;">📊 Résumé</h4>
+        <p id="filterSummary" style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Sélectionnez vos filtres ci-dessus</p>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="showModal(false, 'advancedExportModal')">Annuler</button>
+      <button class="btn btn-success" onclick="executeAdvancedExport()">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+        Exporter vers Excel
+      </button>
     </div>
   </div>
 </div>
@@ -7326,6 +7455,303 @@ function exportToExcel() {
   } catch (error) {
     console.error('Error exporting to Excel:', error);
     showToast('❌ Erreur lors de l\'export Excel: ' + error.message, 'error');
+  }
+}
+
+// ===== ADVANCED EXPORT SYSTEM =====
+
+function openAdvancedExportModal() {
+  // Populate filter lists
+  populateAdvancedFilters();
+
+  // Add listeners for filter changes
+  addFilterListeners();
+
+  // Show modal
+  showModal(true, 'advancedExportModal');
+
+  // Update summary
+  updateFilterSummary();
+}
+
+function populateAdvancedFilters() {
+  // Populate doctors
+  const doctorsContainer = byId('filterDoctors');
+  doctorsContainer.innerHTML = state.docs.map(doc => `
+    <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+      <input type="checkbox" class="filter-doctor" value="${doc.id}" checked style="cursor: pointer;">
+      <span>${doc.name}</span>
+    </label>
+  `).join('');
+
+  // Populate protocols
+  const protocolsContainer = byId('filterProtocols');
+  protocolsContainer.innerHTML = state.protos.map(proto => `
+    <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+      <input type="checkbox" class="filter-protocol" value="${proto.id}" checked style="cursor: pointer;">
+      <span>${proto.name}</span>
+    </label>
+  `).join('');
+
+  // Populate centers
+  const centersContainer = byId('filterCenters');
+  centersContainer.innerHTML = state.centers.map(center => `
+    <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+      <input type="checkbox" class="filter-center" value="${center.id}" checked style="cursor: pointer;">
+      <span>${center.name}</span>
+    </label>
+  `).join('');
+}
+
+function addFilterListeners() {
+  // Add change listeners to all checkboxes
+  const allCheckboxes = document.querySelectorAll('#advancedExportModal input[type="checkbox"]');
+  allCheckboxes.forEach(cb => {
+    cb.addEventListener('change', updateFilterSummary);
+  });
+
+  // Add change listeners to date inputs
+  byId('filterDateFrom')?.addEventListener('change', updateFilterSummary);
+  byId('filterDateTo')?.addEventListener('change', updateFilterSummary);
+}
+
+function selectAllFilterDoctors(select) {
+  const checkboxes = document.querySelectorAll('.filter-doctor');
+  checkboxes.forEach(cb => cb.checked = select);
+  updateFilterSummary();
+}
+
+function selectAllFilterProtocols(select) {
+  const checkboxes = document.querySelectorAll('.filter-protocol');
+  checkboxes.forEach(cb => cb.checked = select);
+  updateFilterSummary();
+}
+
+function selectAllFilterCenters(select) {
+  const checkboxes = document.querySelectorAll('.filter-center');
+  checkboxes.forEach(cb => cb.checked = select);
+  updateFilterSummary();
+}
+
+function updateFilterSummary() {
+  // Count selected filters
+  const selectedDoctors = document.querySelectorAll('.filter-doctor:checked').length;
+  const selectedProtocols = document.querySelectorAll('.filter-protocol:checked').length;
+  const selectedCenters = document.querySelectorAll('.filter-center:checked').length;
+
+  const totalDoctors = state.docs.length;
+  const totalProtocols = state.protos.length;
+  const totalCenters = state.centers.length;
+
+  const statusValid = byId('filterStatusValid')?.checked;
+  const statusSoon = byId('filterStatusSoon')?.checked;
+  const statusUrgent = byId('filterStatusUrgent')?.checked;
+  const statusExpired = byId('filterStatusExpired')?.checked;
+
+  const dateFrom = byId('filterDateFrom')?.value;
+  const dateTo = byId('filterDateTo')?.value;
+
+  // Count matching patients
+  const filtered = getFilteredPatients();
+
+  // Build summary
+  let parts = [];
+
+  if (selectedDoctors < totalDoctors) {
+    parts.push(`${selectedDoctors}/${totalDoctors} médecins`);
+  } else {
+    parts.push('Tous les médecins');
+  }
+
+  if (selectedProtocols < totalProtocols) {
+    parts.push(`${selectedProtocols}/${totalProtocols} protocoles`);
+  } else {
+    parts.push('Tous les protocoles');
+  }
+
+  if (selectedCenters < totalCenters) {
+    parts.push(`${selectedCenters}/${totalCenters} centres`);
+  } else {
+    parts.push('Tous les centres');
+  }
+
+  const statusCount = [statusValid, statusSoon, statusUrgent, statusExpired].filter(Boolean).length;
+  if (statusCount < 4) {
+    const statuses = [];
+    if (statusValid) statuses.push('Valide');
+    if (statusSoon) statuses.push('Bientôt');
+    if (statusUrgent) statuses.push('Urgent');
+    if (statusExpired) statuses.push('Expiré');
+    parts.push(`Statuts: ${statuses.join(', ')}`);
+  }
+
+  if (dateFrom || dateTo) {
+    if (dateFrom && dateTo) {
+      parts.push(`Période: ${dateFrom} → ${dateTo}`);
+    } else if (dateFrom) {
+      parts.push(`Depuis: ${dateFrom}`);
+    } else {
+      parts.push(`Jusqu'à: ${dateTo}`);
+    }
+  }
+
+  const summary = byId('filterSummary');
+  if (summary) {
+    summary.innerHTML = `
+      <div style="margin-bottom: 0.5rem;">${parts.join(' • ')}</div>
+      <div style="font-weight: 600; color: var(--primary); font-size: 1.1rem;">
+        📊 ${filtered.length} patient(s) correspondant aux critères
+      </div>
+    `;
+  }
+}
+
+function getFilteredPatients() {
+  // Get selected filters
+  const selectedDoctorIds = Array.from(document.querySelectorAll('.filter-doctor:checked')).map(cb => cb.value);
+  const selectedProtocolIds = Array.from(document.querySelectorAll('.filter-protocol:checked')).map(cb => cb.value);
+  const selectedCenterIds = Array.from(document.querySelectorAll('.filter-center:checked')).map(cb => cb.value);
+
+  const statusValid = byId('filterStatusValid')?.checked;
+  const statusSoon = byId('filterStatusSoon')?.checked;
+  const statusUrgent = byId('filterStatusUrgent')?.checked;
+  const statusExpired = byId('filterStatusExpired')?.checked;
+
+  const dateFrom = byId('filterDateFrom')?.value ? parseDate(byId('filterDateFrom').value) : null;
+  const dateTo = byId('filterDateTo')?.value ? parseDate(byId('filterDateTo').value) : null;
+
+  // Filter patients
+  return state.patients.filter(p => {
+    // Filter by doctor
+    if (selectedDoctorIds.length > 0 && !selectedDoctorIds.includes(p.docId)) {
+      return false;
+    }
+
+    // Filter by protocol
+    if (selectedProtocolIds.length > 0 && !selectedProtocolIds.includes(p.protoId)) {
+      return false;
+    }
+
+    // Filter by center
+    if (selectedCenterIds.length > 0 && !selectedCenterIds.includes(p.centerId)) {
+      return false;
+    }
+
+    // Filter by status
+    const renewalDate = parseDate(p.renewalDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let matchesStatus = false;
+
+    if (!renewalDate) {
+      matchesStatus = statusExpired;
+    } else {
+      const diffDays = Math.ceil((renewalDate - today) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        matchesStatus = statusExpired;
+      } else if (diffDays <= 7) {
+        matchesStatus = statusUrgent;
+      } else if (diffDays <= 30) {
+        matchesStatus = statusSoon;
+      } else {
+        matchesStatus = statusValid;
+      }
+    }
+
+    if (!matchesStatus) {
+      return false;
+    }
+
+    // Filter by date range
+    if (dateFrom || dateTo) {
+      if (!renewalDate) return false;
+
+      if (dateFrom && renewalDate < dateFrom) return false;
+      if (dateTo && renewalDate > dateTo) return false;
+    }
+
+    return true;
+  });
+}
+
+function executeAdvancedExport() {
+  try {
+    const filtered = getFilteredPatients();
+
+    if (filtered.length === 0) {
+      showToast('❌ Aucun patient ne correspond aux critères sélectionnés', 'warning');
+      return;
+    }
+
+    // Sort by name
+    const sorted = [...filtered].sort((a, b) => fullName(a).localeCompare(fullName(b)));
+
+    // Créer le CSV avec BOM pour Excel
+    const BOM = '\uFEFF';
+    let csv = BOM + 'Nom;Prénom;Date de naissance;Email;Téléphone;Adresse;Médecin;Centre;Matériel/Protocole;Date de renouvellement;Cycle;Statut;Notes\n';
+
+    sorted.forEach(p => {
+      const cycleInfo = getCycleFromDate(p.renewalDate);
+      const cycleLabel = cycleInfo ? `${cycleInfo.name} ${cycleInfo.year}` : '';
+
+      // Get status
+      const renewalDate = parseDate(p.renewalDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let status = 'N/A';
+
+      if (renewalDate) {
+        const diffDays = Math.ceil((renewalDate - today) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) {
+          status = 'Expiré';
+        } else if (diffDays <= 7) {
+          status = 'Urgent';
+        } else if (diffDays <= 30) {
+          status = 'Bientôt à renouveler';
+        } else {
+          status = 'Valide';
+        }
+      }
+
+      const row = [
+        p.lastName || '',
+        p.firstName || '',
+        p.dob || '',
+        p.email || '',
+        p.phone || '',
+        p.address || '',
+        docName(p.docId) || '',
+        centerName(p.centerId) || '',
+        protoName(p.protoId) || '',
+        p.renewalDate || '',
+        cycleLabel,
+        status,
+        (p.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')
+      ];
+
+      csv += row.map(field => `"${field}"`).join(';') + '\n';
+    });
+
+    // Créer le fichier et le télécharger
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `patients-nhc-care-filtré-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    // Close modal
+    showModal(false, 'advancedExportModal');
+
+    showToast(`✅ ${sorted.length} patient(s) exporté(s) avec filtres appliqués`, 'success');
+  } catch (error) {
+    console.error('Error in advanced export:', error);
+    showToast('❌ Erreur lors de l\'export avancé: ' + error.message, 'error');
   }
 }
 
@@ -11113,7 +11539,7 @@ function loadScript(src) {
 }
 
 // ===== NOUVEAU SYSTÈME DE MISE À JOUR - IndexedDB + SHA-256 =====
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.2.1';
 const GITHUB_CONFIG_KEY = 'nhc-github-config';
 const DB_NAME = 'NHC_UpdateManager';
 const DB_VERSION = 1;
@@ -11726,6 +12152,11 @@ window.fcEditCode = fcEditCode;
 window.fcSaveCode = fcSaveCode;
 window.fcOpenOrdonnance = fcOpenOrdonnance;
 window.exportToExcel = exportToExcel;
+window.openAdvancedExportModal = openAdvancedExportModal;
+window.selectAllFilterDoctors = selectAllFilterDoctors;
+window.selectAllFilterProtocols = selectAllFilterProtocols;
+window.selectAllFilterCenters = selectAllFilterCenters;
+window.executeAdvancedExport = executeAdvancedExport;
 window.openSwitchModal = openSwitchModal;
 window.updateSwitchOldProto = updateSwitchOldProto;
 window.saveSwitch = saveSwitch;

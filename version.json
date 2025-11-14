@@ -1,18 +1,20 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "fileName": "NHC-Patients-Manager-v1.0 (1).html",
   "downloadUrl": "https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/NHC-Patients-Manager-v1.0%20(1).html",
   "releaseDate": "2025-01-14",
   "releaseNotes": {
     "fr": [
-      "🐛 FIX CRITIQUE : Mise à jour maintenant persistante après rechargement !",
-      "✅ Correction du bug Blob URL qui ne survivait pas au reload",
-      "🔄 Utilisation de document.write() pour remplacement permanent",
-      "🎯 La version installée reste active même après F5 ou fermeture",
-      "📦 Système IndexedDB + SHA-256 maintenant 100% fonctionnel",
-      "🚀 Testé et validé : mise à jour stable et fiable"
+      "🎯 NOUVEAU : Export Excel avancé avec filtres multiples !",
+      "✅ Sélection multiple de médecins (ex: 2 médecins spécifiques)",
+      "✅ Sélection multiple de protocoles/matériels",
+      "✅ Sélection multiple de centres",
+      "✅ Filtrage par statut (Valide, Urgent, Expiré, etc.)",
+      "✅ Filtrage par période de renouvellement",
+      "📊 Résumé en temps réel du nombre de patients filtrés",
+      "💾 Export CSV avec colonne Statut ajoutée"
     ]
   },
   "minVersion": "1.0.0",
-  "checksum": "5d85164b497817564aa649b4db2b366859cdf9380dacace0714a40e29d196961"
+  "checksum": "8c8768796371d42680fde94b97df4572fc45c9faeb33565a2dcf59bbaf404bde"
 }
