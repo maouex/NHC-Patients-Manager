@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NHC Patients Manager — Gestion Patients v1.3.0</title>
+<title>NHC Patients Manager — Gestion Patients v1.4.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ===== Design System Variables ===== */
@@ -8173,154 +8173,164 @@ function finishReviewAndGeneratePDF() {
 
 function generatePDF(patients, comments) {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'mm', 'a4');
+  const doc = new jsPDF('l', 'mm', 'a4'); // Landscape mode for more width
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 15;
-  const cardWidth = pageWidth - (2 * margin);
+  const margin = 10;
+  const contentWidth = pageWidth - (2 * margin);
   let yPosition = margin;
 
-  // Title page
-  doc.setFontSize(24);
-  doc.setTextColor(59, 130, 246);
-  doc.text('NHC Patients Manager', pageWidth / 2, 30, { align: 'center' });
-
-  doc.setFontSize(16);
-  doc.setTextColor(100, 116, 139);
-  doc.text('Rapport d\'export patients', pageWidth / 2, 45, { align: 'center' });
-
-  doc.setFontSize(12);
-  doc.setTextColor(148, 163, 184);
-  const today = new Date();
-  doc.text(`Généré le ${today.toLocaleDateString('fr-FR')} à ${today.toLocaleTimeString('fr-FR')}`, pageWidth / 2, 55, { align: 'center' });
-
+  // Compact title header
   doc.setFontSize(14);
-  doc.setTextColor(51, 65, 85);
-  doc.text(`${patients.length} patient(s) inclus dans ce rapport`, pageWidth / 2, 70, { align: 'center' });
+  doc.setTextColor(59, 130, 246);
+  doc.text('NHC Patients Manager - Rapport Export', margin, yPosition);
 
-  // Start patients on second page
-  doc.addPage();
-  yPosition = margin;
+  const today = new Date();
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`${today.toLocaleDateString('fr-FR')} ${today.toLocaleTimeString('fr-FR')} - ${patients.length} patients`,
+    pageWidth - margin, yPosition, { align: 'right' });
+
+  yPosition += 8;
+
+  // Draw header line
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 3;
 
   patients.forEach((patient, index) => {
-    const cardHeight = 85;
     const commentText = comments[patient.id] || '';
     const hasComment = commentText.length > 0;
-    const totalHeight = hasComment ? cardHeight + 25 : cardHeight;
 
-    // Check if we need a new page
-    if (yPosition + totalHeight > pageHeight - margin) {
+    // Compact patient height: 8mm per patient, 11mm if has comment
+    const patientHeight = hasComment ? 11 : 8;
+
+    // Check if we need a new page (leave 10mm margin at bottom)
+    if (yPosition + patientHeight > pageHeight - margin) {
       doc.addPage();
       yPosition = margin;
     }
 
-    // Card background with gradient effect (simulated with rectangles)
-    doc.setFillColor(102, 126, 234);
-    doc.roundedRect(margin, yPosition, cardWidth, cardHeight, 3, 3, 'F');
+    // Alternate row background for readability
+    if (index % 2 === 0) {
+      doc.setFillColor(248, 250, 252);
+      doc.rect(margin, yPosition, contentWidth, patientHeight, 'F');
+    }
 
-    // Patient number badge
-    doc.setFillColor(255, 255, 255, 0.2);
-    doc.circle(margin + 10, yPosition + 10, 8, 'F');
-    doc.setFontSize(12);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`${index + 1}`, margin + 10, yPosition + 12, { align: 'center' });
-
-    // Patient name
-    doc.setFontSize(16);
+    // Patient number and status
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text(fullName(patient), margin + 25, yPosition + 12);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`#${index + 1}`, margin + 2, yPosition + 4);
 
-    // Status badge
     const statusInfo = getPatientStatus(patient);
-    const statusX = pageWidth - margin - 35;
-    doc.setFillColor(255, 255, 255, 0.3);
-    doc.roundedRect(statusX, yPosition + 5, 30, 8, 2, 2, 'F');
+    const statusText = statusInfo.label.replace(/[🟢🟠🔴⚫]/g, '').trim();
+    doc.setFontSize(6);
+    doc.text(statusText, margin + 10, yPosition + 4);
+
+    // Patient name (bold and larger)
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
-    doc.text(statusInfo.label.replace(/[🟢🟠🔴⚫]/g, '').trim(), statusX + 15, yPosition + 10, { align: 'center' });
+    doc.setTextColor(30, 41, 59);
+    doc.text(fullName(patient), margin + 30, yPosition + 4);
 
-    // Patient details grid
+    // Compact info on same line
+    doc.setFontSize(6.5);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
+    doc.setTextColor(71, 85, 105);
 
-    const detailsY = yPosition + 22;
-    const col1X = margin + 8;
-    const col2X = margin + cardWidth / 2 + 4;
-    const lineHeight = 10;
+    let xPos = margin + 95;
+    const spacing = 45;
 
-    // Column 1
-    doc.setTextColor(255, 255, 255, 0.7);
-    doc.text('Date de naissance', col1X, detailsY);
-    doc.setTextColor(255, 255, 255);
-    doc.text(patient.dob ? formatDateForExcel(patient.dob) + ` (${calculateAge(patient.dob)} ans)` : '—', col1X, detailsY + 4);
+    // Age
+    if (patient.dob) {
+      doc.text(`Age: ${calculateAge(patient.dob)} ans`, xPos, yPosition + 4);
+    }
+    xPos += spacing;
 
-    doc.setTextColor(255, 255, 255, 0.7);
-    doc.text('Email', col1X, detailsY + lineHeight);
-    doc.setTextColor(255, 255, 255);
-    doc.text(patient.email || '—', col1X, detailsY + lineHeight + 4);
+    // Phone
+    if (patient.phone) {
+      const phoneShort = patient.phone.length > 14 ? patient.phone.substring(0, 14) + '...' : patient.phone;
+      doc.text(`Tel: ${phoneShort}`, xPos, yPosition + 4);
+    }
+    xPos += spacing;
 
-    doc.setTextColor(255, 255, 255, 0.7);
-    doc.text('Téléphone', col1X, detailsY + lineHeight * 2);
-    doc.setTextColor(255, 255, 255);
-    doc.text(patient.phone || '—', col1X, detailsY + lineHeight * 2 + 4);
+    // Center
+    const center = centerName(patient.centerId);
+    if (center) {
+      const centerShort = center.length > 12 ? center.substring(0, 12) + '...' : center;
+      doc.text(`Centre: ${centerShort}`, xPos, yPosition + 4);
+    }
+    xPos += spacing;
 
-    doc.setTextColor(255, 255, 255, 0.7);
-    doc.text('Médecin traitant', col1X, detailsY + lineHeight * 3);
-    doc.setTextColor(255, 255, 255);
-    doc.text(docName(patient.docId) || '—', col1X, detailsY + lineHeight * 3 + 4);
-
-    // Column 2
-    doc.setTextColor(255, 255, 255, 0.7);
-    doc.text('Centre de soins', col2X, detailsY);
-    doc.setTextColor(255, 255, 255);
-    doc.text(centerName(patient.centerId) || '—', col2X, detailsY + 4);
-
-    doc.setTextColor(255, 255, 255, 0.7);
-    doc.text('Matériel / Protocole', col2X, detailsY + lineHeight);
-    doc.setTextColor(255, 255, 255);
-    doc.text(protoName(patient.protoId) || '—', col2X, detailsY + lineHeight + 4);
-
-    doc.setTextColor(255, 255, 255, 0.7);
-    doc.text('Date de renouvellement', col2X, detailsY + lineHeight * 2);
-    doc.setTextColor(255, 255, 255);
-    doc.text(patient.renewalDate ? formatDateForExcel(patient.renewalDate) : '—', col2X, detailsY + lineHeight * 2 + 4);
-
-    const renewalDate = parseDate(patient.renewalDate);
-    if (renewalDate) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const diffDays = Math.ceil((renewalDate - today) / (1000 * 60 * 60 * 24));
-
-      doc.setTextColor(255, 255, 255, 0.7);
-      doc.text('Jours restants', col2X, detailsY + lineHeight * 3);
-      doc.setTextColor(255, 255, 255);
-      doc.text(diffDays > 0 ? `${diffDays} jours` : `Expiré depuis ${Math.abs(diffDays)} jours`, col2X, detailsY + lineHeight * 3 + 4);
+    // Protocol
+    const proto = protoName(patient.protoId);
+    if (proto) {
+      const protoShort = proto.length > 15 ? proto.substring(0, 15) + '...' : proto;
+      doc.text(`Proto: ${protoShort}`, xPos, yPosition + 4);
     }
 
-    yPosition += cardHeight + 5;
+    // Second line with additional details
+    yPosition += 4.5;
+    xPos = margin + 30;
 
-    // Comment box if exists
+    // Email
+    if (patient.email) {
+      const emailShort = patient.email.length > 25 ? patient.email.substring(0, 25) + '...' : patient.email;
+      doc.text(`Email: ${emailShort}`, xPos, yPosition + 4);
+    }
+    xPos += 70;
+
+    // Doctor
+    const doctor = docName(patient.docId);
+    if (doctor) {
+      const doctorShort = doctor.length > 20 ? doctor.substring(0, 20) + '...' : doctor;
+      doc.text(`Medecin: ${doctorShort}`, xPos, yPosition + 4);
+    }
+    xPos += 55;
+
+    // Renewal date and days remaining
+    if (patient.renewalDate) {
+      const renewalDate = parseDate(patient.renewalDate);
+      if (renewalDate) {
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((renewalDate - todayDate) / (1000 * 60 * 60 * 24));
+
+        doc.text(`Renouvellement: ${formatDateForExcel(patient.renewalDate)}`, xPos, yPosition + 4);
+        xPos += 45;
+
+        if (diffDays <= 0) {
+          doc.setTextColor(220, 38, 38); // Red for expired
+          doc.text(`(Expire depuis ${Math.abs(diffDays)}j)`, xPos, yPosition + 4);
+        } else if (diffDays <= 30) {
+          doc.setTextColor(234, 88, 12); // Orange for soon
+          doc.text(`(${diffDays}j restants)`, xPos, yPosition + 4);
+        } else {
+          doc.setTextColor(22, 163, 74); // Green
+          doc.text(`(${diffDays}j restants)`, xPos, yPosition + 4);
+        }
+        doc.setTextColor(71, 85, 105); // Reset color
+      }
+    }
+
+    yPosition += 4;
+
+    // Comment if exists (on separate line, compact)
     if (hasComment) {
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(margin, yPosition, cardWidth, 20, 2, 2, 'F');
-
-      doc.setFontSize(8);
+      doc.setFontSize(6);
       doc.setTextColor(100, 116, 139);
-      doc.setFont('helvetica', 'bold');
-      doc.text('💬 Commentaire :', margin + 5, yPosition + 5);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(51, 65, 85);
-      doc.setFontSize(9);
-      const lines = doc.splitTextToSize(commentText, cardWidth - 10);
-      doc.text(lines, margin + 5, yPosition + 10);
-
-      yPosition += 25;
+      doc.setFont('helvetica', 'italic');
+      const commentShort = commentText.length > 140 ? commentText.substring(0, 140) + '...' : commentText;
+      doc.text(`Note: ${commentShort}`, margin + 30, yPosition + 3);
+      yPosition += 3;
     }
 
-    yPosition += 5; // Space between cards
+    // Subtle separator line
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 0.5;
   });
 
   // Save PDF
