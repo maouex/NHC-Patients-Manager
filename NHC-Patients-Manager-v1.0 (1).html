@@ -2350,12 +2350,12 @@ body {
           <h3 class="card-title">Liste des patients</h3>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             <select class="form-select" id="sortPatients" style="width: auto;">
-              <option value="name">Trier par nom</option>
+              <option value="name">Trier par nom (A-Z)</option>
               <option value="recent">Plus récents</option>
-              <option value="renewal">Date de renouvellement</option>
-              <option value="doctor">Médecin</option>
-              <option value="center">Centre</option>
-              <option value="protocol">Matériel</option>
+              <option value="renewal">Date de renouvellement puis nom</option>
+              <option value="doctor">Médecin puis nom (A-Z)</option>
+              <option value="center">Centre puis nom (A-Z)</option>
+              <option value="protocol">Matériel puis nom (A-Z)</option>
             </select>
             <button class="btn btn-success" onclick="exportToExcel()">
               <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
@@ -2402,9 +2402,9 @@ body {
               <option value="permanent_pause">Arrêts définitifs</option>
             </select>
             <select class="form-select" id="sortArchived" style="width: auto;">
-              <option value="name">Trier par nom</option>
+              <option value="name">Trier par nom (A-Z)</option>
               <option value="recent">Plus récents</option>
-              <option value="pauseDate">Date d'arrêt</option>
+              <option value="pauseDate">Date d'arrêt puis nom</option>
             </select>
           </div>
         </div>
@@ -3906,6 +3906,23 @@ body {
         </div>
       </div>
 
+      <!-- Tri des résultats -->
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"></path>
+          </svg>
+          Ordre de tri
+        </h4>
+        <select class="form-select" id="exportSortBy" style="max-width: 400px;">
+          <option value="name">Trier par nom (A-Z)</option>
+          <option value="renewal">Date de renouvellement puis nom</option>
+          <option value="doctor">Médecin puis nom (A-Z)</option>
+          <option value="center">Centre puis nom (A-Z)</option>
+          <option value="protocol">Matériel puis nom (A-Z)</option>
+        </select>
+      </div>
+
       <!-- Résumé des filtres -->
       <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius); border-left: 4px solid var(--primary);">
         <h4 style="margin: 0 0 0.5rem 0;">📊 Résumé</h4>
@@ -5342,12 +5359,12 @@ function renderDashboardProtocolsChart() {
 function renderPatients() {
   const tbody = qsEl('#tblPatients tbody');
   if (!tbody) return;
-  
+
   const sortBy = byId('sortPatients')?.value || 'name';
   // Filter only active patients (status is undefined or 'active')
   let sorted = state.patients.filter(p => !p.status || p.status === 'active');
-  
-  // Tri multicritère
+
+  // Tri multicritère avec tri secondaire par nom alphabétique
   if (sortBy === 'name') {
     sorted.sort((a, b) => fullName(a).localeCompare(fullName(b)));
   } else if (sortBy === 'recent') {
@@ -5356,17 +5373,31 @@ function renderPatients() {
     sorted.sort((a, b) => {
       const dateA = parseDate(a.renewalDate);
       const dateB = parseDate(b.renewalDate);
-      if (!dateA && !dateB) return 0;
+      if (!dateA && !dateB) return fullName(a).localeCompare(fullName(b)); // Tri secondaire par nom
       if (!dateA) return 1;
       if (!dateB) return -1;
-      return dateA - dateB;
+      const dateCompare = dateA - dateB;
+      // Si même date, tri par nom
+      return dateCompare !== 0 ? dateCompare : fullName(a).localeCompare(fullName(b));
     });
   } else if (sortBy === 'doctor') {
-    sorted.sort((a, b) => (docName(a.docId) || 'ZZZ').localeCompare(docName(b.docId) || 'ZZZ'));
+    sorted.sort((a, b) => {
+      const docCompare = (docName(a.docId) || 'ZZZ').localeCompare(docName(b.docId) || 'ZZZ');
+      // Si même médecin, tri par nom
+      return docCompare !== 0 ? docCompare : fullName(a).localeCompare(fullName(b));
+    });
   } else if (sortBy === 'center') {
-    sorted.sort((a, b) => (centerName(a.centerId) || 'ZZZ').localeCompare(centerName(b.centerId) || 'ZZZ'));
+    sorted.sort((a, b) => {
+      const centerCompare = (centerName(a.centerId) || 'ZZZ').localeCompare(centerName(b.centerId) || 'ZZZ');
+      // Si même centre, tri par nom
+      return centerCompare !== 0 ? centerCompare : fullName(a).localeCompare(fullName(b));
+    });
   } else if (sortBy === 'protocol') {
-    sorted.sort((a, b) => (protoName(a.protoId) || 'ZZZ').localeCompare(protoName(b.protoId) || 'ZZZ'));
+    sorted.sort((a, b) => {
+      const protoCompare = (protoName(a.protoId) || 'ZZZ').localeCompare(protoName(b.protoId) || 'ZZZ');
+      // Si même protocole, tri par nom
+      return protoCompare !== 0 ? protoCompare : fullName(a).localeCompare(fullName(b));
+    });
   }
   
   if (sorted.length === 0) {
@@ -5405,13 +5436,17 @@ function renderArchivedPatients() {
     filtered = filtered.filter(p => p.status === filterStatus);
   }
   
-  // Sort
+  // Sort avec tri secondaire par nom alphabétique
   if (sortBy === 'name') {
     filtered.sort((a, b) => fullName(a).localeCompare(fullName(b)));
   } else if (sortBy === 'recent') {
     filtered.sort((a, b) => (b.pausedAt || 0) - (a.pausedAt || 0));
   } else if (sortBy === 'pauseDate') {
-    filtered.sort((a, b) => (b.pausedAt || 0) - (a.pausedAt || 0));
+    filtered.sort((a, b) => {
+      const dateCompare = (b.pausedAt || 0) - (a.pausedAt || 0);
+      // Si même date d'arrêt, tri par nom
+      return dateCompare !== 0 ? dateCompare : fullName(a).localeCompare(fullName(b));
+    });
   }
   
   // Update statistics
@@ -7513,6 +7548,40 @@ function exportRefs() {
   showToast('Référentiels exportés', 'success');
 }
 
+// Utility function to sort patients array with secondary sorting by name
+function sortPatients(patientsArray, sortBy) {
+  if (sortBy === 'name') {
+    patientsArray.sort((a, b) => fullName(a).localeCompare(fullName(b)));
+  } else if (sortBy === 'recent') {
+    patientsArray.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  } else if (sortBy === 'renewal') {
+    patientsArray.sort((a, b) => {
+      const dateA = parseDate(a.renewalDate);
+      const dateB = parseDate(b.renewalDate);
+      if (!dateA && !dateB) return fullName(a).localeCompare(fullName(b));
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+      const dateCompare = dateA - dateB;
+      return dateCompare !== 0 ? dateCompare : fullName(a).localeCompare(fullName(b));
+    });
+  } else if (sortBy === 'doctor') {
+    patientsArray.sort((a, b) => {
+      const docCompare = (docName(a.docId) || 'ZZZ').localeCompare(docName(b.docId) || 'ZZZ');
+      return docCompare !== 0 ? docCompare : fullName(a).localeCompare(fullName(b));
+    });
+  } else if (sortBy === 'center') {
+    patientsArray.sort((a, b) => {
+      const centerCompare = (centerName(a.centerId) || 'ZZZ').localeCompare(centerName(b.centerId) || 'ZZZ');
+      return centerCompare !== 0 ? centerCompare : fullName(a).localeCompare(fullName(b));
+    });
+  } else if (sortBy === 'protocol') {
+    patientsArray.sort((a, b) => {
+      const protoCompare = (protoName(a.protoId) || 'ZZZ').localeCompare(protoName(b.protoId) || 'ZZZ');
+      return protoCompare !== 0 ? protoCompare : fullName(a).localeCompare(fullName(b));
+    });
+  }
+}
+
 function exportToExcel() {
   try {
     // Check if patients exist
@@ -7525,27 +7594,8 @@ function exportToExcel() {
     const sortBy = byId('sortPatients')?.value || 'name';
     let sorted = [...state.patients];
 
-    // Appliquer le tri actuel
-    if (sortBy === 'name') {
-      sorted.sort((a, b) => fullName(a).localeCompare(fullName(b)));
-    } else if (sortBy === 'recent') {
-      sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    } else if (sortBy === 'renewal') {
-      sorted.sort((a, b) => {
-        const dateA = parseDate(a.renewalDate);
-        const dateB = parseDate(b.renewalDate);
-        if (!dateA && !dateB) return 0;
-        if (!dateA) return 1;
-        if (!dateB) return -1;
-        return dateA - dateB;
-      });
-    } else if (sortBy === 'doctor') {
-      sorted.sort((a, b) => (docName(a.docId) || 'ZZZ').localeCompare(docName(b.docId) || 'ZZZ'));
-    } else if (sortBy === 'center') {
-      sorted.sort((a, b) => (centerName(a.centerId) || 'ZZZ').localeCompare(centerName(b.centerId) || 'ZZZ'));
-    } else if (sortBy === 'protocol') {
-      sorted.sort((a, b) => (protoName(a.protoId) || 'ZZZ').localeCompare(protoName(b.protoId) || 'ZZZ'));
-    }
+    // Appliquer le tri actuel avec tri secondaire par nom
+    sortPatients(sorted, sortBy);
 
     // Helper function to format date as DD/MM/YYYY
     const formatDateForExcel = (dateStr) => {
@@ -7885,8 +7935,12 @@ function executeAdvancedExport() {
       return;
     }
 
-    // Store filtered patients for review workflow
-    reviewPatients = [...filtered].sort((a, b) => fullName(a).localeCompare(fullName(b)));
+    // Get selected sort option
+    const sortBy = byId('exportSortBy')?.value || 'name';
+
+    // Store filtered patients for review workflow with selected sort
+    reviewPatients = [...filtered];
+    sortPatients(reviewPatients, sortBy);
     reviewComments = {}; // Reset comments
     reviewCurrentIndex = 0;
 
