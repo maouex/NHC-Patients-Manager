@@ -6831,12 +6831,28 @@ async function generateFromUploadedTemplate(patient, template, startDate, endDat
     };
 
     console.log('Template data prepared:', templateData);
-    console.log('Template file data available:', !!template.fileData);
+    console.log('Template file data structure:', template.fileData);
 
     // Convert base64 to ArrayBuffer
     try {
       console.log('Converting base64 to binary...');
-      const base64Data = template.fileData.split(',')[1];
+
+      // Handle different fileData formats
+      let base64Data;
+      if (typeof template.fileData === 'string') {
+        // If it's a string, it might be a data URL or plain base64
+        base64Data = template.fileData.includes(',')
+          ? template.fileData.split(',')[1]
+          : template.fileData;
+      } else if (template.fileData && template.fileData.data) {
+        // If it's an object with a data property (current format)
+        base64Data = template.fileData.data;
+      } else {
+        throw new Error('Format de fichier invalide');
+      }
+
+      console.log('Base64 data extracted, length:', base64Data.length);
+
       const binaryString = atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
