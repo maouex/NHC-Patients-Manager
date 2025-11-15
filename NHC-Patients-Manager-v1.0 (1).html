@@ -3661,6 +3661,10 @@ body {
                 <input type="radio" name="fcoDuration" value="6" onchange="fcoUpdateEndDate()">
                 <span>6 mois</span>
               </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="radio" name="fcoDuration" value="12" onchange="fcoUpdateEndDate()">
+                <span>12 mois</span>
+              </label>
             </div>
           </div>
         </div>
@@ -8951,15 +8955,26 @@ function fcoDisplay() {
   byId('fcoPatient').textContent = fullName(patient);
 
   // Set default dates
-  const today = new Date();
   const startDateInput = byId('fcoStartDate');
   const endDateInput = byId('fcoEndDate');
 
-  startDateInput.value = today.toISOString().split('T')[0];
+  // Use patient's renewal date as start date if available, otherwise use today
+  let startDate;
+  if (patient.renewalDate) {
+    // Parse the renewal date from JJ/MM/AAAA format
+    startDate = parseDateFR(patient.renewalDate);
+  }
+
+  // If no renewal date or parsing failed, use today
+  if (!startDate) {
+    startDate = new Date();
+  }
+
+  startDateInput.value = startDate.toISOString().split('T')[0];
 
   // Calculate end date based on duration (3 months by default)
   const duration = parseInt(document.querySelector('input[name="fcoDuration"]:checked')?.value || 3);
-  const endDate = new Date(today);
+  const endDate = new Date(startDate);
   endDate.setMonth(endDate.getMonth() + duration);
   endDateInput.value = endDate.toISOString().split('T')[0];
 
