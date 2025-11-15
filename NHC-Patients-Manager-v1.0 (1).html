@@ -3681,6 +3681,14 @@ body {
           </label>
         </div>
 
+        <!-- Checkbox for Formation technique Initiale -->
+        <div style="margin-bottom: 1rem;">
+          <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <input type="checkbox" id="fcoFormationInitiale">
+            <span>Formation technique Initiale</span>
+          </label>
+        </div>
+
         <p class="text-small text-muted">Patient <span id="fcoIndex">0</span> sur <span id="fcoTotal">0</span></p>
         <div class="progress mt-2" style="height: 10px;">
           <div class="progress-bar" id="fcoProgress" style="background: linear-gradient(90deg, var(--primary), var(--secondary)); width: 0%;"></div>
@@ -3823,6 +3831,14 @@ body {
             <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
               <input type="checkbox" id="apcCurrentUpdateRenewal" checked>
               <span>Mettre à jour la date de renouvellement du patient</span>
+            </label>
+          </div>
+
+          <!-- Checkbox for Formation technique Initiale -->
+          <div style="margin-bottom: 1rem;">
+            <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+              <input type="checkbox" id="apcCurrentFormationInitiale">
+              <span>Formation technique Initiale</span>
             </label>
           </div>
 
@@ -4610,6 +4626,19 @@ body {
             <strong>Mettre à jour la date de renouvellement du patient</strong>
             <p style="font-size: 14px; color: var(--text-secondary); margin: 0.25rem 0 0 0;">
               La date de fin de l'ordonnance sera enregistrée comme date de renouvellement dans la fiche patient
+            </p>
+          </div>
+        </label>
+      </div>
+
+      <!-- Formation technique Initiale Option -->
+      <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
+        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+          <input type="checkbox" id="prescFormationInitiale" style="width: 18px; height: 18px;">
+          <div>
+            <strong>Formation technique Initiale</strong>
+            <p style="font-size: 14px; color: var(--text-secondary); margin: 0.25rem 0 0 0;">
+              Cocher cette case pour indiquer qu'une formation technique initiale est requise
             </p>
           </div>
         </label>
@@ -6831,6 +6860,7 @@ async function generatePrescriptionPDF() {
   const endDate = byId('prescEndDate').value;
   const duration = parseInt(document.querySelector('input[name="prescDuration"]:checked').value);
   const updateRenewal = byId('prescUpdateRenewal').checked;
+  const formationInitiale = byId('prescFormationInitiale').checked;
 
   if (!templateId) {
     showToast('Veuillez sélectionner un template', 'warning');
@@ -6856,13 +6886,13 @@ async function generatePrescriptionPDF() {
 
     // Generate PDF based on template type
     if (templateId === 'default') {
-      await generateDefaultPrescriptionPDF(patient, startDate, endDate, duration);
+      await generateDefaultPrescriptionPDF(patient, startDate, endDate, duration, formationInitiale);
     } else {
       const template = state.prescriptionTemplates.find(t => t.id === templateId);
       if (template && template.type === 'upload' && template.fileData) {
-        await generateFromUploadedTemplate(patient, template, startDate, endDate, duration);
+        await generateFromUploadedTemplate(patient, template, startDate, endDate, duration, formationInitiale);
       } else {
-        await generateDefaultPrescriptionPDF(patient, startDate, endDate, duration);
+        await generateDefaultPrescriptionPDF(patient, startDate, endDate, duration, formationInitiale);
       }
     }
 
@@ -6881,7 +6911,7 @@ async function generatePrescriptionPDF() {
   }
 }
 
-async function generateDefaultPrescriptionPDF(patient, startDate, endDate, duration) {
+async function generateDefaultPrescriptionPDF(patient, startDate, endDate, duration, formationInitiale = false) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'mm', 'a4');
 
@@ -7011,7 +7041,7 @@ async function generateDefaultPrescriptionPDF(patient, startDate, endDate, durat
   showToast('Ordonnance générée avec succès!', 'success');
 }
 
-async function generateFromUploadedTemplate(patient, template, startDate, endDate, duration) {
+async function generateFromUploadedTemplate(patient, template, startDate, endDate, duration, formationInitiale = false) {
   try {
     showToast('Chargement du template Word...', 'info');
     console.log('Starting template generation for patient:', patient);
@@ -7115,7 +7145,12 @@ async function generateFromUploadedTemplate(patient, template, startDate, endDat
       duree: duration + ' mois',
       duration: duration + ' months',
       patient_id: patient.nhcId || patient.id || '',
-      cycle: patient.cycle || ''
+      cycle: patient.cycle || '',
+
+      // Formation technique Initiale
+      formation_initiale: formationInitiale ? 'X' : '',
+      formation_technique_initiale: formationInitiale ? 'X' : '',
+      fti: formationInitiale ? 'X' : ''
     };
 
     console.log('Template data prepared:', templateData);
@@ -9048,6 +9083,7 @@ function fcoValidate() {
   const endDate = byId('fcoEndDate').value;
   const duration = parseInt(document.querySelector('input[name="fcoDuration"]:checked')?.value || 3);
   const updateRenewal = byId('fcoUpdateRenewal').checked;
+  const formationInitiale = byId('fcoFormationInitiale').checked;
 
   // Validation
   if (!templateId) {
@@ -9067,7 +9103,8 @@ function fcoValidate() {
     startDate: startDate,
     endDate: endDate,
     duration: duration,
-    updateRenewal: updateRenewal
+    updateRenewal: updateRenewal,
+    formationInitiale: formationInitiale
   });
 
   console.log('Prescription validated for:', fullName(patient));
@@ -9247,7 +9284,12 @@ async function fcoGenerateSingleOrdonnance(patient, template, config) {
     duree: config.duration + ' mois',
     duration: config.duration + ' months',
     patient_id: patient.nhcId || patient.id || '',
-    cycle: patient.cycle || ''
+    cycle: patient.cycle || '',
+
+    // Formation technique Initiale
+    formation_initiale: config.formationInitiale ? 'X' : '',
+    formation_technique_initiale: config.formationInitiale ? 'X' : '',
+    fti: config.formationInitiale ? 'X' : ''
   };
 
   // Handle different fileData formats
@@ -9740,7 +9782,9 @@ function apcValidate() {
   const templateId = byId('apcCurrentTemplate').value;
   const startDate = byId('apcCurrentStartDate').value;
   const endDate = byId('apcCurrentEndDate').value;
+  const duration = parseInt(document.querySelector('input[name="apcCurrentDuration"]:checked')?.value || 3);
   const updateRenewal = byId('apcCurrentUpdateRenewal').checked;
+  const formationInitiale = byId('apcCurrentFormationInitiale').checked;
 
   if (!templateId) {
     showToast('Veuillez sélectionner un template', 'warning');
@@ -9758,7 +9802,9 @@ function apcValidate() {
     templateId: templateId,
     startDate: startDate,
     endDate: endDate,
-    updateRenewal: updateRenewal
+    duration: duration,
+    updateRenewal: updateRenewal,
+    formationInitiale: formationInitiale
   });
 
   console.log('Stored config for', fullName(patient));
@@ -9849,7 +9895,9 @@ async function apcGenerateAll() {
 
       const prescConfig = {
         startDate: config.startDate,
-        endDate: config.endDate
+        endDate: config.endDate,
+        duration: config.duration || 3,
+        formationInitiale: config.formationInitiale || false
       };
 
       // Only generate if template has fileData (Word template)
