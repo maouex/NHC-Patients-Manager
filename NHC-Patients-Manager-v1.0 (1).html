@@ -10016,11 +10016,8 @@ function exportToExcel() {
 // ===== ADVANCED EXPORT SYSTEM =====
 
 function openAdvancedExportModal() {
-  // Populate filter lists
+  // Populate filter lists (this will also add listeners)
   populateAdvancedFilters();
-
-  // Add listeners for filter changes
-  addFilterListeners();
 
   // Show modal
   showModal(true, 'advancedExportModal');
@@ -10030,32 +10027,61 @@ function openAdvancedExportModal() {
 }
 
 function populateAdvancedFilters() {
+  // Save current state of checkboxes before repopulating
+  const savedDoctorState = {};
+  const savedProtocolState = {};
+  const savedCenterState = {};
+
+  document.querySelectorAll('.filter-doctor').forEach(cb => {
+    savedDoctorState[cb.value] = cb.checked;
+  });
+
+  document.querySelectorAll('.filter-protocol').forEach(cb => {
+    savedProtocolState[cb.value] = cb.checked;
+  });
+
+  document.querySelectorAll('.filter-center').forEach(cb => {
+    savedCenterState[cb.value] = cb.checked;
+  });
+
   // Populate doctors
   const doctorsContainer = byId('filterDoctors');
-  doctorsContainer.innerHTML = state.docs.map(doc => `
-    <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
-      <input type="checkbox" class="filter-doctor" value="${doc.id}" checked style="cursor: pointer;">
-      <span>${doc.name}</span>
-    </label>
-  `).join('');
+  doctorsContainer.innerHTML = state.docs.map(doc => {
+    const isChecked = savedDoctorState.hasOwnProperty(doc.id) ? savedDoctorState[doc.id] : true;
+    return `
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+        <input type="checkbox" class="filter-doctor" value="${doc.id}" ${isChecked ? 'checked' : ''} style="cursor: pointer;">
+        <span>${doc.name}</span>
+      </label>
+    `;
+  }).join('');
 
   // Populate protocols
   const protocolsContainer = byId('filterProtocols');
-  protocolsContainer.innerHTML = state.protos.map(proto => `
-    <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
-      <input type="checkbox" class="filter-protocol" value="${proto.id}" checked style="cursor: pointer;">
-      <span>${proto.name}</span>
-    </label>
-  `).join('');
+  protocolsContainer.innerHTML = state.protos.map(proto => {
+    const isChecked = savedProtocolState.hasOwnProperty(proto.id) ? savedProtocolState[proto.id] : true;
+    return `
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+        <input type="checkbox" class="filter-protocol" value="${proto.id}" ${isChecked ? 'checked' : ''} style="cursor: pointer;">
+        <span>${proto.name}</span>
+      </label>
+    `;
+  }).join('');
 
   // Populate centers
   const centersContainer = byId('filterCenters');
-  centersContainer.innerHTML = state.centers.map(center => `
-    <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
-      <input type="checkbox" class="filter-center" value="${center.id}" checked style="cursor: pointer;">
-      <span>${center.name}</span>
-    </label>
-  `).join('');
+  centersContainer.innerHTML = state.centers.map(center => {
+    const isChecked = savedCenterState.hasOwnProperty(center.id) ? savedCenterState[center.id] : true;
+    return `
+      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer;">
+        <input type="checkbox" class="filter-center" value="${center.id}" ${isChecked ? 'checked' : ''} style="cursor: pointer;">
+        <span>${center.name}</span>
+      </label>
+    `;
+  }).join('');
+
+  // Re-attach event listeners after repopulating
+  addFilterListeners();
 }
 
 function addFilterListeners() {
