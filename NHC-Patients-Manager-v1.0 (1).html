@@ -9340,7 +9340,7 @@ function apcPopulateFilters() {
   const doctorSelect = byId('apcDoctorFilter');
   if (doctorSelect) {
     doctorSelect.innerHTML = '<option value="">Tous les médecins</option>';
-    const doctors = [...new Set(state.patients.map(p => p.doctor).filter(d => d))];
+    const doctors = [...new Set(state.patients.map(p => docName(p.docId)).filter(d => d))];
     doctors.sort().forEach(doc => {
       const option = document.createElement('option');
       option.value = doc;
@@ -9355,8 +9355,8 @@ function apcPopulateFilters() {
     centerSelect.innerHTML = '<option value="">Tous les centres</option>';
     state.centers.forEach(center => {
       const option = document.createElement('option');
-      option.value = center;
-      option.textContent = center;
+      option.value = center.name;
+      option.textContent = center.name;
       centerSelect.appendChild(option);
     });
   }
@@ -9367,8 +9367,8 @@ function apcPopulateFilters() {
     protocolSelect.innerHTML = '<option value="">Tous les matériels</option>';
     state.protos.forEach(proto => {
       const option = document.createElement('option');
-      option.value = proto;
-      option.textContent = proto;
+      option.value = proto.name;
+      option.textContent = proto.name;
       protocolSelect.appendChild(option);
     });
   }
@@ -9385,9 +9385,9 @@ function apcApplyFilters() {
 
   // Apply filters
   apcState.filteredPatients = apcState.allPatients.filter(p => {
-    if (doctorFilter && p.doctor !== doctorFilter) return false;
-    if (centerFilter && p.center !== centerFilter) return false;
-    if (protocolFilter && p.protocol !== protocolFilter) return false;
+    if (doctorFilter && docName(p.docId) !== doctorFilter) return false;
+    if (centerFilter && centerName(p.centerId) !== centerFilter) return false;
+    if (protocolFilter && protoName(p.protoId) !== protocolFilter) return false;
     return true;
   });
 
@@ -9445,7 +9445,7 @@ function apcDisplayPatients() {
     label.innerHTML = `
       <div style="font-weight: 600;">${fullName(patient)}</div>
       <div style="font-size: 0.85rem; opacity: 0.7;">
-        ${patient.doctor || 'Sans médecin'} • ${patient.protocol || 'Sans matériel'} • ${patient.center || 'Sans centre'}
+        ${docName(patient.docId) || 'Sans médecin'} • ${protoName(patient.protoId) || 'Sans matériel'} • ${centerName(patient.centerId) || 'Sans centre'}
       </div>
     `;
 
