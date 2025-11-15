@@ -9087,18 +9087,54 @@ async function fcoGenerateAll() {
     showModal(false, 'fastCreateOrdoModal');
     showToast('Génération des ordonnances en cours...', 'info');
 
-    // Load required libraries
-    if (typeof window.PizZip === 'undefined') {
-      await loadScript('https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js');
-    }
-    if (typeof window.docxtemplater === 'undefined' && typeof window.Docxtemplater === 'undefined') {
-      await loadScript('https://unpkg.com/docxtemplater@3.45.0/build/docxtemplater.min.js');
-      if (typeof window.Docxtemplater !== 'undefined') {
-        window.docxtemplater = window.Docxtemplater;
+    // Load required libraries with proper error handling
+    try {
+      if (typeof window.PizZip === 'undefined') {
+        console.log('Loading PizZip...');
+        await loadScript('https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js');
+        if (typeof window.PizZip === 'undefined') {
+          throw new Error('PizZip failed to load');
+        }
+        console.log('PizZip loaded successfully');
       }
+    } catch (err) {
+      console.error('Error loading PizZip:', err);
+      throw new Error('Impossible de charger la bibliothèque PizZip. Vérifiez votre connexion internet.');
     }
-    if (typeof window.saveAs === 'undefined') {
-      await loadScript('https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js');
+
+    try {
+      if (typeof window.docxtemplater === 'undefined' && typeof window.Docxtemplater === 'undefined') {
+        console.log('Loading docxtemplater...');
+        await loadScript('https://unpkg.com/docxtemplater@3.45.0/build/docxtemplater.min.js');
+
+        // Check both possible namespaces
+        if (typeof window.docxtemplater !== 'undefined') {
+          console.log('docxtemplater loaded as window.docxtemplater');
+        } else if (typeof window.Docxtemplater !== 'undefined') {
+          console.log('Docxtemplater loaded as window.Docxtemplater');
+          window.docxtemplater = window.Docxtemplater; // Normalize
+        } else {
+          throw new Error('docxtemplater failed to load');
+        }
+        console.log('docxtemplater loaded successfully');
+      }
+    } catch (err) {
+      console.error('Error loading docxtemplater:', err);
+      throw new Error('Impossible de charger la bibliothèque docxtemplater. Vérifiez votre connexion internet.');
+    }
+
+    try {
+      if (typeof window.saveAs === 'undefined') {
+        console.log('Loading FileSaver...');
+        await loadScript('https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js');
+        if (typeof window.saveAs === 'undefined') {
+          throw new Error('FileSaver failed to load');
+        }
+        console.log('FileSaver loaded successfully');
+      }
+    } catch (err) {
+      console.error('Error loading FileSaver:', err);
+      throw new Error('Impossible de charger la bibliothèque FileSaver. Vérifiez votre connexion internet.');
     }
 
     // Generate each prescription and combine them
@@ -9732,6 +9768,59 @@ async function apcGenerateAll() {
 
   if (apcState.prescriptions.length === 0) {
     showToast('Aucune ordonnance à générer', 'warning');
+    return;
+  }
+
+  // Load required libraries with proper error handling
+  try {
+    if (typeof window.PizZip === 'undefined') {
+      console.log('Loading PizZip...');
+      await loadScript('https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js');
+      if (typeof window.PizZip === 'undefined') {
+        throw new Error('PizZip failed to load');
+      }
+      console.log('PizZip loaded successfully');
+    }
+  } catch (err) {
+    console.error('Error loading PizZip:', err);
+    showToast('Impossible de charger la bibliothèque PizZip. Vérifiez votre connexion internet.', 'error');
+    return;
+  }
+
+  try {
+    if (typeof window.docxtemplater === 'undefined' && typeof window.Docxtemplater === 'undefined') {
+      console.log('Loading docxtemplater...');
+      await loadScript('https://unpkg.com/docxtemplater@3.45.0/build/docxtemplater.min.js');
+
+      // Check both possible namespaces
+      if (typeof window.docxtemplater !== 'undefined') {
+        console.log('docxtemplater loaded as window.docxtemplater');
+      } else if (typeof window.Docxtemplater !== 'undefined') {
+        console.log('Docxtemplater loaded as window.Docxtemplater');
+        window.docxtemplater = window.Docxtemplater; // Normalize
+      } else {
+        throw new Error('docxtemplater failed to load');
+      }
+      console.log('docxtemplater loaded successfully');
+    }
+  } catch (err) {
+    console.error('Error loading docxtemplater:', err);
+    showToast('Impossible de charger la bibliothèque docxtemplater. Vérifiez votre connexion internet.', 'error');
+    return;
+  }
+
+  try {
+    if (typeof window.saveAs === 'undefined') {
+      console.log('Loading FileSaver...');
+      await loadScript('https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js');
+      if (typeof window.saveAs === 'undefined') {
+        throw new Error('FileSaver failed to load');
+      }
+      console.log('FileSaver loaded successfully');
+    }
+  } catch (err) {
+    console.error('Error loading FileSaver:', err);
+    showToast('Impossible de charger la bibliothèque FileSaver. Vérifiez votre connexion internet.', 'error');
     return;
   }
 
