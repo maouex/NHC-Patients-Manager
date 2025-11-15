@@ -8934,13 +8934,7 @@ function fcoPopulateTemplates() {
   // Clear existing options except the first one
   select.innerHTML = '<option value="">Sélectionner un template...</option>';
 
-  // Add default template
-  const defaultOption = document.createElement('option');
-  defaultOption.value = 'default';
-  defaultOption.textContent = 'Template par défaut';
-  select.appendChild(defaultOption);
-
-  // Add uploaded templates
+  // Only add uploaded Word templates (not default PDF template)
   if (state.prescriptionTemplates && state.prescriptionTemplates.length > 0) {
     state.prescriptionTemplates.forEach(template => {
       const option = document.createElement('option');
@@ -8948,11 +8942,18 @@ function fcoPopulateTemplates() {
       option.textContent = template.name;
       select.appendChild(option);
     });
-  }
 
-  // Select first available template
-  if (select.options.length > 1) {
-    select.selectedIndex = 1;
+    // Select first available template
+    if (select.options.length > 1) {
+      select.selectedIndex = 1;
+    }
+  } else {
+    // Show message if no templates available
+    const noTemplateOption = document.createElement('option');
+    noTemplateOption.value = '';
+    noTemplateOption.textContent = 'Aucun template disponible - Veuillez en créer un';
+    noTemplateOption.disabled = true;
+    select.appendChild(noTemplateOption);
   }
 }
 
@@ -9603,11 +9604,7 @@ function apcStartConfiguration() {
   if (select) {
     select.innerHTML = '<option value="">Sélectionner un template...</option>';
 
-    const defaultOption = document.createElement('option');
-    defaultOption.value = 'default';
-    defaultOption.textContent = 'Template par défaut';
-    select.appendChild(defaultOption);
-
+    // Only add uploaded Word templates (not default PDF template)
     if (state.prescriptionTemplates && state.prescriptionTemplates.length > 0) {
       state.prescriptionTemplates.forEach(template => {
         const option = document.createElement('option');
@@ -9615,10 +9612,18 @@ function apcStartConfiguration() {
         option.textContent = template.name;
         select.appendChild(option);
       });
-    }
 
-    if (select.options.length > 1) {
-      select.selectedIndex = 1;
+      // Auto-select first template
+      if (select.options.length > 1) {
+        select.selectedIndex = 1;
+      }
+    } else {
+      // Show message if no templates available
+      const noTemplateOption = document.createElement('option');
+      noTemplateOption.value = '';
+      noTemplateOption.textContent = 'Aucun template disponible - Veuillez en créer un';
+      noTemplateOption.disabled = true;
+      select.appendChild(noTemplateOption);
     }
   }
 
