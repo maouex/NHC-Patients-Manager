@@ -3673,14 +3673,6 @@ body {
           </div>
         </div>
 
-        <!-- Checkbox to update renewal date -->
-        <div style="margin-bottom: 1rem;">
-          <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-            <input type="checkbox" id="fcoUpdateRenewal" checked>
-            <span>Mettre à jour la date de renouvellement du patient</span>
-          </label>
-        </div>
-
         <!-- Checkbox for Formation technique Initiale -->
         <div style="margin-bottom: 1rem;">
           <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
@@ -3824,14 +3816,6 @@ body {
                 </label>
               </div>
             </div>
-          </div>
-
-          <!-- Checkbox to update renewal date -->
-          <div style="margin-bottom: 1rem;">
-            <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-              <input type="checkbox" id="apcCurrentUpdateRenewal" checked>
-              <span>Mettre à jour la date de renouvellement du patient</span>
-            </label>
           </div>
 
           <!-- Checkbox for Formation technique Initiale -->
@@ -4616,19 +4600,6 @@ body {
       <div class="form-group">
         <label class="form-label">Date de fin (calculée automatiquement)</label>
         <input type="date" class="form-input" id="prescEndDate" readonly style="background: var(--bg-secondary);">
-      </div>
-
-      <!-- Update Renewal Date Option -->
-      <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius);">
-        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-          <input type="checkbox" id="prescUpdateRenewal" checked style="width: 18px; height: 18px;">
-          <div>
-            <strong>Mettre à jour la date de renouvellement du patient</strong>
-            <p style="font-size: 14px; color: var(--text-secondary); margin: 0.25rem 0 0 0;">
-              La date de fin de l'ordonnance sera enregistrée comme date de renouvellement dans la fiche patient
-            </p>
-          </div>
-        </label>
       </div>
 
       <!-- Formation technique Initiale Option -->
@@ -6859,7 +6830,6 @@ async function generatePrescriptionPDF() {
   const startDate = byId('prescStartDate').value;
   const endDate = byId('prescEndDate').value;
   const duration = parseInt(document.querySelector('input[name="prescDuration"]:checked').value);
-  const updateRenewal = byId('prescUpdateRenewal').checked;
   const formationInitiale = byId('prescFormationInitiale').checked;
 
   if (!templateId) {
@@ -6894,14 +6864,6 @@ async function generatePrescriptionPDF() {
       } else {
         await generateDefaultPrescriptionPDF(patient, startDate, endDate, duration, formationInitiale);
       }
-    }
-
-    // Update renewal date if checked
-    if (updateRenewal) {
-      patient.renewalDate = formatDateForDisplay(new Date(endDate));
-      saveDB();
-      renderPatients();
-      showToast('Date de renouvellement mise à jour', 'success');
     }
 
     showModal(false, 'generatePrescriptionModal');
@@ -9082,7 +9044,6 @@ function fcoValidate() {
   const startDate = byId('fcoStartDate').value;
   const endDate = byId('fcoEndDate').value;
   const duration = parseInt(document.querySelector('input[name="fcoDuration"]:checked')?.value || 3);
-  const updateRenewal = byId('fcoUpdateRenewal').checked;
   const formationInitiale = byId('fcoFormationInitiale').checked;
 
   // Validation
@@ -9103,7 +9064,6 @@ function fcoValidate() {
     startDate: startDate,
     endDate: endDate,
     duration: duration,
-    updateRenewal: updateRenewal,
     formationInitiale: formationInitiale
   });
 
@@ -9206,16 +9166,7 @@ async function fcoGenerateAll() {
           patient: fullName(patient)
         });
       }
-
-      // Update renewal date if requested
-      if (config.updateRenewal) {
-        patient.renewalDate = formatDateForDisplay(new Date(config.endDate));
-      }
     }
-
-    // Save database with updated renewal dates
-    saveDB();
-    renderPatients();
 
     // Combine all prescriptions into one document
     if (prescriptionPages.length > 0) {
@@ -9783,7 +9734,6 @@ function apcValidate() {
   const startDate = byId('apcCurrentStartDate').value;
   const endDate = byId('apcCurrentEndDate').value;
   const duration = parseInt(document.querySelector('input[name="apcCurrentDuration"]:checked')?.value || 3);
-  const updateRenewal = byId('apcCurrentUpdateRenewal').checked;
   const formationInitiale = byId('apcCurrentFormationInitiale').checked;
 
   if (!templateId) {
@@ -9803,7 +9753,6 @@ function apcValidate() {
     startDate: startDate,
     endDate: endDate,
     duration: duration,
-    updateRenewal: updateRenewal,
     formationInitiale: formationInitiale
   });
 
@@ -9910,23 +9859,12 @@ async function apcGenerateAll() {
             patient: fullName(config.patient)
           });
 
-          // Update renewal date if requested
-          if (config.updateRenewal) {
-            config.patient.renewalDate = formatDateForDisplay(new Date(config.endDate));
-          }
-
           successCount++;
         }
       }
     } catch (error) {
       console.error('Error generating prescription for', fullName(config.patient), error);
     }
-  }
-
-  // Save state if any renewal dates were updated
-  if (apcState.prescriptions.some(c => c.updateRenewal)) {
-    saveDB();
-    renderPatients();
   }
 
   // Download prescriptions
