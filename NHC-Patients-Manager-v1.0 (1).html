@@ -3802,6 +3802,10 @@ body {
                   <input type="radio" name="apcCurrentDuration" value="6" onchange="apcUpdateCurrentEndDate()">
                   <span>6 mois</span>
                 </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                  <input type="radio" name="apcCurrentDuration" value="12" onchange="apcUpdateCurrentEndDate()">
+                  <span>12 mois</span>
+                </label>
               </div>
             </div>
           </div>
@@ -6773,9 +6777,19 @@ function openGeneratePrescriptionModal() {
     select.value = 'default';
   }
 
-  // Set default start date to today
-  const today = new Date().toISOString().split('T')[0];
-  byId('prescStartDate').value = today;
+  // Set default start date using patient's renewal date if available, otherwise use today
+  let startDate;
+  if (patient.renewalDate) {
+    // Parse the renewal date from JJ/MM/AAAA format
+    startDate = parseDateFR(patient.renewalDate);
+  }
+
+  // If no renewal date or parsing failed, use today
+  if (!startDate) {
+    startDate = new Date();
+  }
+
+  byId('prescStartDate').value = startDate.toISOString().split('T')[0];
   updatePrescEndDate();
 
   showModal(true, 'generatePrescriptionModal');
@@ -9632,9 +9646,19 @@ function apcDisplayCurrentPatient() {
   // Update patient name
   byId('apcCurrentPatient').textContent = fullName(patient);
 
-  // Set default start date to today
-  const today = new Date().toISOString().split('T')[0];
-  byId('apcCurrentStartDate').value = today;
+  // Set default start date using patient's renewal date if available, otherwise use today
+  let startDate;
+  if (patient.renewalDate) {
+    // Parse the renewal date from JJ/MM/AAAA format
+    startDate = parseDateFR(patient.renewalDate);
+  }
+
+  // If no renewal date or parsing failed, use today
+  if (!startDate) {
+    startDate = new Date();
+  }
+
+  byId('apcCurrentStartDate').value = startDate.toISOString().split('T')[0];
 
   // Update end date
   apcUpdateCurrentEndDate();
