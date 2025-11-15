@@ -3695,121 +3695,143 @@ body {
   <div class="modal-content" style="max-width: 800px;">
     <div class="modal-header">
       <h2 class="modal-title">📝 Création d'ordonnance avancée</h2>
-      <button class="modal-close" onclick="showModal(false, 'advancedPrescriptionModal')">&times;</button>
+      <button class="modal-close" onclick="apcClose()">&times;</button>
     </div>
 
     <div class="modal-body">
-      <!-- Cycle Selection -->
-      <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
-        <label class="form-label" style="font-weight: 600; margin-bottom: 0.75rem; display: block;">📅 Sélection du cycle</label>
-        <div id="apcCycleOptions" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
-          <!-- Cycle options will be populated here -->
+      <!-- Selection View -->
+      <div id="apcSelectionView">
+        <!-- Cycle Selection -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
+          <label class="form-label" style="font-weight: 600; margin-bottom: 0.75rem; display: block;">📅 Sélection du cycle</label>
+          <div id="apcCycleOptions" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+            <!-- Cycle options will be populated here -->
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
+          <label class="form-label" style="font-weight: 600; margin-bottom: 0.75rem; display: block;">🔍 Filtres</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label class="form-label" style="font-size: 0.9rem;">Médecin</label>
+              <select class="form-input" id="apcDoctorFilter">
+                <option value="">Tous les médecins</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.9rem;">Centre</label>
+              <select class="form-input" id="apcCenterFilter">
+                <option value="">Tous les centres</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.9rem;">Matériel</label>
+              <select class="form-input" id="apcProtocolFilter">
+                <option value="">Tous les matériels</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button class="btn btn-secondary" onclick="apcApplyFilters()" style="width: 100%;">
+                Appliquer les filtres
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Patients List -->
+        <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <label class="form-label" style="font-weight: 600; margin: 0;">👥 Patients (<span id="apcPatientCount">0</span>)</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-sm btn-secondary" onclick="apcSelectAll()">Tout sélectionner</button>
+              <button class="btn btn-sm btn-secondary" onclick="apcDeselectAll()">Tout désélectionner</button>
+            </div>
+          </div>
+          <div id="apcPatientsList" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem;">
+            <p class="text-muted text-center" style="padding: 2rem;">Sélectionnez un cycle pour voir les patients</p>
+          </div>
         </div>
       </div>
 
-      <!-- Filters -->
-      <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
-        <label class="form-label" style="font-weight: 600; margin-bottom: 0.75rem; display: block;">🔍 Filtres</label>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div>
-            <label class="form-label" style="font-size: 0.9rem;">Médecin</label>
-            <select class="form-input" id="apcDoctorFilter">
-              <option value="">Tous les médecins</option>
+      <!-- Configuration View (hidden by default) -->
+      <div id="apcConfigView" style="display: none;">
+        <div class="text-center">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <h3 id="apcCurrentPatient" style="color: var(--primary); margin: 0;">-</h3>
+          </div>
+
+          <!-- Template Selection -->
+          <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
+            <label class="form-label" style="font-weight: 600;">📄 Template d'ordonnance</label>
+            <select class="form-input" id="apcCurrentTemplate">
+              <option value="">Sélectionner un template...</option>
             </select>
           </div>
-          <div>
-            <label class="form-label" style="font-size: 0.9rem;">Centre</label>
-            <select class="form-input" id="apcCenterFilter">
-              <option value="">Tous les centres</option>
-            </select>
-          </div>
-          <div>
-            <label class="form-label" style="font-size: 0.9rem;">Matériel</label>
-            <select class="form-input" id="apcProtocolFilter">
-              <option value="">Tous les matériels</option>
-            </select>
-          </div>
-          <div style="display: flex; align-items: flex-end;">
-            <button class="btn btn-secondary" onclick="apcApplyFilters()" style="width: 100%;">
-              Appliquer les filtres
-            </button>
-          </div>
-        </div>
-      </div>
 
-      <!-- Patients List -->
-      <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <label class="form-label" style="font-weight: 600; margin: 0;">👥 Patients (<span id="apcPatientCount">0</span>)</label>
-          <div style="display: flex; gap: 0.5rem;">
-            <button class="btn btn-sm btn-secondary" onclick="apcSelectAll()">Tout sélectionner</button>
-            <button class="btn btn-sm btn-secondary" onclick="apcDeselectAll()">Tout désélectionner</button>
+          <!-- Date Selection -->
+          <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div>
+                <label class="form-label" style="font-weight: 600;">Date de début</label>
+                <input type="date" class="form-input" id="apcCurrentStartDate" onchange="apcUpdateCurrentEndDate()">
+              </div>
+              <div>
+                <label class="form-label" style="font-weight: 600;">Date de fin</label>
+                <input type="date" class="form-input" id="apcCurrentEndDate">
+              </div>
+            </div>
+
+            <!-- Duration radio buttons -->
+            <div style="margin-top: 1rem;">
+              <label class="form-label" style="font-weight: 600; margin-bottom: 0.5rem;">Durée de l'ordonnance</label>
+              <div style="display: flex; gap: 1rem; justify-content: center;">
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                  <input type="radio" name="apcCurrentDuration" value="1" onchange="apcUpdateCurrentEndDate()">
+                  <span>1 mois</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                  <input type="radio" name="apcCurrentDuration" value="3" checked onchange="apcUpdateCurrentEndDate()">
+                  <span>3 mois</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                  <input type="radio" name="apcCurrentDuration" value="6" onchange="apcUpdateCurrentEndDate()">
+                  <span>6 mois</span>
+                </label>
+              </div>
+            </div>
           </div>
-        </div>
-        <div id="apcPatientsList" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem;">
-          <p class="text-muted text-center" style="padding: 2rem;">Sélectionnez un cycle pour voir les patients</p>
-        </div>
-      </div>
 
-      <!-- Template & Dates -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-        <!-- Template Selection -->
-        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
-          <label class="form-label" style="font-weight: 600;">📄 Template d'ordonnance</label>
-          <select class="form-input" id="apcTemplate">
-            <option value="">Sélectionner un template...</option>
-          </select>
-        </div>
-
-        <!-- Duration Selection -->
-        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
-          <label class="form-label" style="font-weight: 600; margin-bottom: 0.5rem;">⏱️ Durée de l'ordonnance</label>
-          <div style="display: flex; gap: 1rem; justify-content: center;">
-            <label style="display: flex; align-items: center; gap: 0.5rem;">
-              <input type="radio" name="apcDuration" value="1" onchange="apcUpdateEndDate()">
-              <span>1 mois</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 0.5rem;">
-              <input type="radio" name="apcDuration" value="3" checked onchange="apcUpdateEndDate()">
-              <span>3 mois</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 0.5rem;">
-              <input type="radio" name="apcDuration" value="6" onchange="apcUpdateEndDate()">
-              <span>6 mois</span>
+          <!-- Checkbox to update renewal date -->
+          <div style="margin-bottom: 1rem;">
+            <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+              <input type="checkbox" id="apcCurrentUpdateRenewal" checked>
+              <span>Mettre à jour la date de renouvellement du patient</span>
             </label>
           </div>
-        </div>
-      </div>
 
-      <!-- Date Selection -->
-      <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 1rem;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div>
-            <label class="form-label" style="font-weight: 600;">Date de début</label>
-            <input type="date" class="form-input" id="apcStartDate" onchange="apcUpdateEndDate()">
-          </div>
-          <div>
-            <label class="form-label" style="font-weight: 600;">Date de fin</label>
-            <input type="date" class="form-input" id="apcEndDate">
+          <p class="text-small text-muted">Patient <span id="apcCurrentIndex">0</span> sur <span id="apcTotalCount">0</span></p>
+          <div class="progress mt-2" style="height: 10px;">
+            <div class="progress-bar" id="apcProgressBar" style="background: linear-gradient(90deg, var(--primary), var(--secondary)); width: 0%;"></div>
           </div>
         </div>
-      </div>
-
-      <!-- Checkbox to update renewal date -->
-      <div style="margin-bottom: 1rem; text-align: center;">
-        <label style="display: inline-flex; align-items: center; gap: 0.5rem;">
-          <input type="checkbox" id="apcUpdateRenewal" checked>
-          <span>Mettre à jour la date de renouvellement des patients</span>
-        </label>
       </div>
     </div>
 
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="showModal(false, 'advancedPrescriptionModal')">Annuler</button>
-      <button class="btn btn-success" onclick="apcGenerate()">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
-        Générer les ordonnances
+    <div class="modal-footer" id="apcSelectionFooter">
+      <button class="btn btn-secondary" onclick="apcClose()">Annuler</button>
+      <button class="btn btn-success" onclick="apcStartConfiguration()">
+        Continuer
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style="margin-left: 0.5rem;"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
       </button>
+    </div>
+
+    <div class="modal-footer" id="apcConfigFooter" style="display: none; justify-content: space-between;">
+      <button class="btn btn-secondary" id="apcPrev">← Précédent</button>
+      <div class="flex gap-1">
+        <button class="btn btn-secondary" id="apcSkip">Passer →</button>
+        <button class="btn btn-success" id="apcValidate">Valider →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -9218,7 +9240,10 @@ let apcState = {
   selectedCycle: null,
   allPatients: [],
   filteredPatients: [],
-  selectedPatients: new Set()
+  selectedPatients: new Set(),
+  selectedPatientsList: [],
+  currentIndex: 0,
+  prescriptions: [] // Store config for each patient
 };
 
 function openAdvancedPrescriptionCreation() {
@@ -9229,7 +9254,10 @@ function openAdvancedPrescriptionCreation() {
     selectedCycle: null,
     allPatients: [],
     filteredPatients: [],
-    selectedPatients: new Set()
+    selectedPatients: new Set(),
+    selectedPatientsList: [],
+    currentIndex: 0,
+    prescriptions: []
   };
 
   // Populate cycles
@@ -9241,15 +9269,29 @@ function openAdvancedPrescriptionCreation() {
   // Populate templates
   apcPopulateTemplates();
 
-  // Set default start date to today
-  const today = new Date().toISOString().split('T')[0];
-  byId('apcStartDate').value = today;
-
-  // Update end date based on duration
-  apcUpdateEndDate();
+  // Show selection view
+  apcShowSelectionView();
 
   // Show modal
   showModal(true, 'advancedPrescriptionModal');
+}
+
+function apcShowSelectionView() {
+  byId('apcSelectionView').style.display = 'block';
+  byId('apcConfigView').style.display = 'none';
+  byId('apcSelectionFooter').style.display = 'flex';
+  byId('apcConfigFooter').style.display = 'none';
+}
+
+function apcShowConfigView() {
+  byId('apcSelectionView').style.display = 'none';
+  byId('apcConfigView').style.display = 'block';
+  byId('apcSelectionFooter').style.display = 'none';
+  byId('apcConfigFooter').style.display = 'flex';
+}
+
+function apcClose() {
+  showModal(false, 'advancedPrescriptionModal');
 }
 
 function apcPopulateCycles() {
@@ -9493,20 +9535,20 @@ function apcPopulateTemplates() {
   }
 }
 
-function apcUpdateEndDate() {
-  const startDate = byId('apcStartDate').value;
+function apcUpdateCurrentEndDate() {
+  const startDate = byId('apcCurrentStartDate').value;
   if (!startDate) return;
 
-  const duration = parseInt(document.querySelector('input[name="apcDuration"]:checked')?.value || '3');
+  const duration = parseInt(document.querySelector('input[name="apcCurrentDuration"]:checked')?.value || '3');
 
   const start = new Date(startDate);
   const end = new Date(start);
   end.setMonth(end.getMonth() + duration);
 
-  byId('apcEndDate').value = end.toISOString().split('T')[0];
+  byId('apcCurrentEndDate').value = end.toISOString().split('T')[0];
 }
 
-async function apcGenerate() {
+function apcStartConfiguration() {
   if (!apcState.selectedCycle) {
     showToast('Veuillez sélectionner un cycle', 'warning');
     return;
@@ -9517,76 +9559,182 @@ async function apcGenerate() {
     return;
   }
 
-  const templateId = byId('apcTemplate').value;
+  // Get selected patients list
+  apcState.selectedPatientsList = apcState.filteredPatients.filter(p =>
+    apcState.selectedPatients.has(p.id)
+  );
+
+  apcState.currentIndex = 0;
+  apcState.prescriptions = [];
+
+  console.log('Starting configuration for', apcState.selectedPatientsList.length, 'patients');
+
+  // Populate templates for config view
+  const select = byId('apcCurrentTemplate');
+  if (select) {
+    select.innerHTML = '<option value="">Sélectionner un template...</option>';
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = 'default';
+    defaultOption.textContent = 'Template par défaut';
+    select.appendChild(defaultOption);
+
+    if (state.prescriptionTemplates && state.prescriptionTemplates.length > 0) {
+      state.prescriptionTemplates.forEach(template => {
+        const option = document.createElement('option');
+        option.value = template.id;
+        option.textContent = template.name;
+        select.appendChild(option);
+      });
+    }
+
+    if (select.options.length > 1) {
+      select.selectedIndex = 1;
+    }
+  }
+
+  // Set up event listeners for config buttons
+  byId('apcPrev').onclick = apcPrevious;
+  byId('apcSkip').onclick = apcSkip;
+  byId('apcValidate').onclick = apcValidate;
+
+  // Switch to config view
+  apcShowConfigView();
+
+  // Display first patient
+  apcDisplayCurrentPatient();
+}
+
+function apcDisplayCurrentPatient() {
+  if (apcState.currentIndex >= apcState.selectedPatientsList.length) {
+    // All patients configured, generate prescriptions
+    apcGenerateAll();
+    return;
+  }
+
+  const patient = apcState.selectedPatientsList[apcState.currentIndex];
+
+  // Update patient name
+  byId('apcCurrentPatient').textContent = fullName(patient);
+
+  // Set default start date to today
+  const today = new Date().toISOString().split('T')[0];
+  byId('apcCurrentStartDate').value = today;
+
+  // Update end date
+  apcUpdateCurrentEndDate();
+
+  // Update progress
+  byId('apcCurrentIndex').textContent = apcState.currentIndex + 1;
+  byId('apcTotalCount').textContent = apcState.selectedPatientsList.length;
+
+  const progress = ((apcState.currentIndex) / apcState.selectedPatientsList.length) * 100;
+  byId('apcProgressBar').style.width = `${progress}%`;
+
+  // Enable/disable prev button
+  byId('apcPrev').disabled = apcState.currentIndex === 0;
+}
+
+function apcPrevious() {
+  if (apcState.currentIndex > 0) {
+    apcState.currentIndex--;
+    apcDisplayCurrentPatient();
+  }
+}
+
+function apcSkip() {
+  apcState.currentIndex++;
+  apcDisplayCurrentPatient();
+}
+
+function apcValidate() {
+  const patient = apcState.selectedPatientsList[apcState.currentIndex];
+  const templateId = byId('apcCurrentTemplate').value;
+  const startDate = byId('apcCurrentStartDate').value;
+  const endDate = byId('apcCurrentEndDate').value;
+  const updateRenewal = byId('apcCurrentUpdateRenewal').checked;
+
   if (!templateId) {
     showToast('Veuillez sélectionner un template', 'warning');
     return;
   }
-
-  const startDate = byId('apcStartDate').value;
-  const endDate = byId('apcEndDate').value;
-  const updateRenewal = byId('apcUpdateRenewal').checked;
 
   if (!startDate || !endDate) {
     showToast('Veuillez renseigner les dates', 'warning');
     return;
   }
 
-  // Get selected patients
-  const selectedPatientsList = apcState.filteredPatients.filter(p =>
-    apcState.selectedPatients.has(p.id)
-  );
+  // Store configuration for this patient
+  apcState.prescriptions.push({
+    patient: patient,
+    templateId: templateId,
+    startDate: startDate,
+    endDate: endDate,
+    updateRenewal: updateRenewal
+  });
 
-  console.log('Generating prescriptions for', selectedPatientsList.length, 'patients');
+  console.log('Stored config for', fullName(patient));
+
+  // Move to next patient
+  apcState.currentIndex++;
+  apcDisplayCurrentPatient();
+}
+
+async function apcGenerateAll() {
+  console.log('Generating', apcState.prescriptions.length, 'prescriptions');
 
   // Close modal
   showModal(false, 'advancedPrescriptionModal');
 
-  // Find template
-  let template = null;
-  if (templateId === 'default') {
-    template = 'default';
-  } else {
-    template = state.prescriptionTemplates.find(t => t.id === templateId);
-    if (!template) {
-      showToast('Template introuvable', 'error');
-      return;
-    }
+  if (apcState.prescriptions.length === 0) {
+    showToast('Aucune ordonnance à générer', 'warning');
+    return;
   }
 
-  // Generate prescriptions
   const prescriptionPages = [];
   let successCount = 0;
 
-  for (const patient of selectedPatientsList) {
+  for (const config of apcState.prescriptions) {
     try {
-      const config = {
-        startDate: startDate,
-        endDate: endDate
+      // Find template
+      let template = null;
+      if (config.templateId === 'default') {
+        template = 'default';
+      } else {
+        template = state.prescriptionTemplates.find(t => t.id === config.templateId);
+        if (!template) {
+          console.error('Template not found for', fullName(config.patient));
+          continue;
+        }
+      }
+
+      const prescConfig = {
+        startDate: config.startDate,
+        endDate: config.endDate
       };
 
-      const result = await fcoGenerateSingleOrdonnance(patient, template, config);
+      const result = await fcoGenerateSingleOrdonnance(config.patient, template, prescConfig);
 
       if (result) {
         prescriptionPages.push({
           data: result,
-          patient: fullName(patient)
+          patient: fullName(config.patient)
         });
 
         // Update renewal date if requested
-        if (updateRenewal) {
-          patient.renewalDate = endDate;
+        if (config.updateRenewal) {
+          config.patient.renewalDate = config.endDate;
         }
 
         successCount++;
       }
     } catch (error) {
-      console.error('Error generating prescription for', fullName(patient), error);
+      console.error('Error generating prescription for', fullName(config.patient), error);
     }
   }
 
-  // Save state if renewal dates were updated
-  if (updateRenewal) {
+  // Save state if any renewal dates were updated
+  if (apcState.prescriptions.some(c => c.updateRenewal)) {
     saveState();
     render();
   }
@@ -15022,8 +15170,12 @@ window.apcSelectCycle = apcSelectCycle;
 window.apcApplyFilters = apcApplyFilters;
 window.apcSelectAll = apcSelectAll;
 window.apcDeselectAll = apcDeselectAll;
-window.apcUpdateEndDate = apcUpdateEndDate;
-window.apcGenerate = apcGenerate;
+window.apcClose = apcClose;
+window.apcStartConfiguration = apcStartConfiguration;
+window.apcUpdateCurrentEndDate = apcUpdateCurrentEndDate;
+window.apcPrevious = apcPrevious;
+window.apcSkip = apcSkip;
+window.apcValidate = apcValidate;
 
 // Expose state for debugging
 window.state = state;
