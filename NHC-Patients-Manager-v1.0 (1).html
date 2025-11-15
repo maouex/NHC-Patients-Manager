@@ -2256,6 +2256,10 @@ body {
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
             Fast Check Ordonnances
           </button>
+          <button class="dropdown-item" onclick="fcoOpen()">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path></svg>
+            Fast Create Ordo
+          </button>
         </div>
       </div>
     </header>
@@ -2297,6 +2301,10 @@ body {
             <button class="btn btn-secondary" onclick="fcOpen()" style="justify-content: center; padding: 1rem;">
               <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
               Fast Check Ordonnances
+            </button>
+            <button class="btn btn-success" onclick="fcoOpen()" style="justify-content: center; padding: 1rem;">
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path></svg>
+              Fast Create Ordo
             </button>
           </div>
         </div>
@@ -3569,6 +3577,86 @@ body {
         <button class="btn btn-secondary" id="fcSkip">Passer →</button>
         <button class="btn btn-warning" id="fcCorrect">Corriger</button>
         <button class="btn btn-success hidden" id="fcUpdate">Valider</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fast Create Ordo Modal -->
+<div class="modal" id="fastCreateOrdoModal">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-header">
+      <h2 class="modal-title">📝 Fast Create Ordo - Génération rapide</h2>
+      <button class="modal-close" id="fcoClose">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="text-center">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
+          <h3 id="fcoPatient" style="color: var(--primary); margin: 0;">-</h3>
+        </div>
+
+        <!-- Template Selection -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
+          <label class="form-label" style="font-weight: 600;">Template d'ordonnance</label>
+          <select class="form-input" id="fcoTemplate">
+            <option value="">Sélectionner un template...</option>
+          </select>
+        </div>
+
+        <!-- Date Selection -->
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); border: 1px solid var(--border);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label class="form-label" style="font-weight: 600;">Date de début</label>
+              <input type="date" class="form-input" id="fcoStartDate">
+            </div>
+            <div>
+              <label class="form-label" style="font-weight: 600;">Date de fin</label>
+              <input type="date" class="form-input" id="fcoEndDate">
+            </div>
+          </div>
+
+          <!-- Duration radio buttons -->
+          <div style="margin-top: 1rem;">
+            <label class="form-label" style="font-weight: 600; margin-bottom: 0.5rem;">Durée de l'ordonnance</label>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="radio" name="fcoDuration" value="1" onchange="fcoUpdateEndDate()">
+                <span>1 mois</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="radio" name="fcoDuration" value="3" checked onchange="fcoUpdateEndDate()">
+                <span>3 mois</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="radio" name="fcoDuration" value="6" onchange="fcoUpdateEndDate()">
+                <span>6 mois</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Checkbox to update renewal date -->
+        <div style="margin-bottom: 1rem;">
+          <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <input type="checkbox" id="fcoUpdateRenewal" checked>
+            <span>Mettre à jour la date de renouvellement du patient</span>
+          </label>
+        </div>
+
+        <p class="text-small text-muted">Patient <span id="fcoIndex">0</span> sur <span id="fcoTotal">0</span></p>
+        <div class="progress mt-2" style="height: 10px;">
+          <div class="progress-bar" id="fcoProgress" style="background: linear-gradient(90deg, var(--primary), var(--secondary)); width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer" style="justify-content: space-between;">
+      <button class="btn btn-secondary" id="fcoPrev">← Précédent</button>
+      <div class="flex gap-1">
+        <button class="btn btn-secondary" id="fcoSkip">Passer →</button>
+        <button class="btn btn-success" id="fcoValidate">Valider →</button>
       </div>
     </div>
   </div>
@@ -8477,6 +8565,382 @@ function fcOpenOrdonnance() {
   showToast('Ordonnance ouverte dans un nouvel onglet', 'success');
 }
 
+// ===== Fast Create Ordo Functions =====
+let fcoState = {
+  list: [], // Liste des patients du cycle
+  index: 0, // Index du patient actuel
+  prescriptions: [] // Stockage des configurations d'ordonnance pour chaque patient
+};
+
+function fcoOpen() {
+  console.log('fcoOpen called');
+
+  try {
+    // Récupérer le cycle sélectionné dans les filtres
+    const cycleFilter = byId('filterCycle')?.value || '';
+
+    // Filtrer les patients du cycle en cours
+    if (!cycleFilter) {
+      showToast('Veuillez d\'abord sélectionner un cycle dans les filtres', 'warning');
+      return;
+    }
+
+    // Filtrer les patients appartenant au cycle sélectionné
+    const patientsInCycle = state.patients.filter(p => {
+      const renewalDate = p.renewalDate;
+      if (!renewalDate) return false;
+      const cycleLabel = formatCycleLabel(renewalDate);
+      return cycleLabel === cycleFilter;
+    });
+
+    console.log('Patients in cycle:', patientsInCycle.length);
+
+    if (patientsInCycle.length === 0) {
+      showToast('Aucun patient dans le cycle sélectionné', 'warning');
+      return;
+    }
+
+    fcoState.list = patientsInCycle;
+    fcoState.index = 0;
+    fcoState.prescriptions = [];
+
+    // Populate template select
+    fcoPopulateTemplates();
+
+    fcoDisplay();
+    showModal(true, 'fastCreateOrdoModal');
+  } catch (error) {
+    console.error('Error in fcoOpen:', error);
+    showToast('Erreur lors de l\'ouverture du Fast Create Ordo', 'error');
+  }
+}
+
+function fcoPopulateTemplates() {
+  const select = byId('fcoTemplate');
+  if (!select) return;
+
+  // Clear existing options except the first one
+  select.innerHTML = '<option value="">Sélectionner un template...</option>';
+
+  // Add default template
+  const defaultOption = document.createElement('option');
+  defaultOption.value = 'default';
+  defaultOption.textContent = 'Template par défaut';
+  select.appendChild(defaultOption);
+
+  // Add uploaded templates
+  if (state.prescriptionTemplates && state.prescriptionTemplates.length > 0) {
+    state.prescriptionTemplates.forEach(template => {
+      const option = document.createElement('option');
+      option.value = template.id;
+      option.textContent = template.name;
+      select.appendChild(option);
+    });
+  }
+
+  // Select first available template
+  if (select.options.length > 1) {
+    select.selectedIndex = 1;
+  }
+}
+
+function fcoDisplay() {
+  if (fcoState.index >= fcoState.list.length) {
+    // Tous les patients ont été traités, générer le document
+    fcoGenerateAll();
+    return;
+  }
+
+  const patient = fcoState.list[fcoState.index];
+
+  // Update patient name
+  byId('fcoPatient').textContent = fullName(patient);
+
+  // Set default dates
+  const today = new Date();
+  const startDateInput = byId('fcoStartDate');
+  const endDateInput = byId('fcoEndDate');
+
+  startDateInput.value = today.toISOString().split('T')[0];
+
+  // Calculate end date based on duration (3 months by default)
+  const duration = parseInt(document.querySelector('input[name="fcoDuration"]:checked')?.value || 3);
+  const endDate = new Date(today);
+  endDate.setMonth(endDate.getMonth() + duration);
+  endDateInput.value = endDate.toISOString().split('T')[0];
+
+  // Update progress
+  byId('fcoIndex').textContent = fcoState.index + 1;
+  byId('fcoTotal').textContent = fcoState.list.length;
+  const progress = ((fcoState.index + 1) / fcoState.list.length) * 100;
+  byId('fcoProgress').style.width = progress + '%';
+
+  // Enable/disable prev button
+  byId('fcoPrev').disabled = fcoState.index === 0;
+}
+
+function fcoUpdateEndDate() {
+  const startDate = byId('fcoStartDate').value;
+  if (!startDate) return;
+
+  const duration = parseInt(document.querySelector('input[name="fcoDuration"]:checked')?.value || 3);
+  const start = new Date(startDate);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + duration);
+
+  byId('fcoEndDate').value = end.toISOString().split('T')[0];
+}
+
+function fcoNext() {
+  fcoState.index++;
+  fcoDisplay();
+}
+
+function fcoPrev() {
+  if (fcoState.index > 0) {
+    fcoState.index--;
+    fcoDisplay();
+  }
+}
+
+function fcoSkip() {
+  // Skip this patient without adding prescription
+  console.log('Skipping patient:', fullName(fcoState.list[fcoState.index]));
+  fcoNext();
+}
+
+function fcoValidate() {
+  const patient = fcoState.list[fcoState.index];
+  const templateId = byId('fcoTemplate').value;
+  const startDate = byId('fcoStartDate').value;
+  const endDate = byId('fcoEndDate').value;
+  const duration = parseInt(document.querySelector('input[name="fcoDuration"]:checked')?.value || 3);
+  const updateRenewal = byId('fcoUpdateRenewal').checked;
+
+  // Validation
+  if (!templateId) {
+    showToast('Veuillez sélectionner un template', 'warning');
+    return;
+  }
+
+  if (!startDate || !endDate) {
+    showToast('Veuillez sélectionner les dates', 'warning');
+    return;
+  }
+
+  // Store prescription configuration
+  fcoState.prescriptions.push({
+    patient: patient,
+    templateId: templateId,
+    startDate: startDate,
+    endDate: endDate,
+    duration: duration,
+    updateRenewal: updateRenewal
+  });
+
+  console.log('Prescription validated for:', fullName(patient));
+
+  // Move to next patient
+  fcoNext();
+}
+
+function fcoClose() {
+  showModal(false, 'fastCreateOrdoModal');
+  fcoState = { list: [], index: 0, prescriptions: [] };
+}
+
+async function fcoGenerateAll() {
+  console.log('Generating all prescriptions...');
+  console.log('Total prescriptions to generate:', fcoState.prescriptions.length);
+
+  if (fcoState.prescriptions.length === 0) {
+    showToast('Aucune ordonnance à générer', 'warning');
+    fcoClose();
+    return;
+  }
+
+  try {
+    showModal(false, 'fastCreateOrdoModal');
+    showToast('Génération des ordonnances en cours...', 'info');
+
+    // Load required libraries
+    if (typeof window.PizZip === 'undefined') {
+      await loadScript('https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js');
+    }
+    if (typeof window.docxtemplater === 'undefined' && typeof window.Docxtemplater === 'undefined') {
+      await loadScript('https://unpkg.com/docxtemplater@3.45.0/build/docxtemplater.min.js');
+      if (typeof window.Docxtemplater !== 'undefined') {
+        window.docxtemplater = window.Docxtemplater;
+      }
+    }
+    if (typeof window.saveAs === 'undefined') {
+      await loadScript('https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js');
+    }
+
+    // Generate each prescription and combine them
+    const prescriptionPages = [];
+
+    for (let i = 0; i < fcoState.prescriptions.length; i++) {
+      const config = fcoState.prescriptions[i];
+      const patient = config.patient;
+
+      console.log(`Generating prescription ${i + 1}/${fcoState.prescriptions.length} for ${fullName(patient)}`);
+
+      // Get template
+      let template = null;
+      if (config.templateId !== 'default') {
+        template = state.prescriptionTemplates.find(t => t.id === config.templateId);
+      }
+
+      if (template && template.fileData) {
+        // Use uploaded template
+        const pageData = await fcoGenerateSingleOrdonnance(patient, template, config);
+        prescriptionPages.push({
+          type: 'word',
+          data: pageData,
+          patient: fullName(patient)
+        });
+      }
+
+      // Update renewal date if requested
+      if (config.updateRenewal) {
+        patient.renewalDate = formatDateForDisplay(new Date(config.endDate));
+      }
+    }
+
+    // Save database with updated renewal dates
+    saveDB();
+    renderPatients();
+
+    // Combine all prescriptions into one document
+    if (prescriptionPages.length > 0) {
+      await fcoCombineWordDocuments(prescriptionPages);
+      showToast(`${prescriptionPages.length} ordonnances générées avec succès !`, 'success');
+    } else {
+      showToast('Aucune ordonnance Word n\'a pu être générée', 'warning');
+    }
+
+    // Clean up
+    fcoState = { list: [], index: 0, prescriptions: [] };
+
+  } catch (error) {
+    console.error('Error generating prescriptions:', error);
+    showToast('Erreur lors de la génération des ordonnances: ' + error.message, 'error');
+  }
+}
+
+async function fcoGenerateSingleOrdonnance(patient, template, config) {
+  // Get doctor information
+  const doctor = state.docs.find(d => d.id === patient.docId);
+  const doctorName = doctor ? doctor.name : 'Dr. [Nom du médecin]';
+
+  // Format dates
+  const startDateFormatted = formatDateForDisplay(new Date(config.startDate));
+  const endDateFormatted = formatDateForDisplay(new Date(config.endDate));
+  const birthDateFormatted = patient.dob ? formatDateForDisplay(new Date(patient.dob)) : '';
+  const currentDateFormatted = formatDateForDisplay(new Date());
+
+  // Prepare data for template replacement
+  const templateData = {
+    // Médecin
+    medecin_nom: doctorName,
+    nom_medecin: doctorName,
+    medecin: doctorName,
+    doctor_name: doctorName,
+
+    // Patient - nom complet
+    patient_nom: patient.lastName || '',
+    patient_prenom: patient.firstName || '',
+    nom_patient: patient.lastName || '',
+    prenom_patient: patient.firstName || '',
+    patient_nom_complet: `${patient.firstName || ''} ${patient.lastName || ''}`.trim(),
+    nom_complet: `${patient.firstName || ''} ${patient.lastName || ''}`.trim(),
+
+    // Date de naissance
+    patient_date_naissance: birthDateFormatted,
+    date_naissance: birthDateFormatted,
+    dob: birthDateFormatted,
+
+    // Dates ordonnance
+    date_debut: startDateFormatted,
+    date_debut_ordonnance: startDateFormatted,
+    start_date: startDateFormatted,
+
+    date_fin: endDateFormatted,
+    date_fin_ordonnance: endDateFormatted,
+    end_date: endDateFormatted,
+
+    // Date du jour
+    date_jour: currentDateFormatted,
+    date: currentDateFormatted,
+    current_date: currentDateFormatted,
+
+    // Autres informations utiles
+    duree: config.duration + ' mois',
+    duration: config.duration + ' months',
+    patient_id: patient.nhcId || patient.id || '',
+    cycle: patient.cycle || ''
+  };
+
+  // Handle different fileData formats
+  let base64Data;
+  if (typeof template.fileData === 'string') {
+    base64Data = template.fileData.includes(',')
+      ? template.fileData.split(',')[1]
+      : template.fileData;
+  } else if (template.fileData && template.fileData.data) {
+    base64Data = template.fileData.data;
+  } else {
+    throw new Error('Format de fichier invalide');
+  }
+
+  const binaryString = atob(base64Data);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+
+  // Load the docx file
+  const zip = new window.PizZip(bytes);
+  const doc = new window.docxtemplater(zip, {
+    paragraphLoop: true,
+    linebreaks: true,
+    delimiters: {
+      start: '{',
+      end: '}'
+    }
+  });
+
+  // Replace placeholders with data
+  doc.render(templateData);
+
+  // Return the zip data (not the blob yet)
+  return doc.getZip();
+}
+
+async function fcoCombineWordDocuments(prescriptionPages) {
+  // For now, we'll create individual files
+  // Combining Word documents is complex and requires merging XML content
+
+  console.log('Creating combined Word document with', prescriptionPages.length, 'pages');
+
+  // Simple approach: Download each prescription separately
+  for (let i = 0; i < prescriptionPages.length; i++) {
+    const page = prescriptionPages[i];
+
+    const output = page.data.generate({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+
+    const fileName = `Ordonnance_${i + 1}_${page.patient.replace(/\s+/g, '_')}.docx`;
+    window.saveAs(output, fileName);
+
+    // Small delay between downloads to avoid browser blocking
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+}
+
 // ===== Import/Export Functions =====
 function exportJson() {
   const backup = {
@@ -12724,7 +13188,14 @@ function bindEvents() {
   byId('fcEditCode')?.addEventListener('click', fcEditCode);
   byId('fcSaveCode')?.addEventListener('click', fcSaveCode);
   byId('fcOrdonnance')?.addEventListener('click', fcOpenOrdonnance);
-  
+
+  // Fast Create Ordo events
+  byId('fcoClose')?.addEventListener('click', fcoClose);
+  byId('fcoPrev')?.addEventListener('click', fcoPrev);
+  byId('fcoSkip')?.addEventListener('click', fcoSkip);
+  byId('fcoValidate')?.addEventListener('click', fcoValidate);
+  byId('fcoStartDate')?.addEventListener('change', fcoUpdateEndDate);
+
   // Switch events
   byId('switchPatientId')?.addEventListener('change', updateSwitchOldProto);
   
@@ -12743,6 +13214,25 @@ function bindEvents() {
         case 'Escape':
           e.preventDefault();
           fcClose();
+          break;
+      }
+    }
+
+    // Fast Create Ordo keyboard shortcuts
+    if (byId('fastCreateOrdoModal')?.classList.contains('active')) {
+      switch(e.key) {
+        case 'ArrowRight':
+        case 'Enter':
+          e.preventDefault();
+          fcoValidate();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          fcoPrev();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          fcoClose();
           break;
       }
     }
@@ -13804,6 +14294,9 @@ window.fcCopy = fcCopy;
 window.fcEditCode = fcEditCode;
 window.fcSaveCode = fcSaveCode;
 window.fcOpenOrdonnance = fcOpenOrdonnance;
+window.fcoOpen = fcoOpen;
+window.fcoClose = fcoClose;
+window.fcoUpdateEndDate = fcoUpdateEndDate;
 window.exportToExcel = exportToExcel;
 window.openAdvancedExportModal = openAdvancedExportModal;
 window.selectAllFilterDoctors = selectAllFilterDoctors;
@@ -14008,6 +14501,7 @@ function initCommandPalette() {
     { id: 'new-switch', title: 'Planifier un switch', description: 'Planifier un changement de pompe', icon: '🔄', action: () => openSwitchModal(), category: 'Actions' },
     { id: 'new-appointment', title: 'Nouveau rendez-vous', description: 'Créer un nouveau RDV', icon: '📅', action: () => openAppointmentModal(), category: 'Actions' },
     { id: 'fast-check', title: 'Fast Check Ordonnances', description: 'Vérification rapide des ordonnances', icon: '🔍', action: () => fcOpen(), category: 'Actions' },
+    { id: 'fast-create-ordo', title: 'Fast Create Ordo', description: 'Génération rapide des ordonnances du cycle', icon: '📝', action: () => fcoOpen(), category: 'Actions' },
     { id: 'export-excel', title: 'Exporter Excel', description: 'Exporter les données en Excel', icon: '📊', action: () => exportToExcel(), category: 'Export' },
     { id: 'import-csv', title: 'Importer CSV', description: 'Importer des patients depuis CSV', icon: '📥', action: () => document.getElementById('btnImportCSV').click(), category: 'Import' },
     { id: 'view-dashboard', title: 'Tableau de bord', description: 'Retour au tableau de bord', icon: '🏠', action: () => switchView('dashboard'), category: 'Navigation' },
