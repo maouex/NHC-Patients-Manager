@@ -1,13 +1,14 @@
 {
-  "version": "1.5.0",
+  "version": "1.5.1",
   "fileName": "NHC-Patients-Manager-v1.0 (1).html",
   "downloadUrl": "https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/NHC-Patients-Manager-v1.0%20(1).html",
   "releaseDate": "2025-01-15",
   "releaseNotes": {
     "fr": [
-      "✨ Création d'ordonnance filtrée : date de début = date de renouvellement du patient",
+      "✨ Création d'ordonnance : date de début = date de renouvellement du patient",
       "📅 Ajout de l'option 12 mois dans les durées de renouvellement",
-      "🔧 Amélioration de la gestion des dates de renouvellement"
+      "🐛 Correction erreur génération ordonnance avec template par défaut",
+      "🔧 Modes groupés : uniquement templates Word (pas template PDF par défaut)"
     ]
   },
   "minVersion": "1.0.0",
