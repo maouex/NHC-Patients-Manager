@@ -1,0 +1,1628 @@
+{
+  "application": {
+    "name": "NHC Patients Manager",
+    "version": "v1.4.0",
+    "type": "Single Page Application (SPA)",
+    "storage": "localStorage",
+    "framework": "Vanilla JavaScript"
+  },
+
+  "dataStructure": {
+    "localStorage": {
+      "mainKey": "nhc-care-v4",
+      "legacyKeys": ["nhc-care-v1", "nhc-care-v2", "nhc-care-v3"],
+      "additionalKeys": {
+        "autoSaveConfig": "autoSaveConfig",
+        "theme": "nhc-theme",
+        "githubConfig": "GITHUB_CONFIG_KEY",
+        "welcomeShown": "nhc-welcome-shown",
+        "tutorialSeen": "nhc-tutorial-seen",
+        "tutorialDisabled": "nhc-tutorial-disabled",
+        "careUpdate": "nhc-care-update",
+        "applyUpdateOnLoad": "nhc-apply-update-on-load"
+      }
+    },
+
+    "state": {
+      "patients": {
+        "description": "Array of patient objects",
+        "fields": {
+          "id": "Unique identifier (generated)",
+          "lastName": "Patient last name (required)",
+          "firstName": "Patient first name (required)",
+          "dob": "Date of birth (date input)",
+          "email": "Email address",
+          "phone": "Phone number",
+          "address": "Full address",
+          "patientCode": "Code for online prescriptions",
+          "docId": "Reference to doctor ID",
+          "centerId": "Reference to center ID",
+          "protoId": "Reference to protocol ID",
+          "renewalDate": "Date of prescription renewal (DD/MM/YYYY)",
+          "notes": "Free text notes",
+          "status": "Patient status: 'active' (default), 'temporary_pause', 'permanent_pause', 'archived'",
+          "pausedAt": "Timestamp when paused",
+          "pauseReason": "Reason for pause",
+          "pauseType": "Type of pause",
+          "archiveReason": "Reason for archiving",
+          "createdAt": "Creation timestamp",
+          "updatedAt": "Last update timestamp",
+          "history": "Array of change history entries"
+        },
+        "historyEntry": {
+          "date": "Timestamp of change",
+          "type": "Type: 'created', 'updated', 'paused', 'reactivated', 'archived'",
+          "field": "Field that changed",
+          "oldValue": "Previous value",
+          "newValue": "New value"
+        }
+      },
+
+      "docs": {
+        "description": "Array of doctor/physician objects",
+        "fields": {
+          "id": "Unique identifier",
+          "name": "Doctor name"
+        }
+      },
+
+      "centers": {
+        "description": "Array of medical center objects",
+        "fields": {
+          "id": "Unique identifier",
+          "name": "Center name"
+        }
+      },
+
+      "protos": {
+        "description": "Array of protocol/pump type objects",
+        "fields": {
+          "id": "Unique identifier",
+          "name": "Protocol/pump name"
+        }
+      },
+
+      "switches": {
+        "description": "Array of protocol switch objects",
+        "fields": {
+          "id": "Unique identifier",
+          "patientId": "Reference to patient ID",
+          "oldProtoId": "Previous protocol ID",
+          "newProtoId": "New protocol ID",
+          "switchDate": "Date of switch (DD/MM/YYYY)",
+          "status": "Status: 'planned', 'completed'",
+          "notes": "Free text notes",
+          "renewalDate": "New renewal date (if applicable)",
+          "hasPrescription": "Boolean - whether new prescription was generated",
+          "createdAt": "Creation timestamp",
+          "updatedAt": "Last update timestamp"
+        }
+      },
+
+      "appointments": {
+        "description": "Array of follow-up appointment objects",
+        "fields": {
+          "id": "Unique identifier",
+          "patientId": "Reference to patient ID",
+          "exactDate": "Exact date (DD/MM/YYYY) - for date-type appointments",
+          "month": "Month (MM/YYYY) - for month-type appointments",
+          "notes": "Free text notes",
+          "status": "Status: 'active', 'completed', 'cancelled'",
+          "history": "Array of appointment history",
+          "createdAt": "Creation timestamp",
+          "updatedAt": "Last update timestamp"
+        }
+      },
+
+      "prescriptionTemplates": {
+        "description": "Array of Word/DOCX prescription template objects",
+        "fields": {
+          "id": "Unique identifier",
+          "name": "Template name",
+          "fileName": "Original file name",
+          "fileSize": "File size in bytes",
+          "fileData": "Base64 encoded DOCX file data",
+          "preview": "Text preview of template",
+          "createdAt": "Creation timestamp"
+        }
+      }
+    }
+  },
+
+  "javaScriptFunctions": {
+    "database": [
+      {
+        "name": "loadDB",
+        "description": "Load data from localStorage, handle migrations from old versions, ensure history arrays exist"
+      },
+      {
+        "name": "saveDB",
+        "description": "Save state to localStorage with data size monitoring"
+      },
+      {
+        "name": "initDemoData",
+        "description": "Initialize with demo/sample data"
+      },
+      {
+        "name": "generateId",
+        "description": "Generate unique ID using timestamp + random"
+      }
+    ],
+
+    "ui": [
+      {
+        "name": "switchView",
+        "description": "Switch between main views/sections (dashboard, patients, ordos, etc.)"
+      },
+      {
+        "name": "render",
+        "description": "Main render function - calls specific render for active view"
+      },
+      {
+        "name": "showModal",
+        "description": "Show/hide modal dialogs"
+      },
+      {
+        "name": "showToast",
+        "description": "Display toast notification (success, error, warning, info)"
+      },
+      {
+        "name": "updateCounters",
+        "description": "Update all KPI counters and statistics"
+      }
+    ],
+
+    "patients": [
+      {
+        "name": "newPatient",
+        "description": "Open modal to create new patient"
+      },
+      {
+        "name": "openPatient",
+        "description": "Open modal to edit existing patient"
+      },
+      {
+        "name": "viewPatientDetails",
+        "description": "View patient details in read-only modal"
+      },
+      {
+        "name": "savePatient",
+        "description": "Save patient (create or update) with validation and history tracking"
+      },
+      {
+        "name": "deletePatient",
+        "description": "Delete patient after confirmation"
+      },
+      {
+        "name": "pausePatient",
+        "description": "Pause patient (temporary or permanent) with reason"
+      },
+      {
+        "name": "reactivatePatient",
+        "description": "Reactivate paused patient"
+      },
+      {
+        "name": "changePatientStatus",
+        "description": "Open modal to change patient status"
+      },
+      {
+        "name": "handleStatusChange",
+        "description": "Execute status change with proper tracking"
+      },
+      {
+        "name": "renderPatients",
+        "description": "Render active patients list with filtering and sorting"
+      },
+      {
+        "name": "renderArchivedPatients",
+        "description": "Render archived/paused patients list"
+      },
+      {
+        "name": "sortPatients",
+        "description": "Sort patients by various criteria (name, renewal date, cycle, etc.)"
+      }
+    ],
+
+    "ordonnances": [
+      {
+        "name": "renderOrdos",
+        "description": "Render ordonnances view by cycles"
+      },
+      {
+        "name": "renderCyclePatients",
+        "description": "Render patients for a specific cycle"
+      },
+      {
+        "name": "renewOrdonnance",
+        "description": "Renew single ordonnance (update renewal date)"
+      },
+      {
+        "name": "startBatchRenewal",
+        "description": "Start batch renewal process for multiple patients"
+      },
+      {
+        "name": "refreshOrdonnances",
+        "description": "Refresh ordonnances view"
+      },
+      {
+        "name": "getOrdonnanceStatus",
+        "description": "Get status of ordonnance: expired, urgent, warning, valid"
+      },
+      {
+        "name": "getUpcomingRenewals",
+        "description": "Get list of upcoming renewals within X days"
+      },
+      {
+        "name": "getExpiredOrdonnances",
+        "description": "Get list of expired ordonnances"
+      },
+      {
+        "name": "suggestNextRenewalDate",
+        "description": "Calculate next renewal date (28 days from current)"
+      },
+      {
+        "name": "daysUntilRenewal",
+        "description": "Calculate days until renewal"
+      }
+    ],
+
+    "fastCheck": [
+      {
+        "name": "fcOpen",
+        "description": "Open Fast Check modal - quick ordonnance verification"
+      },
+      {
+        "name": "fcDisplay",
+        "description": "Display current patient in Fast Check"
+      },
+      {
+        "name": "fcNext",
+        "description": "Move to next patient in Fast Check"
+      },
+      {
+        "name": "fcPrev",
+        "description": "Move to previous patient in Fast Check"
+      },
+      {
+        "name": "fcCorrect",
+        "description": "Mark patient as correct/verified"
+      },
+      {
+        "name": "fcUpdate",
+        "description": "Update patient renewal date"
+      },
+      {
+        "name": "fcClose",
+        "description": "Close Fast Check modal"
+      },
+      {
+        "name": "fcCopy",
+        "description": "Copy patient name to clipboard"
+      },
+      {
+        "name": "fcEditCode",
+        "description": "Edit patient code"
+      },
+      {
+        "name": "fcSaveCode",
+        "description": "Save edited patient code"
+      },
+      {
+        "name": "fcOpenOrdonnance",
+        "description": "Open prescription generation from Fast Check"
+      }
+    ],
+
+    "fastCreateOrdo": [
+      {
+        "name": "fcoOpen",
+        "description": "Open Fast Create Ordonnance - batch prescription generation"
+      },
+      {
+        "name": "fcoShowCycleSelection",
+        "description": "Show cycle selection modal"
+      },
+      {
+        "name": "fcoSelectCycle",
+        "description": "Select cycle for batch generation"
+      },
+      {
+        "name": "fcoPopulateTemplates",
+        "description": "Populate template selection"
+      },
+      {
+        "name": "fcoDisplay",
+        "description": "Display current patient in FCO workflow"
+      },
+      {
+        "name": "fcoUpdateEndDate",
+        "description": "Update end date based on start date and duration"
+      },
+      {
+        "name": "fcoNext",
+        "description": "Move to next patient"
+      },
+      {
+        "name": "fcoPrev",
+        "description": "Move to previous patient"
+      },
+      {
+        "name": "fcoSkip",
+        "description": "Skip current patient"
+      },
+      {
+        "name": "fcoValidate",
+        "description": "Validate current patient configuration"
+      },
+      {
+        "name": "fcoClose",
+        "description": "Close FCO modal"
+      },
+      {
+        "name": "fcoGenerateAll",
+        "description": "Generate all prescriptions in batch"
+      },
+      {
+        "name": "fcoGenerateSingleOrdonnance",
+        "description": "Generate single prescription"
+      },
+      {
+        "name": "fcoCombineWordDocuments",
+        "description": "Combine multiple Word documents into one PDF"
+      }
+    ],
+
+    "advancedPrescription": [
+      {
+        "name": "openAdvancedPrescriptionCreation",
+        "description": "Open advanced prescription creation modal"
+      },
+      {
+        "name": "apcShowSelectionView",
+        "description": "Show patient selection view"
+      },
+      {
+        "name": "apcShowConfigView",
+        "description": "Show configuration view"
+      },
+      {
+        "name": "apcClose",
+        "description": "Close modal"
+      },
+      {
+        "name": "apcPopulateCycles",
+        "description": "Populate cycle selection"
+      },
+      {
+        "name": "apcSelectCycle",
+        "description": "Select cycle"
+      },
+      {
+        "name": "apcLoadPatients",
+        "description": "Load patients for selected cycle"
+      },
+      {
+        "name": "apcPopulateFilters",
+        "description": "Populate filter dropdowns"
+      },
+      {
+        "name": "apcApplyFilters",
+        "description": "Apply filters to patient list"
+      },
+      {
+        "name": "apcDisplayPatients",
+        "description": "Display filtered patients"
+      },
+      {
+        "name": "apcSelectAll",
+        "description": "Select all patients"
+      },
+      {
+        "name": "apcDeselectAll",
+        "description": "Deselect all patients"
+      },
+      {
+        "name": "apcPopulateTemplates",
+        "description": "Populate template selection"
+      },
+      {
+        "name": "apcUpdateCurrentEndDate",
+        "description": "Update end date for current patient"
+      },
+      {
+        "name": "apcStartConfiguration",
+        "description": "Start configuration workflow"
+      },
+      {
+        "name": "apcDisplayCurrentPatient",
+        "description": "Display current patient configuration"
+      },
+      {
+        "name": "apcPrevious",
+        "description": "Go to previous patient"
+      },
+      {
+        "name": "apcSkip",
+        "description": "Skip current patient"
+      },
+      {
+        "name": "apcValidate",
+        "description": "Validate current patient configuration"
+      },
+      {
+        "name": "apcGenerateAll",
+        "description": "Generate all configured prescriptions"
+      }
+    ],
+
+    "prescriptionGeneration": [
+      {
+        "name": "openGeneratePrescriptionModal",
+        "description": "Open prescription generation modal for single patient"
+      },
+      {
+        "name": "updatePrescEndDate",
+        "description": "Update prescription end date based on start + duration"
+      },
+      {
+        "name": "generatePrescriptionPDF",
+        "description": "Generate prescription PDF (from template or default)"
+      },
+      {
+        "name": "generateDefaultPrescriptionPDF",
+        "description": "Generate default PDF prescription using jsPDF"
+      },
+      {
+        "name": "generateFromUploadedTemplate",
+        "description": "Generate prescription from uploaded Word template"
+      }
+    ],
+
+    "templates": [
+      {
+        "name": "renderTemplates",
+        "description": "Render templates list"
+      },
+      {
+        "name": "openTemplateUploadModal",
+        "description": "Open template upload modal"
+      },
+      {
+        "name": "toggleTemplateUpload",
+        "description": "Toggle between drag-drop and file selection"
+      },
+      {
+        "name": "handleTemplateFileUpload",
+        "description": "Handle template file upload (DOCX)"
+      },
+      {
+        "name": "saveTemplate",
+        "description": "Save uploaded template"
+      },
+      {
+        "name": "editTemplate",
+        "description": "Edit template name"
+      },
+      {
+        "name": "deleteTemplate",
+        "description": "Delete template"
+      },
+      {
+        "name": "arrayBufferToBase64",
+        "description": "Convert ArrayBuffer to Base64"
+      },
+      {
+        "name": "base64ToArrayBuffer",
+        "description": "Convert Base64 to ArrayBuffer"
+      }
+    ],
+
+    "switches": [
+      {
+        "name": "openSwitchModal",
+        "description": "Open switch modal (create/edit)"
+      },
+      {
+        "name": "updateSwitchOldProto",
+        "description": "Update old protocol display when patient selected"
+      },
+      {
+        "name": "saveSwitch",
+        "description": "Save switch (create/update)"
+      },
+      {
+        "name": "applySwitch",
+        "description": "Apply completed switch to patient"
+      },
+      {
+        "name": "validateSwitch",
+        "description": "Validate/activate planned switch"
+      },
+      {
+        "name": "selectPrescriptionOption",
+        "description": "Select prescription option during validation"
+      },
+      {
+        "name": "confirmValidateSwitch",
+        "description": "Confirm switch validation"
+      },
+      {
+        "name": "applySwitchWithRenewalDate",
+        "description": "Apply switch with new renewal date"
+      },
+      {
+        "name": "deleteSwitch",
+        "description": "Delete switch"
+      },
+      {
+        "name": "toggleSwitchView",
+        "description": "Toggle between list and timeline views"
+      },
+      {
+        "name": "renderTimeline",
+        "description": "Render timeline view of switches"
+      },
+      {
+        "name": "renderSwitches",
+        "description": "Render switches view"
+      },
+      {
+        "name": "renderSwitchList",
+        "description": "Render switch list (planned or completed)"
+      }
+    ],
+
+    "appointments": [
+      {
+        "name": "openAppointmentModal",
+        "description": "Open appointment modal (create/edit)"
+      },
+      {
+        "name": "toggleAppointmentType",
+        "description": "Toggle between exact date and month appointment types"
+      },
+      {
+        "name": "saveAppointment",
+        "description": "Save appointment (create/update)"
+      },
+      {
+        "name": "deleteAppointment",
+        "description": "Delete appointment"
+      },
+      {
+        "name": "completeAppointment",
+        "description": "Open complete appointment modal"
+      },
+      {
+        "name": "toggleNextAppointmentType",
+        "description": "Toggle next appointment type in completion modal"
+      },
+      {
+        "name": "confirmCompleteAppointment",
+        "description": "Confirm appointment completion and optionally schedule next"
+      },
+      {
+        "name": "renderAppointments",
+        "description": "Render appointments view with filtering"
+      },
+      {
+        "name": "updateAppointmentStats",
+        "description": "Update appointment statistics"
+      },
+      {
+        "name": "validateAppointment",
+        "description": "Mark appointment as validated/completed from dashboard"
+      },
+      {
+        "name": "scheduleNextAppointment",
+        "description": "Schedule next appointment after completion"
+      }
+    ],
+
+    "dashboard": [
+      {
+        "name": "renderDashboard",
+        "description": "Render main dashboard view"
+      },
+      {
+        "name": "renderDashboardAlerts",
+        "description": "Render urgent alerts section"
+      },
+      {
+        "name": "renderDashboardAppointments",
+        "description": "Render upcoming appointments section"
+      },
+      {
+        "name": "renderDashboardSwitches",
+        "description": "Render planned switches section"
+      },
+      {
+        "name": "renderDashboardRenewals",
+        "description": "Render upcoming renewals section"
+      },
+      {
+        "name": "renderDashboardProtocolsChart",
+        "description": "Render protocols distribution chart"
+      }
+    ],
+
+    "catalogs": [
+      {
+        "name": "renderCatalogs",
+        "description": "Render catalogs view (doctors, centers, protocols)"
+      },
+      {
+        "name": "addDoc",
+        "description": "Add new doctor"
+      },
+      {
+        "name": "addCenter",
+        "description": "Add new center"
+      },
+      {
+        "name": "addProto",
+        "description": "Add new protocol"
+      }
+    ],
+
+    "statistics": [
+      {
+        "name": "renderStats",
+        "description": "Render statistics view"
+      },
+      {
+        "name": "getAllCycles",
+        "description": "Get all available cycles from patient data"
+      },
+      {
+        "name": "compareStatistics",
+        "description": "Compare statistics between two cycles"
+      },
+      {
+        "name": "calculateKPIs",
+        "description": "Calculate KPIs for a specific cycle"
+      },
+      {
+        "name": "displayKPIComparison",
+        "description": "Display KPI comparison results"
+      },
+      {
+        "name": "calculateEvolution",
+        "description": "Calculate evolution percentage between two values"
+      },
+      {
+        "name": "createComparisonChart",
+        "description": "Create visual comparison chart"
+      }
+    ],
+
+    "exportImport": [
+      {
+        "name": "exportJson",
+        "description": "Export all data as JSON file"
+      },
+      {
+        "name": "exportRefs",
+        "description": "Export only reference data (doctors, centers, protocols)"
+      },
+      {
+        "name": "exportToExcel",
+        "description": "Export active patients to Excel file"
+      },
+      {
+        "name": "exportToCSV",
+        "description": "Export patients to CSV file"
+      },
+      {
+        "name": "openAdvancedExportModal",
+        "description": "Open advanced export modal with filters"
+      },
+      {
+        "name": "populateAdvancedFilters",
+        "description": "Populate filter options in export modal"
+      },
+      {
+        "name": "addFilterListeners",
+        "description": "Add filter change listeners"
+      },
+      {
+        "name": "selectAllFilterDoctors",
+        "description": "Select/deselect all doctors filter"
+      },
+      {
+        "name": "selectAllFilterProtocols",
+        "description": "Select/deselect all protocols filter"
+      },
+      {
+        "name": "selectAllFilterCenters",
+        "description": "Select/deselect all centers filter"
+      },
+      {
+        "name": "updateFilterSummary",
+        "description": "Update filter summary display"
+      },
+      {
+        "name": "getFilteredPatients",
+        "description": "Get patients matching selected filters"
+      },
+      {
+        "name": "executeAdvancedExport",
+        "description": "Execute filtered export"
+      },
+      {
+        "name": "proceedToExport",
+        "description": "Proceed to export in selected format"
+      },
+      {
+        "name": "startPatientReview",
+        "description": "Start patient review before export"
+      },
+      {
+        "name": "displayCurrentPatient",
+        "description": "Display current patient in review"
+      },
+      {
+        "name": "previousPatientReview",
+        "description": "Go to previous patient in review"
+      },
+      {
+        "name": "nextPatientReview",
+        "description": "Go to next patient in review"
+      },
+      {
+        "name": "skipAllReview",
+        "description": "Skip review and export directly"
+      },
+      {
+        "name": "cancelPatientReview",
+        "description": "Cancel review process"
+      },
+      {
+        "name": "finishReviewAndGeneratePDF",
+        "description": "Finish review and generate PDF"
+      },
+      {
+        "name": "generatePDF",
+        "description": "Generate PDF report with patient list and comments"
+      },
+      {
+        "name": "openCSVImport",
+        "description": "Open CSV import modal"
+      },
+      {
+        "name": "loadCSVFile",
+        "description": "Load CSV file for import"
+      },
+      {
+        "name": "displayCSVPreview",
+        "description": "Display CSV preview"
+      },
+      {
+        "name": "goToMapping",
+        "description": "Go to column mapping step"
+      },
+      {
+        "name": "detectSeparator",
+        "description": "Auto-detect CSV separator"
+      },
+      {
+        "name": "parseCSVAdvanced",
+        "description": "Parse CSV with advanced options"
+      },
+      {
+        "name": "cleanHeaderName",
+        "description": "Clean CSV header names"
+      }
+    ],
+
+    "autoSave": [
+      {
+        "name": "checkFileSystemSupport",
+        "description": "Check if File System Access API is supported"
+      },
+      {
+        "name": "configureAutoSave",
+        "description": "Configure auto-save settings"
+      },
+      {
+        "name": "performAutoSave",
+        "description": "Perform auto-save operation"
+      },
+      {
+        "name": "scheduleAutoSave",
+        "description": "Schedule periodic auto-save"
+      },
+      {
+        "name": "toggleAutoSave",
+        "description": "Enable/disable auto-save"
+      },
+      {
+        "name": "saveNow",
+        "description": "Save immediately"
+      },
+      {
+        "name": "restoreFromAutoSave",
+        "description": "Restore from auto-saved file"
+      },
+      {
+        "name": "saveAutoSaveConfig",
+        "description": "Save auto-save configuration"
+      },
+      {
+        "name": "updateAutoSaveUI",
+        "description": "Update auto-save UI"
+      },
+      {
+        "name": "triggerAutoSave",
+        "description": "Trigger auto-save on data change"
+      }
+    ],
+
+    "cycles": [
+      {
+        "name": "getCurrentCycle",
+        "description": "Get current cycle number based on today's date"
+      },
+      {
+        "name": "getCycleFromDate",
+        "description": "Get cycle number from a specific date"
+      },
+      {
+        "name": "getCycleInfo",
+        "description": "Get cycle information (start/end dates)"
+      },
+      {
+        "name": "formatCycleLabel",
+        "description": "Format cycle label for display"
+      },
+      {
+        "name": "getPatientsByCycle",
+        "description": "Get patients by specific cycle"
+      },
+      {
+        "name": "getNextCycles",
+        "description": "Get next N cycles from today"
+      }
+    ],
+
+    "helpers": [
+      {
+        "name": "byId",
+        "description": "Shorthand for document.getElementById"
+      },
+      {
+        "name": "qsEl",
+        "description": "Shorthand for document.querySelector"
+      },
+      {
+        "name": "escapeHtml",
+        "description": "Escape HTML special characters"
+      },
+      {
+        "name": "fullName",
+        "description": "Get patient full name"
+      },
+      {
+        "name": "docName",
+        "description": "Get doctor name by ID"
+      },
+      {
+        "name": "centerName",
+        "description": "Get center name by ID"
+      },
+      {
+        "name": "protoName",
+        "description": "Get protocol name by ID"
+      },
+      {
+        "name": "qScore",
+        "description": "Calculate quality score for patient (data completeness)"
+      },
+      {
+        "name": "formatDateFR",
+        "description": "Format date to French DD/MM/YYYY"
+      },
+      {
+        "name": "parseDateFR",
+        "description": "Parse French date DD/MM/YYYY to Date object"
+      },
+      {
+        "name": "parseDate",
+        "description": "Parse various date formats"
+      },
+      {
+        "name": "formatDateForDisplay",
+        "description": "Format date for display"
+      },
+      {
+        "name": "formatDateForExcel",
+        "description": "Format date for Excel export"
+      },
+      {
+        "name": "calculateAge",
+        "description": "Calculate age from date of birth"
+      },
+      {
+        "name": "formatFileSize",
+        "description": "Format file size in human-readable format"
+      },
+      {
+        "name": "getPatientStatus",
+        "description": "Get patient status label"
+      },
+      {
+        "name": "populateSelects",
+        "description": "Populate select dropdowns with reference data"
+      }
+    ],
+
+    "ui_advanced": [
+      {
+        "name": "toggleTheme",
+        "description": "Toggle dark/light theme"
+      },
+      {
+        "name": "startTutorial",
+        "description": "Start interactive tutorial"
+      },
+      {
+        "name": "showCriticalError",
+        "description": "Show critical error message"
+      },
+      {
+        "name": "suggestRenewalDate",
+        "description": "Suggest next renewal date in patient form"
+      },
+      {
+        "name": "updateCycleInfo",
+        "description": "Update cycle info display in patient form"
+      },
+      {
+        "name": "closeStatusModal",
+        "description": "Close status change modal"
+      }
+    ],
+
+    "updates": [
+      {
+        "name": "openUpdateDB",
+        "description": "Open update database functionality"
+      },
+      {
+        "name": "getActiveUpdate",
+        "description": "Get active update from database"
+      }
+    ]
+  },
+
+  "modals": [
+    {
+      "id": "patientModal",
+      "title": "Patient Modal",
+      "purpose": "Create/Edit/View patient",
+      "actions": ["Save", "Delete", "Change Status", "Generate Prescription", "Cancel"]
+    },
+    {
+      "id": "fastModal",
+      "title": "Fast Check Modal",
+      "purpose": "Quick ordonnance verification - cycle through patients to verify renewal dates",
+      "actions": ["Previous", "Next", "Correct", "Update", "Copy Name", "Edit Code", "Open Ordonnance", "Close"]
+    },
+    {
+      "id": "fcoCycleSelectionModal",
+      "title": "Cycle Selection Modal",
+      "purpose": "Select cycle for Fast Create Ordo batch generation",
+      "actions": ["Select Cycle", "Cancel"]
+    },
+    {
+      "id": "fastCreateOrdoModal",
+      "title": "Fast Create Ordo Modal",
+      "purpose": "Batch prescription generation with patient-by-patient configuration",
+      "actions": ["Previous", "Next", "Skip", "Validate", "Generate All", "Close"]
+    },
+    {
+      "id": "advancedPrescriptionModal",
+      "title": "Advanced Prescription Creation Modal",
+      "purpose": "Advanced batch prescription with filtering and multi-selection",
+      "features": ["Cycle selection", "Patient filtering by doctor/protocol/center", "Multi-select patients", "Individual configuration", "Batch generation"],
+      "actions": ["Apply Filters", "Select All", "Deselect All", "Start Configuration", "Previous", "Skip", "Validate", "Generate All", "Close"]
+    },
+    {
+      "id": "patientDetailsModal",
+      "title": "Patient Details Modal",
+      "purpose": "View patient details in read-only mode",
+      "actions": ["Close"]
+    },
+    {
+      "id": "appointmentModal",
+      "title": "Appointment Modal",
+      "purpose": "Create/Edit appointment/follow-up",
+      "features": ["Two types: exact date or month", "Patient selection", "Notes"],
+      "actions": ["Save", "Delete", "Cancel"]
+    },
+    {
+      "id": "completeAppointmentModal",
+      "title": "Complete Appointment Modal",
+      "purpose": "Mark appointment as completed and optionally schedule next",
+      "features": ["Add completion notes", "Schedule next appointment", "Mark as validated"],
+      "actions": ["Cancel", "Complete"]
+    },
+    {
+      "id": "switchModal",
+      "title": "Protocol Switch Modal",
+      "purpose": "Create/Edit protocol switch",
+      "features": ["Patient selection", "Old/new protocol", "Switch date", "Status (planned/completed)", "Notes"],
+      "actions": ["Save", "Delete", "Cancel"]
+    },
+    {
+      "id": "validateSwitchModal",
+      "title": "Validate Switch Modal",
+      "purpose": "Validate/activate planned switch",
+      "features": ["Choose if new prescription needed", "Set new renewal date"],
+      "actions": ["Cancel", "Confirm"]
+    },
+    {
+      "id": "csvImportModal",
+      "title": "CSV Import Modal",
+      "purpose": "Import patients from CSV file",
+      "features": ["File upload", "Auto-detect separator", "Column mapping", "Preview", "Import"],
+      "actions": ["Re-detect", "Clear Mapping", "Cancel", "Import"]
+    },
+    {
+      "id": "advancedExportModal",
+      "title": "Advanced Export Modal",
+      "purpose": "Export patients with filtering options",
+      "features": ["Filter by doctor/protocol/center", "Multi-select filters", "Patient count summary", "Export to Excel or CSV"],
+      "actions": ["Select All Filters", "Deselect All Filters", "Cancel", "Export"]
+    },
+    {
+      "id": "exportConfirmModal",
+      "title": "Export Confirmation Modal",
+      "purpose": "Choose export format and options",
+      "actions": ["Export to CSV", "Review Patients & Generate PDF"]
+    },
+    {
+      "id": "patientReviewModal",
+      "title": "Patient Review Modal",
+      "purpose": "Review patients one-by-one before PDF export with comments",
+      "features": ["Patient navigation", "Add comments per patient", "Patient status display", "Protocol info"],
+      "actions": ["Previous", "Next", "Skip All", "Finish & Generate PDF"]
+    },
+    {
+      "id": "templateUploadModal",
+      "title": "Template Upload Modal",
+      "purpose": "Upload Word/DOCX prescription templates",
+      "features": ["Drag & drop or file selection", "DOCX validation", "Preview extraction", "Base64 encoding"],
+      "actions": ["Upload", "Cancel"]
+    },
+    {
+      "id": "generatePrescriptionModal",
+      "title": "Generate Prescription Modal",
+      "purpose": "Generate single prescription for a patient",
+      "features": ["Template selection or default PDF", "Start/end date", "Duration calculation", "Formation initiale option"],
+      "actions": ["Cancel", "Generate"]
+    }
+  ],
+
+  "views": [
+    {
+      "id": "dashboard",
+      "name": "Tableau de Bord",
+      "icon": "🏠",
+      "description": "Main dashboard with KPIs and overview",
+      "sections": [
+        "Welcome header",
+        "Quick actions (New patient, Switch, Appointment, Fast Check, Fast Create Ordo)",
+        "Main KPIs (Active patients, Renewals ≤30d, Quality score, Active protocols)",
+        "Urgent alerts (Expired ordonnances)",
+        "Upcoming appointments this month",
+        "Planned switches",
+        "Upcoming renewals (30 days)",
+        "Protocol distribution chart"
+      ]
+    },
+    {
+      "id": "patients",
+      "name": "Liste Patients",
+      "icon": "👥",
+      "description": "Active patients list",
+      "features": [
+        "Search/filter",
+        "Sort by name/renewal/cycle/quality/protocol",
+        "Export to Excel",
+        "Advanced export with filters",
+        "Patient cards with status badges",
+        "Renewal date indicators",
+        "Quick actions per patient"
+      ]
+    },
+    {
+      "id": "archived",
+      "name": "Patients Archivés",
+      "icon": "📦",
+      "description": "Archived and paused patients",
+      "features": [
+        "View archived patients",
+        "View paused patients (temporary/permanent)",
+        "Pause reason display",
+        "Archive reason display",
+        "Reactivate option"
+      ]
+    },
+    {
+      "id": "ordos",
+      "name": "Ordonnances",
+      "icon": "📋",
+      "description": "Ordonnances management by cycles",
+      "features": [
+        "Cycle tabs (current + previous/next)",
+        "Patient count per cycle",
+        "Status indicators (expired, urgent, warning, valid)",
+        "Batch renewal",
+        "Individual renewal",
+        "Fast Create Ordo",
+        "Advanced Prescription Creation",
+        "Export cycle to PDF"
+      ]
+    },
+    {
+      "id": "switches",
+      "name": "Switches Protocoles",
+      "icon": "🔄",
+      "description": "Protocol switches management",
+      "features": [
+        "Two views: List and Timeline",
+        "Planned switches section",
+        "Completed switches section",
+        "Validate planned switches",
+        "Timeline visualization",
+        "Status tracking"
+      ]
+    },
+    {
+      "id": "appointments",
+      "name": "Rendez-vous",
+      "icon": "📅",
+      "description": "Appointments/follow-ups tracking",
+      "features": [
+        "Search/filter appointments",
+        "This month appointments",
+        "Upcoming appointments",
+        "Completed appointments",
+        "Statistics (total, this month, completed)",
+        "Complete appointment with next scheduling",
+        "Two types: exact date or month"
+      ]
+    },
+    {
+      "id": "catalogs",
+      "name": "Catalogues",
+      "icon": "📚",
+      "description": "Reference data management",
+      "sections": [
+        "Doctors (add, view count)",
+        "Centers (add, view count)",
+        "Protocols (add, view count)",
+        "Prescription Templates (upload, manage DOCX templates)"
+      ]
+    },
+    {
+      "id": "report",
+      "name": "Statistiques",
+      "icon": "📊",
+      "description": "Statistics and comparison",
+      "features": [
+        "Cycle comparison",
+        "KPI calculation (patients, protocols, doctors, centers, quality)",
+        "Evolution percentages",
+        "Visual comparison charts",
+        "Select current and previous cycle"
+      ]
+    },
+    {
+      "id": "backup",
+      "name": "Sauvegarde",
+      "icon": "💾",
+      "description": "Backup and data management",
+      "sections": [
+        "Export all data (JSON)",
+        "Export references only",
+        "Import CSV",
+        "Auto-save configuration (File System Access API)",
+        "Save now",
+        "Restore from auto-save"
+      ]
+    },
+    {
+      "id": "debug",
+      "name": "Debug",
+      "icon": "🔧",
+      "description": "Debug and maintenance tools",
+      "features": [
+        "View localStorage data",
+        "Check data integrity",
+        "View state object",
+        "Clear data options"
+      ]
+    },
+    {
+      "id": "update",
+      "name": "Mises à jour",
+      "icon": "🔔",
+      "description": "Updates and version management"
+    },
+    {
+      "id": "about",
+      "name": "À propos",
+      "icon": "ℹ️",
+      "description": "About and help",
+      "features": [
+        "Version info",
+        "Tutorial launcher",
+        "Theme toggle",
+        "Help resources"
+      ]
+    }
+  ],
+
+  "features": {
+    "patientManagement": {
+      "create": "Create new patient with full details",
+      "edit": "Edit existing patient",
+      "delete": "Delete patient with confirmation",
+      "view": "View patient details",
+      "status": "Change patient status (active, temporary pause, permanent pause, archived)",
+      "history": "Track all changes with history",
+      "qualityScore": "Calculate data completeness score",
+      "search": "Search patients",
+      "filter": "Filter by status, protocol, doctor, center",
+      "sort": "Sort by name, renewal date, cycle, quality score"
+    },
+
+    "ordonnances": {
+      "cycleBased": "Organization by 28-day cycles",
+      "statusTracking": "Track status: expired, urgent (<7d), warning (<14d), valid",
+      "renewal": "Individual renewal (update renewal date)",
+      "batchRenewal": "Batch renewal for multiple patients",
+      "fastCheck": "Quick verification workflow",
+      "fastCreate": "Batch prescription generation workflow",
+      "advancedCreation": "Advanced multi-patient prescription with filtering"
+    },
+
+    "prescriptionGeneration": {
+      "singlePDF": "Generate single prescription as PDF",
+      "templateBased": "Use uploaded Word templates",
+      "defaultPDF": "Generate default PDF with jsPDF",
+      "wordToPDF": "Convert Word templates to PDF with pdf-lib",
+      "batchGeneration": "Generate multiple prescriptions",
+      "combinePDF": "Combine multiple prescriptions into one PDF",
+      "formationInitiale": "Option to include 'Formation technique Initiale'",
+      "dateCalculation": "Auto-calculate end date from start + duration",
+      "patientInfo": "Include patient info (name, code, dates)",
+      "download": "Auto-download generated PDFs"
+    },
+
+    "templates": {
+      "upload": "Upload DOCX templates",
+      "storage": "Store templates as Base64 in localStorage",
+      "preview": "Extract text preview with mammoth.js",
+      "manage": "Edit, delete, view templates",
+      "selection": "Select template for prescription generation"
+    },
+
+    "switches": {
+      "plan": "Plan protocol switches",
+      "validate": "Validate and activate planned switches",
+      "track": "Track old and new protocols",
+      "timeline": "Timeline visualization",
+      "prescriptionOption": "Choose if new prescription needed on switch",
+      "autoUpdate": "Auto-update patient protocol on completion"
+    },
+
+    "appointments": {
+      "types": "Two types: exact date or month",
+      "tracking": "Track active and completed appointments",
+      "completion": "Mark as completed with notes",
+      "nextScheduling": "Schedule next appointment on completion",
+      "filtering": "Search and filter appointments",
+      "statistics": "View appointment statistics",
+      "dashboardIntegration": "Show upcoming on dashboard"
+    },
+
+    "exportImport": {
+      "exportJSON": "Export all data as JSON",
+      "exportReferences": "Export only reference data",
+      "exportExcel": "Export to Excel (XLSX)",
+      "exportCSV": "Export to CSV",
+      "exportPDF": "Export patient lists and reports as PDF",
+      "importCSV": "Import patients from CSV with column mapping",
+      "advancedExport": "Export with filtering by doctor/protocol/center",
+      "patientReview": "Review patients before export with comments"
+    },
+
+    "autoSave": {
+      "fileSystemAPI": "Use File System Access API for auto-save",
+      "configuration": "Configure auto-save location and interval",
+      "scheduling": "Schedule periodic saves",
+      "manualSave": "Save now button",
+      "restore": "Restore from auto-saved file",
+      "triggers": "Auto-trigger on data changes"
+    },
+
+    "statistics": {
+      "cycleComparison": "Compare KPIs between cycles",
+      "kpis": [
+        "Total patients",
+        "Active patients",
+        "Average quality score",
+        "Protocols distribution",
+        "Doctors distribution",
+        "Centers distribution",
+        "Renewals upcoming",
+        "Expired ordonnances"
+      ],
+      "evolution": "Calculate evolution percentages",
+      "charts": "Visual comparison charts",
+      "protocolDistribution": "Protocol distribution bar chart"
+    },
+
+    "dashboard": {
+      "kpiCards": "Large KPI cards with animations",
+      "quickActions": "Quick action buttons",
+      "alerts": "Urgent alerts for expired ordonnances",
+      "upcomingAppointments": "This month appointments",
+      "plannedSwitches": "Upcoming protocol switches",
+      "upcomingRenewals": "Renewals in next 30 days",
+      "protocolChart": "Protocol distribution chart"
+    },
+
+    "ui": {
+      "theme": "Dark/Light theme toggle",
+      "responsive": "Responsive design with mobile nav",
+      "animations": "Rich animations (fade, slide, pulse, bounce, etc.)",
+      "toast": "Toast notifications",
+      "modals": "Multiple modal dialogs",
+      "search": "Global search functionality",
+      "commandPalette": "Command palette (Ctrl+K)",
+      "badges": "Status badges with colors",
+      "progressBars": "Progress indicators",
+      "skeletons": "Loading skeletons",
+      "emptyStates": "Empty state designs",
+      "breadcrumbs": "Navigation breadcrumbs"
+    },
+
+    "tutorial": {
+      "interactive": "Interactive step-by-step tutorial",
+      "progress": "Progress indicator",
+      "steps": "Multiple tutorial steps",
+      "features": "Showcase all features",
+      "tips": "Helpful tips and warnings",
+      "screenshots": "Screenshot placeholders"
+    },
+
+    "cycles": {
+      "calculation": "28-day cycle calculation",
+      "currentCycle": "Detect current cycle from today",
+      "cycleFromDate": "Calculate cycle from any date",
+      "cycleInfo": "Get cycle start/end dates",
+      "navigation": "Navigate between cycles",
+      "filtering": "Filter patients by cycle"
+    },
+
+    "dataValidation": {
+      "requiredFields": "Validate required fields",
+      "dateFormat": "Validate date formats (DD/MM/YYYY)",
+      "dateValidity": "Check date validity (real dates)",
+      "duplicateCheck": "Check for duplicates",
+      "uniqueConstraints": "Enforce unique constraints (e.g., one active appointment per patient)"
+    },
+
+    "history": {
+      "trackChanges": "Track all patient changes",
+      "timestamps": "Timestamp all changes",
+      "oldNewValues": "Store old and new values",
+      "types": "Change types: created, updated, paused, reactivated, archived",
+      "display": "Display change history"
+    },
+
+    "keyboard": {
+      "shortcuts": "Keyboard shortcuts",
+      "ctrlK": "Ctrl+K or Cmd+K for command palette",
+      "escape": "ESC to close modals",
+      "navigation": "Arrow key navigation in lists"
+    },
+
+    "libraries": {
+      "jsPDF": "PDF generation library",
+      "pdfLib": "PDF manipulation library (pdf-lib)",
+      "mammoth": "Word document processing (mammoth.js)",
+      "none": "No external UI frameworks - vanilla JavaScript"
+    },
+
+    "persistence": {
+      "localStorage": "All data stored in localStorage",
+      "migration": "Automatic migration from old versions",
+      "sizeMonitoring": "Monitor localStorage size",
+      "backupKeys": "Maintain backup keys for data recovery"
+    }
+  },
+
+  "workflowFeatures": {
+    "fastCheck": {
+      "description": "Quick ordonnance verification workflow",
+      "steps": [
+        "Select patients with upcoming renewals",
+        "Navigate patient by patient",
+        "Copy patient name to clipboard",
+        "Check ordonnance status",
+        "Mark as correct or update renewal date",
+        "Edit patient code if needed",
+        "Generate prescription if needed"
+      ]
+    },
+
+    "fastCreateOrdo": {
+      "description": "Batch prescription generation workflow",
+      "steps": [
+        "Select cycle",
+        "Load patients for cycle",
+        "Configure global settings (template, dates, duration)",
+        "Navigate patient by patient",
+        "Customize settings per patient",
+        "Validate or skip each patient",
+        "Generate all at once",
+        "Combine into single PDF if Word templates used"
+      ]
+    },
+
+    "advancedPrescription": {
+      "description": "Advanced multi-patient prescription with filtering",
+      "steps": [
+        "Select cycle",
+        "Apply filters (doctor, protocol, center)",
+        "Select multiple patients",
+        "Configure individual settings per patient",
+        "Generate batch prescriptions"
+      ]
+    },
+
+    "patientReview": {
+      "description": "Review patients before export",
+      "steps": [
+        "Navigate patient by patient",
+        "View patient details",
+        "Add comments per patient",
+        "Generate PDF report with comments"
+      ]
+    },
+
+    "csvImport": {
+      "description": "Import patients from CSV",
+      "steps": [
+        "Upload CSV file",
+        "Auto-detect separator",
+        "Preview data",
+        "Map columns to patient fields",
+        "Import data"
+      ]
+    }
+  },
+
+  "dataFlow": {
+    "load": "loadDB() → localStorage.getItem() → Parse JSON → Update state",
+    "save": "state changes → saveDB() → JSON.stringify() → localStorage.setItem()",
+    "render": "state changes → render() → update DOM",
+    "autoSave": "state changes → triggerAutoSave() → scheduleAutoSave() → performAutoSave()"
+  },
+
+  "cyclology": {
+    "duration": "28 days",
+    "calculation": "Based on 01/01/2018 as cycle 1",
+    "formula": "cycleNumber = Math.floor(daysSinceStart / 28) + 1",
+    "display": "C## (YYYY)",
+    "navigation": "Previous, Current, Next cycles",
+    "filtering": "Filter patients by renewal cycle"
+  },
+
+  "qualityScore": {
+    "fields": [
+      "lastName", "firstName", "dob", "email", "phone",
+      "address", "docId", "centerId", "protoId", "renewalDate"
+    ],
+    "calculation": "% of completed fields",
+    "display": "Percentage (0-100%)"
+  },
+
+  "statusColors": {
+    "expired": "Red (danger)",
+    "urgent": "Red (<7 days)",
+    "warning": "Orange/Yellow (<14 days)",
+    "valid": "Green (>14 days)",
+    "active": "Blue",
+    "paused": "Orange",
+    "archived": "Gray"
+  },
+
+  "mobileFeatures": {
+    "responsiveDesign": "Grid layouts adapt to screen size",
+    "mobileNav": "Bottom navigation bar on mobile",
+    "touchOptimized": "Touch-friendly buttons and interactions",
+    "collapsibleSidebar": "Sidebar collapses on small screens"
+  },
+
+  "accessibility": {
+    "semanticHTML": "Proper HTML semantics",
+    "ariaLabels": "ARIA labels where needed",
+    "keyboardNavigation": "Full keyboard navigation",
+    "focusManagement": "Proper focus management in modals",
+    "colorContrast": "Good color contrast in both themes"
+  },
+
+  "performance": {
+    "lazyRendering": "Only render active view",
+    "eventDelegation": "Use event delegation where possible",
+    "debouncing": "Debounce search and filter operations",
+    "memoization": "Cache computed values",
+    "localStorage": "Efficient localStorage usage"
+  },
+
+  "security": {
+    "htmlEscaping": "Escape HTML to prevent XSS",
+    "validation": "Validate all user inputs",
+    "noServerSide": "Pure client-side (no server vulnerabilities)",
+    "localStorageOnly": "Data stays in browser"
+  },
+
+  "errorHandling": {
+    "tryClatch": "Try-catch blocks for critical operations",
+    "validation": "Input validation before processing",
+    "userFeedback": "Toast notifications for errors",
+    "gracefulDegradation": "Fallbacks for missing data",
+    "migrationHandling": "Handle data migration errors"
+  },
+
+  "designSystem": {
+    "colors": {
+      "primary": "#3b82f6 (blue)",
+      "secondary": "#8b5cf6 (purple)",
+      "success": "#10b981 (green)",
+      "warning": "#f59e0b (orange)",
+      "danger": "#ef4444 (red)",
+      "info": "#06b6d4 (cyan)"
+    },
+    "gradients": "Linear gradients for cards, buttons, headers",
+    "shadows": "Multiple shadow levels (sm, md, lg, xl)",
+    "borderRadius": "Consistent border radius (sm, md, lg, full)",
+    "transitions": "Smooth transitions on all interactive elements",
+    "animations": [
+      "fadeIn", "fadeOut", "slideIn", "slideOut",
+      "bounceIn", "pulse", "shimmer", "shake",
+      "float", "wiggle", "successPulse"
+    ],
+    "typography": {
+      "fontFamily": "Inter, system fonts",
+      "fontSize": "Responsive font sizes",
+      "fontWeight": "Multiple weights (400-800)"
+    }
+  },
+
+  "navigationStructure": {
+    "main": [
+      "Dashboard", "Patients", "Archived", "Ordonnances",
+      "Switches", "Appointments"
+    ],
+    "configuration": [
+      "Catalogues"
+    ],
+    "tools": [
+      "Statistics", "Backup", "Debug", "Updates", "About"
+    ]
+  },
+
+  "browserCompatibility": {
+    "localStorage": "Required",
+    "ES6": "Uses ES6+ features",
+    "fileSystemAPI": "Optional (for auto-save)",
+    "modernBrowser": "Requires modern browser (Chrome, Firefox, Edge, Safari)"
+  }
+}
