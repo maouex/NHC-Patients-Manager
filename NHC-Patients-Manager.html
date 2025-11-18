@@ -1044,6 +1044,117 @@ body {
   background: linear-gradient(180deg, #f87171 0%, var(--danger) 100%);
 }
 
+/* ===== Calendar Styles ===== */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.calendar-day {
+  min-height: 100px;
+  padding: 0.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  position: relative;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.calendar-day:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+
+.calendar-day.other-month {
+  background: var(--bg-tertiary);
+  opacity: 0.5;
+}
+
+.calendar-day.today {
+  border: 2px solid var(--primary);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+}
+
+.calendar-day-number {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.calendar-day.today .calendar-day-number {
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.calendar-events {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.calendar-event {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.calendar-event:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-sm);
+}
+
+.calendar-event.appointment {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+  color: #667eea;
+  border-left: 3px solid #667eea;
+}
+
+.calendar-event.switch {
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.2) 0%, rgba(245, 87, 108, 0.2) 100%);
+  color: #f093fb;
+  border-left: 3px solid #f093fb;
+}
+
+.calendar-event-icon {
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.calendar-more-events {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0.25rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.calendar-more-events:hover {
+  color: var(--primary);
+}
+
 /* ===== Loading States ===== */
 .skeleton {
   background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
@@ -2350,6 +2461,35 @@ body {
             <div style="font-size: 3rem; font-weight: 800; line-height: 1;" id="kpiProtos">0</div>
             <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem;">Types de pompes</div>
           </div>
+        </div>
+      </div>
+
+      <!-- Calendrier mensuel -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; justify-content: space-between; align-items: center;">
+          <h3 class="card-title" style="display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+            <span>📅</span>
+            Calendrier du mois
+          </h3>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button id="calendarPrevMonth" class="btn" style="background: rgba(255,255,255,0.2); color: white; padding: 0.5rem 0.75rem; border: none;" title="Mois précédent">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+            <span id="calendarMonthYear" style="font-weight: 600; min-width: 150px; text-align: center;"></span>
+            <button id="calendarNextMonth" class="btn" style="background: rgba(255,255,255,0.2); color: white; padding: 0.5rem 0.75rem; border: none;" title="Mois suivant">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+            <button id="calendarToday" class="btn" style="background: rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border: none; margin-left: 0.5rem;" title="Aujourd'hui">
+              Aujourd'hui
+            </button>
+          </div>
+        </div>
+        <div class="card-body" style="padding: 1.5rem;">
+          <div id="dashboardCalendar"></div>
         </div>
       </div>
 
@@ -5305,7 +5445,11 @@ function renderDashboard() {
   
   // ===== Alertes urgentes =====
   renderDashboardAlerts(renews30);
-  
+
+  // ===== Calendrier mensuel =====
+  renderDashboardCalendar();
+  setupCalendarNavigation();
+
   // ===== Rendez-vous ce mois =====
   renderDashboardAppointments();
   
@@ -5934,6 +6078,214 @@ function renderDashboardProtocolsChart() {
   
   html += '</div>';
   container.innerHTML = html;
+}
+
+// ===== Calendar Functions =====
+let calendarCurrentDate = new Date();
+
+function renderDashboardCalendar() {
+  const container = byId('dashboardCalendar');
+  const monthYearEl = byId('calendarMonthYear');
+
+  if (!container) return;
+
+  const year = calendarCurrentDate.getFullYear();
+  const month = calendarCurrentDate.getMonth();
+
+  // Update month/year display
+  const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  if (monthYearEl) {
+    monthYearEl.textContent = `${monthNames[month]} ${year}`;
+  }
+
+  // Get first day of month and number of days
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startingDayOfWeek = firstDay.getDay();
+
+  // Adjust for Monday start (0 = Monday, 6 = Sunday)
+  const adjustedStartDay = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+
+  // Get days from previous month
+  const prevMonthLastDay = new Date(year, month, 0).getDate();
+
+  // Today's date for comparison
+  const today = new Date();
+  const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+  const todayDate = today.getDate();
+
+  // Collect all events for this month
+  const monthEvents = getMonthEvents(year, month);
+
+  // Build calendar HTML
+  let html = '<div class="calendar-grid">';
+
+  // Day headers
+  const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  dayNames.forEach(day => {
+    html += `<div class="calendar-day-header">${day}</div>`;
+  });
+
+  // Previous month days
+  for (let i = adjustedStartDay - 1; i >= 0; i--) {
+    const day = prevMonthLastDay - i;
+    html += `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+  }
+
+  // Current month days
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isToday = isCurrentMonth && day === todayDate;
+    const dayEvents = monthEvents.filter(e => e.day === day);
+
+    let dayClass = 'calendar-day';
+    if (isToday) dayClass += ' today';
+
+    html += `<div class="${dayClass}">`;
+    html += `<div class="calendar-day-number">${day}</div>`;
+
+    if (dayEvents.length > 0) {
+      html += '<div class="calendar-events">';
+
+      // Show max 3 events, then "X more"
+      const maxVisible = 3;
+      const visibleEvents = dayEvents.slice(0, maxVisible);
+
+      visibleEvents.forEach(event => {
+        const icon = event.type === 'appointment' ? '📅' : '🔄';
+        const eventClass = event.type === 'appointment' ? 'appointment' : 'switch';
+        html += `
+          <div class="calendar-event ${eventClass}" title="${escapeHtml(event.title)}">
+            <span class="calendar-event-icon">${icon}</span>
+            <span style="overflow: hidden; text-overflow: ellipsis;">${escapeHtml(event.patientName)}</span>
+          </div>
+        `;
+      });
+
+      if (dayEvents.length > maxVisible) {
+        html += `<div class="calendar-more-events">+${dayEvents.length - maxVisible} autre${dayEvents.length - maxVisible > 1 ? 's' : ''}</div>`;
+      }
+
+      html += '</div>';
+    }
+
+    html += '</div>';
+  }
+
+  // Next month days to fill the grid
+  const totalCells = adjustedStartDay + daysInMonth;
+  const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let day = 1; day <= remainingCells; day++) {
+    html += `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function getMonthEvents(year, month) {
+  const events = [];
+
+  // Get appointments for this month
+  if (state.appointments && state.appointments.length > 0) {
+    state.appointments.forEach(apt => {
+      if (apt.status !== 'active') return;
+
+      let aptDate = null;
+      if (apt.exactDate) {
+        const parts = apt.exactDate.split('/');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const aptMonth = parseInt(parts[1], 10) - 1;
+          const aptYear = parseInt(parts[2], 10);
+          if (aptMonth === month && aptYear === year) {
+            aptDate = day;
+          }
+        }
+      } else if (apt.month) {
+        // If only month is specified, show on first day
+        const parts = apt.month.split('/');
+        if (parts.length === 2) {
+          const aptMonth = parseInt(parts[0], 10) - 1;
+          const aptYear = parseInt(parts[1], 10);
+          if (aptMonth === month && aptYear === year) {
+            aptDate = 1;
+          }
+        }
+      }
+
+      if (aptDate) {
+        const patient = state.patients.find(p => p.id === apt.patientId);
+        if (patient) {
+          events.push({
+            day: aptDate,
+            type: 'appointment',
+            title: `RDV: ${fullName(patient)} - ${apt.type || 'Suivi'}`,
+            patientName: fullName(patient),
+            data: apt
+          });
+        }
+      }
+    });
+  }
+
+  // Get switches for this month
+  if (state.switches && state.switches.length > 0) {
+    state.switches.forEach(sw => {
+      if (sw.status !== 'planned') return;
+
+      if (sw.switchDate) {
+        const parts = sw.switchDate.split('/');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const swMonth = parseInt(parts[1], 10) - 1;
+          const swYear = parseInt(parts[2], 10);
+
+          if (swMonth === month && swYear === year) {
+            const patient = state.patients.find(p => p.id === sw.patientId);
+            if (patient) {
+              events.push({
+                day: day,
+                type: 'switch',
+                title: `Switch: ${fullName(patient)} - ${protoName(sw.oldProtoId)} → ${protoName(sw.newProtoId)}`,
+                patientName: fullName(patient),
+                data: sw
+              });
+            }
+          }
+        }
+      }
+    });
+  }
+
+  return events;
+}
+
+function setupCalendarNavigation() {
+  const prevBtn = byId('calendarPrevMonth');
+  const nextBtn = byId('calendarNextMonth');
+  const todayBtn = byId('calendarToday');
+
+  if (prevBtn) {
+    prevBtn.onclick = () => {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+      renderDashboardCalendar();
+    };
+  }
+
+  if (nextBtn) {
+    nextBtn.onclick = () => {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+      renderDashboardCalendar();
+    };
+  }
+
+  if (todayBtn) {
+    todayBtn.onclick = () => {
+      calendarCurrentDate = new Date();
+      renderDashboardCalendar();
+    };
+  }
 }
 
 function renderPatients() {
