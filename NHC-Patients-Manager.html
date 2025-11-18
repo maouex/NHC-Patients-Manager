@@ -2310,7 +2310,15 @@ body {
         <span>Suivis / RDV</span>
         <span class="nav-badge" id="countAppointments">0</span>
       </button>
-      
+
+      <button class="nav-item" data-view="tasks">
+        <span class="nav-icon">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path><path d="M8 11a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path></svg>
+        </span>
+        <span>Tâches</span>
+        <span class="nav-badge" id="countTasks">0</span>
+      </button>
+
       <button class="nav-item" data-view="catalogs">
         <span class="nav-icon">
           <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
@@ -3081,7 +3089,123 @@ body {
         </div>
       </div>
     </section>
-    
+
+    <!-- Tasks View -->
+    <section id="tasks" class="view">
+      <!-- Dashboard Tâches -->
+      <div class="kpi-grid mb-3">
+        <div class="kpi-card" style="border-left-color: var(--primary);">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, var(--primary), #4f46e5);">
+            <svg width="24" height="24" fill="white" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value" id="kpiTasksTodo">0</div>
+            <div class="kpi-label">À faire</div>
+          </div>
+        </div>
+
+        <div class="kpi-card" style="border-left-color: var(--warning);">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, var(--warning), #f59e0b);">
+            <svg width="24" height="24" fill="white" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value" id="kpiTasksInProgress">0</div>
+            <div class="kpi-label">En cours</div>
+          </div>
+        </div>
+
+        <div class="kpi-card" style="border-left-color: var(--danger);">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, var(--danger), #dc2626);">
+            <svg width="24" height="24" fill="white" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value" id="kpiTasksUrgent">0</div>
+            <div class="kpi-label">Urgentes</div>
+          </div>
+        </div>
+
+        <div class="kpi-card" style="border-left-color: var(--success);">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, var(--success), #059669);">
+            <svg width="24" height="24" fill="white" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value" id="kpiTasksCompleted">0</div>
+            <div class="kpi-label">Terminées</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contrôles -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <button class="btn btn-primary" onclick="openTaskModal()">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
+                </svg>
+                Nouvelle tâche
+              </button>
+
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+                  <input type="radio" name="taskStatusFilter" value="all" checked onchange="renderTasks()">
+                  <span>Toutes</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+                  <input type="radio" name="taskStatusFilter" value="todo" onchange="renderTasks()">
+                  <span>À faire</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+                  <input type="radio" name="taskStatusFilter" value="in_progress" onchange="renderTasks()">
+                  <span>En cours</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+                  <input type="radio" name="taskStatusFilter" value="completed" onchange="renderTasks()">
+                  <span>Terminées</span>
+                </label>
+              </div>
+
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+                  <input type="radio" name="taskPriorityFilter" value="all" checked onchange="renderTasks()">
+                  <span>Toutes priorités</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+                  <input type="radio" name="taskPriorityFilter" value="urgent" onchange="renderTasks()">
+                  <span>🔴 Urgent</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+                  <input type="radio" name="taskPriorityFilter" value="high" onchange="renderTasks()">
+                  <span>🟠 Haute</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+                  <input type="radio" name="taskPriorityFilter" value="normal" onchange="renderTasks()">
+                  <span>🟡 Normale</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+                  <input type="radio" name="taskPriorityFilter" value="low" onchange="renderTasks()">
+                  <span>🟢 Basse</span>
+                </label>
+              </div>
+            </div>
+
+            <input type="text" class="form-input" id="taskSearch" placeholder="🔍 Rechercher une tâche..." style="max-width: 300px;" oninput="renderTasks()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Liste des tâches -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">📋 Liste des tâches</h3>
+        </div>
+        <div class="card-body">
+          <div id="tasksList"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- Catalogs View -->
     <section id="catalogs" class="view">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1rem;">
@@ -4406,6 +4530,88 @@ body {
   </div>
 </div>
 
+<!-- Task Modal -->
+<div class="modal" id="taskModal">
+  <div class="modal-content" style="max-width: 700px;">
+    <div class="modal-header">
+      <h2 class="modal-title" id="taskModalTitle">Nouvelle tâche</h2>
+      <button class="modal-close" onclick="showModal(false, 'taskModal')">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <form id="taskForm" class="form-grid">
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Titre *</label>
+          <input type="text" class="form-input" id="taskTitle" required placeholder="Ex: Appeler le patient...">
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Description</label>
+          <textarea class="form-input" id="taskDescription" rows="3" placeholder="Détails de la tâche..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Statut *</label>
+          <select class="form-select" id="taskStatus" required>
+            <option value="todo">À faire</option>
+            <option value="in_progress">En cours</option>
+            <option value="completed">Terminée</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Priorité *</label>
+          <select class="form-select" id="taskPriority" required>
+            <option value="low">🟢 Basse</option>
+            <option value="normal" selected>🟡 Normale</option>
+            <option value="high">🟠 Haute</option>
+            <option value="urgent">🔴 Urgente</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Date d'échéance</label>
+          <input type="text" class="form-input" id="taskDueDate" placeholder="JJ/MM/AAAA" pattern="\d{2}/\d{2}/\d{4}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Heure d'échéance</label>
+          <input type="time" class="form-input" id="taskDueTime">
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Type de liaison</label>
+          <select class="form-select" id="taskRelationType" onchange="updateTaskRelationOptions()">
+            <option value="none">Aucune</option>
+            <option value="patient">Patient</option>
+            <option value="doctor">Médecin</option>
+            <option value="center">Centre</option>
+            <option value="protocol">Protocole</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="taskRelationGroup" style="grid-column: span 2; display: none;">
+          <label class="form-label" id="taskRelationLabel">Sélectionner</label>
+          <select class="form-select" id="taskRelationId">
+            <option value="">-- Sélectionner --</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="form-label">Tags (séparés par des virgules)</label>
+          <input type="text" class="form-input" id="taskTags" placeholder="important, urgent, rappel...">
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-danger hidden" id="btnDeleteTask" onclick="deleteTask()">Supprimer</button>
+      <button class="btn btn-secondary" onclick="showModal(false, 'taskModal')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveTask()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <!-- Validate Switch Modal (with prescription question) -->
 <div class="modal" id="validateSwitchModal">
   <div class="modal-content" style="max-width: 600px;">
@@ -5138,12 +5344,14 @@ let state = {
   protos: [],
   switches: [],
   appointments: [],
-  prescriptionTemplates: []
+  prescriptionTemplates: [],
+  tasks: []
 };
 
 let currentPatientId = null;
 let currentSwitchId = null;
 let currentAppointmentId = null;
+let currentTaskId = null;
 let fcState = { list: [], index: 0 };
 
 // ===== Database Functions =====
@@ -5588,6 +5796,7 @@ function switchView(viewName) {
     renderAppointments();
     updateAppointmentStats();
   }
+  if (viewName === 'tasks') renderTasks();
   if (viewName === 'catalogs') renderCatalogs();
   if (viewName === 'report') renderStats();
 }
@@ -8426,12 +8635,17 @@ function createComparisonChart(kpis, currentCycle, previousCycle) {
 function updateCounters() {
   const activePatients = state.patients.filter(p => !p.status || p.status === 'active');
   const archivedPatients = state.patients.filter(p => p.status && p.status !== 'active');
-  
+
   byId('countPatients').textContent = activePatients.length;
   byId('countArchived').textContent = archivedPatients.length;
   byId('countDocs').textContent = state.docs.length;
   byId('countCenters').textContent = state.centers.length;
   byId('countProtos').textContent = state.protos.length;
+
+  // Update tasks counter if tasks exist
+  if (state.tasks) {
+    updateTasksKPIs();
+  }
 }
 
 // ===== Patient CRUD =====
@@ -13021,6 +13235,363 @@ function updateAppointmentStats() {
   byId('kpiAppointmentsNext30').textContent = next30;
   byId('kpiAppointmentsDone').textContent = totalCompleted;
   byId('countAppointments').textContent = toCall;
+}
+
+// ===== Tasks Management System =====
+function openTaskModal(taskId = null) {
+  currentTaskId = taskId;
+
+  if (taskId) {
+    // Edit mode
+    const task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    byId('taskModalTitle').textContent = 'Modifier la tâche';
+    byId('btnDeleteTask').classList.remove('hidden');
+
+    byId('taskTitle').value = task.title;
+    byId('taskDescription').value = task.description || '';
+    byId('taskStatus').value = task.status;
+    byId('taskPriority').value = task.priority;
+    byId('taskDueDate').value = task.dueDate || '';
+    byId('taskDueTime').value = task.dueTime || '';
+    byId('taskRelationType').value = task.relationType || 'none';
+    byId('taskTags').value = task.tags ? task.tags.join(', ') : '';
+
+    updateTaskRelationOptions();
+    if (task.relationId) {
+      byId('taskRelationId').value = task.relationId;
+    }
+  } else {
+    // New mode
+    byId('taskModalTitle').textContent = 'Nouvelle tâche';
+    byId('btnDeleteTask').classList.add('hidden');
+
+    byId('taskTitle').value = '';
+    byId('taskDescription').value = '';
+    byId('taskStatus').value = 'todo';
+    byId('taskPriority').value = 'normal';
+    byId('taskDueDate').value = '';
+    byId('taskDueTime').value = '';
+    byId('taskRelationType').value = 'none';
+    byId('taskRelationId').value = '';
+    byId('taskTags').value = '';
+
+    updateTaskRelationOptions();
+  }
+
+  showModal(true, 'taskModal');
+}
+
+function updateTaskRelationOptions() {
+  const relationType = byId('taskRelationType').value;
+  const relationGroup = byId('taskRelationGroup');
+  const relationLabel = byId('taskRelationLabel');
+  const relationSelect = byId('taskRelationId');
+
+  if (relationType === 'none') {
+    relationGroup.style.display = 'none';
+    return;
+  }
+
+  relationGroup.style.display = 'block';
+
+  let options = '<option value="">-- Sélectionner --</option>';
+  let label = '';
+
+  switch (relationType) {
+    case 'patient':
+      label = 'Patient';
+      options += state.patients.map(p =>
+        `<option value="${p.id}">${fullName(p)}</option>`
+      ).join('');
+      break;
+    case 'doctor':
+      label = 'Médecin';
+      options += state.docs.map(d =>
+        `<option value="${d.id}">${d.name}</option>`
+      ).join('');
+      break;
+    case 'center':
+      label = 'Centre';
+      options += state.centers.map(c =>
+        `<option value="${c.id}">${c.name}</option>`
+      ).join('');
+      break;
+    case 'protocol':
+      label = 'Protocole';
+      options += state.protos.map(p =>
+        `<option value="${p.id}">${p.name}</option>`
+      ).join('');
+      break;
+  }
+
+  relationLabel.textContent = label;
+  relationSelect.innerHTML = options;
+}
+
+function saveTask() {
+  const title = byId('taskTitle').value.trim();
+  const description = byId('taskDescription').value.trim();
+  const status = byId('taskStatus').value;
+  const priority = byId('taskPriority').value;
+  const dueDate = byId('taskDueDate').value.trim();
+  const dueTime = byId('taskDueTime').value.trim();
+  const relationType = byId('taskRelationType').value;
+  const relationId = byId('taskRelationId').value;
+  const tagsStr = byId('taskTags').value.trim();
+
+  if (!title) {
+    showToast('Le titre est requis', 'error');
+    return;
+  }
+
+  // Validate date format if provided
+  if (dueDate && !dueDate.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+    showToast('Format de date invalide (JJ/MM/AAAA)', 'error');
+    return;
+  }
+
+  const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
+
+  const taskData = {
+    title,
+    description,
+    status,
+    priority,
+    dueDate: dueDate || null,
+    dueTime: dueTime || null,
+    relationType: relationType !== 'none' ? relationType : null,
+    relationId: relationId || null,
+    tags,
+    updatedAt: Date.now()
+  };
+
+  if (currentTaskId) {
+    // Update existing task
+    const index = state.tasks.findIndex(t => t.id === currentTaskId);
+    if (index !== -1) {
+      state.tasks[index] = {
+        ...state.tasks[index],
+        ...taskData
+      };
+      showToast('Tâche modifiée', 'success');
+    }
+  } else {
+    // Create new task
+    state.tasks.push({
+      id: generateId(),
+      ...taskData,
+      createdAt: Date.now()
+    });
+    showToast('Tâche créée', 'success');
+  }
+
+  saveDB();
+  renderTasks();
+  updateCounters();
+  showModal(false, 'taskModal');
+}
+
+function deleteTask() {
+  if (!currentTaskId) return;
+
+  if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+    return;
+  }
+
+  state.tasks = state.tasks.filter(t => t.id !== currentTaskId);
+  saveDB();
+  renderTasks();
+  updateCounters();
+  showModal(false, 'taskModal');
+  showToast('Tâche supprimée', 'success');
+}
+
+function toggleTaskStatus(taskId) {
+  const task = state.tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  // Cycle through statuses: todo -> in_progress -> completed -> todo
+  const statusCycle = {
+    'todo': 'in_progress',
+    'in_progress': 'completed',
+    'completed': 'todo'
+  };
+
+  task.status = statusCycle[task.status] || 'todo';
+  task.updatedAt = Date.now();
+
+  if (task.status === 'completed') {
+    task.completedAt = Date.now();
+  } else {
+    delete task.completedAt;
+  }
+
+  saveDB();
+  renderTasks();
+  updateCounters();
+}
+
+function renderTasks() {
+  const container = byId('tasksList');
+  if (!container) return;
+
+  const statusFilter = document.querySelector('input[name="taskStatusFilter"]:checked')?.value || 'all';
+  const priorityFilter = document.querySelector('input[name="taskPriorityFilter"]:checked')?.value || 'all';
+  const searchQuery = byId('taskSearch')?.value.toLowerCase().trim() || '';
+
+  let filteredTasks = state.tasks;
+
+  // Filter by status
+  if (statusFilter !== 'all') {
+    filteredTasks = filteredTasks.filter(t => t.status === statusFilter);
+  }
+
+  // Filter by priority
+  if (priorityFilter !== 'all') {
+    filteredTasks = filteredTasks.filter(t => t.priority === priorityFilter);
+  }
+
+  // Filter by search
+  if (searchQuery) {
+    filteredTasks = filteredTasks.filter(t =>
+      t.title.toLowerCase().includes(searchQuery) ||
+      (t.description && t.description.toLowerCase().includes(searchQuery)) ||
+      (t.tags && t.tags.some(tag => tag.toLowerCase().includes(searchQuery)))
+    );
+  }
+
+  // Sort: urgent first, then by due date, then by creation date
+  filteredTasks.sort((a, b) => {
+    // Priority order
+    const priorityOrder = { urgent: 0, high: 1, normal: 2, low: 3 };
+    const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+    if (priorityDiff !== 0) return priorityDiff;
+
+    // Due date order (tasks with due dates come first)
+    if (a.dueDate && !b.dueDate) return -1;
+    if (!a.dueDate && b.dueDate) return 1;
+    if (a.dueDate && b.dueDate) {
+      const dateA = parseDateFR(a.dueDate);
+      const dateB = parseDateFR(b.dueDate);
+      if (dateA && dateB) {
+        const diff = dateA - dateB;
+        if (diff !== 0) return diff;
+      }
+    }
+
+    // Creation date (newest first)
+    return b.createdAt - a.createdAt;
+  });
+
+  if (filteredTasks.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Aucune tâche</div><div class="empty-state-description">Créez votre première tâche pour commencer</div></div>';
+    return;
+  }
+
+  const priorityIcons = {
+    low: '🟢',
+    normal: '🟡',
+    high: '🟠',
+    urgent: '🔴'
+  };
+
+  const statusLabels = {
+    todo: 'À faire',
+    in_progress: 'En cours',
+    completed: 'Terminée'
+  };
+
+  const statusColors = {
+    todo: 'var(--primary)',
+    in_progress: 'var(--warning)',
+    completed: 'var(--success)'
+  };
+
+  container.innerHTML = filteredTasks.map(task => {
+    let relationInfo = '';
+    if (task.relationType && task.relationId) {
+      let relationName = '';
+      switch (task.relationType) {
+        case 'patient':
+          const patient = state.patients.find(p => p.id === task.relationId);
+          relationName = patient ? fullName(patient) : '';
+          break;
+        case 'doctor':
+          relationName = docName(task.relationId);
+          break;
+        case 'center':
+          relationName = centerName(task.relationId);
+          break;
+        case 'protocol':
+          relationName = protoName(task.relationId);
+          break;
+      }
+      if (relationName) {
+        const icons = { patient: '👤', doctor: '👨‍⚕️', center: '🏥', protocol: '💊' };
+        relationInfo = `<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">${icons[task.relationType]} ${relationName}</div>`;
+      }
+    }
+
+    const dueDateInfo = task.dueDate ? `
+      <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">
+        📅 ${task.dueDate}${task.dueTime ? ' à ' + task.dueTime : ''}
+      </div>
+    ` : '';
+
+    const tagsHtml = task.tags && task.tags.length > 0 ? `
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+        ${task.tags.map(tag => `<span style="padding: 0.25rem 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); font-size: 0.75rem; color: var(--text-secondary);">#${tag}</span>`).join('')}
+      </div>
+    ` : '';
+
+    return `
+      <div style="display: flex; gap: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius); margin-bottom: 0.75rem; border-left: 3px solid ${statusColors[task.status]};">
+        <div style="flex-shrink: 0;">
+          <button onclick="toggleTaskStatus('${task.id}')" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid ${statusColors[task.status]}; background: ${task.status === 'completed' ? statusColors[task.status] : 'transparent'}; color: ${task.status === 'completed' ? 'white' : statusColors[task.status]}; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+            ${task.status === 'completed' ? '✓' : ''}
+          </button>
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: start; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span style="font-size: 1.25rem;">${priorityIcons[task.priority]}</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 1rem; ${task.status === 'completed' ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${task.title}</div>
+              ${task.description ? `<div style="color: var(--text-secondary); margin-top: 0.25rem; font-size: 0.875rem;">${task.description}</div>` : ''}
+              ${relationInfo}
+              ${dueDateInfo}
+              ${tagsHtml}
+            </div>
+            <span style="padding: 0.25rem 0.75rem; background: ${statusColors[task.status]}20; color: ${statusColors[task.status]}; border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 600; white-space: nowrap;">${statusLabels[task.status]}</span>
+          </div>
+        </div>
+        <div style="flex-shrink: 0; display: flex; gap: 0.5rem;">
+          <button class="btn btn-sm" onclick="openTaskModal('${task.id}')" style="padding: 0.5rem;">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  updateTasksKPIs();
+}
+
+function updateTasksKPIs() {
+  const todo = state.tasks.filter(t => t.status === 'todo').length;
+  const inProgress = state.tasks.filter(t => t.status === 'in_progress').length;
+  const completed = state.tasks.filter(t => t.status === 'completed').length;
+  const urgent = state.tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed').length;
+
+  byId('kpiTasksTodo').textContent = todo;
+  byId('kpiTasksInProgress').textContent = inProgress;
+  byId('kpiTasksCompleted').textContent = completed;
+  byId('kpiTasksUrgent').textContent = urgent;
+
+  // Update badge in sidebar
+  const activeTasks = todo + inProgress;
+  byId('countTasks').textContent = activeTasks;
 }
 
 // ===== Auto-Save System =====
