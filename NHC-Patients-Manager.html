@@ -11541,7 +11541,6 @@ function openSwitchModal(switchId = null) {
   }
 
   // Add event listener for patient selection
-  const patientSelect = byId('switchPatientId');
   patientSelect.onchange = function() {
     updateSwitchOldProto();
     checkExistingSwitches(this.value);
@@ -12477,7 +12476,6 @@ function openAppointmentModal(appointmentId = null) {
   }
 
   // Add event listener for patient selection
-  const patientSelect = byId('appointmentPatientId');
   patientSelect.onchange = function() {
     checkExistingAppointments(this.value);
     displayAppointmentPatientInfo(this.value);
