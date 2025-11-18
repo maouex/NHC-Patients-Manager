@@ -4075,6 +4075,12 @@ body {
     </div>
     
     <div class="modal-body">
+      <!-- Alert for existing appointments -->
+      <div id="existingAppointmentsAlert" class="alert alert-info" style="display: none; margin-bottom: 1rem;">
+        <strong>ℹ️ Rendez-vous existants pour ce patient :</strong>
+        <div id="existingAppointmentsList" style="margin-top: 0.5rem;"></div>
+      </div>
+
       <form id="appointmentForm" class="form-grid">
         <div class="form-group" style="grid-column: span 2;">
           <label class="form-label">Patient *</label>
@@ -4199,6 +4205,12 @@ body {
     </div>
     
     <div class="modal-body">
+      <!-- Alert for existing switches -->
+      <div id="existingSwitchesAlert" class="alert alert-info" style="display: none; margin-bottom: 1rem;">
+        <strong>ℹ️ Switchs existants pour ce patient :</strong>
+        <div id="existingSwitchesList" style="margin-top: 0.5rem;"></div>
+      </div>
+
       <form id="switchForm" class="form-grid">
         <div class="form-group" style="grid-column: span 2;">
           <label class="form-label">Patient *</label>
@@ -11396,7 +11408,19 @@ function openSwitchModal(switchId = null) {
     byId('switchStatus').value = 'planned';
     byId('switchNotes').value = '';
   }
-  
+
+  // Add event listener for patient selection
+  const patientSelect = byId('switchPatientId');
+  patientSelect.onchange = function() {
+    updateSwitchOldProto();
+    checkExistingSwitches(this.value);
+  };
+
+  // Check existing switches if editing with a patient already selected
+  if (switchId && patientSelect.value) {
+    checkExistingSwitches(patientSelect.value);
+  }
+
   showModal(true, 'switchModal');
 }
 
@@ -12077,6 +12101,104 @@ function renderSwitchList(containerId, switches, type) {
   }).join('');
 }
 
+// ===== Helper Functions for Existing Events Display =====
+function checkExistingAppointments(patientId) {
+  const alert = byId('existingAppointmentsAlert');
+  const list = byId('existingAppointmentsList');
+
+  if (!alert || !list || !patientId) {
+    if (alert) alert.style.display = 'none';
+    return;
+  }
+
+  // Find existing appointments for this patient (excluding current one if editing)
+  const existingAppointments = state.appointments.filter(apt =>
+    apt.patientId === patientId &&
+    apt.status === 'active' &&
+    apt.id !== currentAppointmentId
+  );
+
+  if (existingAppointments.length === 0) {
+    alert.style.display = 'none';
+    return;
+  }
+
+  // Sort by date
+  existingAppointments.sort((a, b) => {
+    const dateA = a.exactDate ? parseDateFR(a.exactDate) : (a.month ? new Date(parseInt(a.month.split('/')[1]), parseInt(a.month.split('/')[0]) - 1, 1) : null);
+    const dateB = b.exactDate ? parseDateFR(b.exactDate) : (b.month ? new Date(parseInt(b.month.split('/')[1]), parseInt(b.month.split('/')[0]) - 1, 1) : null);
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return dateA - dateB;
+  });
+
+  // Display appointments
+  list.innerHTML = existingAppointments.map(apt => {
+    let dateDisplay;
+    if (apt.exactDate) {
+      dateDisplay = `📅 ${apt.exactDate}`;
+    } else if (apt.month) {
+      const parts = apt.month.split('/');
+      const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+      dateDisplay = `📞 ${monthNames[parseInt(parts[0]) - 1]} ${parts[1]} (à préciser)`;
+    } else {
+      dateDisplay = '❓ Date non définie';
+    }
+
+    return `
+      <div style="padding: 0.5rem; background: rgba(255,255,255,0.5); border-radius: var(--radius-sm); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 600;">${dateDisplay}</span>
+        <span style="font-size: 0.875rem; color: var(--text-secondary);">${apt.type || 'Suivi'}</span>
+      </div>
+    `;
+  }).join('');
+
+  alert.style.display = 'block';
+}
+
+function checkExistingSwitches(patientId) {
+  const alert = byId('existingSwitchesAlert');
+  const list = byId('existingSwitchesList');
+
+  if (!alert || !list || !patientId) {
+    if (alert) alert.style.display = 'none';
+    return;
+  }
+
+  // Find existing switches for this patient (excluding current one if editing)
+  const existingSwitches = state.switches.filter(sw =>
+    sw.patientId === patientId &&
+    sw.status === 'planned' &&
+    sw.id !== currentSwitchId
+  );
+
+  if (existingSwitches.length === 0) {
+    alert.style.display = 'none';
+    return;
+  }
+
+  // Sort by date
+  existingSwitches.sort((a, b) => {
+    const dateA = parseDateFR(a.switchDate);
+    const dateB = parseDateFR(b.switchDate);
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return dateA - dateB;
+  });
+
+  // Display switches
+  list.innerHTML = existingSwitches.map(sw => {
+    return `
+      <div style="padding: 0.5rem; background: rgba(255,255,255,0.5); border-radius: var(--radius-sm); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 600;">🔄 ${sw.switchDate}</span>
+        <span style="font-size: 0.875rem; color: var(--text-secondary);">${protoName(sw.oldProtoId)} → ${protoName(sw.newProtoId)}</span>
+      </div>
+    `;
+  }).join('');
+
+  alert.style.display = 'block';
+}
+
 // ===== Appointments Management System =====
 function openAppointmentModal(appointmentId = null) {
   currentAppointmentId = appointmentId;
@@ -12119,7 +12241,18 @@ function openAppointmentModal(appointmentId = null) {
     document.querySelector('input[name="appointmentType"][value="date"]').checked = true;
     toggleAppointmentType();
   }
-  
+
+  // Add event listener for patient selection
+  const patientSelect = byId('appointmentPatientId');
+  patientSelect.onchange = function() {
+    checkExistingAppointments(this.value);
+  };
+
+  // Check existing appointments if editing with a patient already selected
+  if (appointmentId && patientSelect.value) {
+    checkExistingAppointments(patientSelect.value);
+  }
+
   showModal(true, 'appointmentModal');
 }
 
