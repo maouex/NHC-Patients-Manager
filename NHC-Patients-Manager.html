@@ -4132,6 +4132,14 @@ body {
 
         <div style="display: flex; flex-direction: column; gap: 1rem;">
           <div class="info-item">
+            <div class="info-label">📞 Téléphone</div>
+            <div class="info-value" id="appointmentPatientPhone" style="font-weight: 600; color: var(--primary);">-</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">📧 Email</div>
+            <div class="info-value" id="appointmentPatientEmail" style="font-size: 0.875rem; word-break: break-word;">-</div>
+          </div>
+          <div class="info-item">
             <div class="info-label">👨‍⚕️ Médecin</div>
             <div class="info-value" id="appointmentPatientDoctor">-</div>
           </div>
@@ -4306,6 +4314,14 @@ body {
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="info-item">
+            <div class="info-label">📞 Téléphone</div>
+            <div class="info-value" id="switchPatientPhone" style="font-weight: 600; color: var(--primary);">-</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">📧 Email</div>
+            <div class="info-value" id="switchPatientEmail" style="font-size: 0.875rem; word-break: break-word;">-</div>
+          </div>
           <div class="info-item">
             <div class="info-label">👨‍⚕️ Médecin</div>
             <div class="info-value" id="switchPatientDoctor">-</div>
@@ -12255,10 +12271,12 @@ function displayAppointmentPatientInfo(patientId) {
   // Populate patient info
   byId('appointmentPatientName').textContent = fullName(patient) || '-';
   byId('appointmentPatientDob').textContent = patient.dob ? `Né(e) le ${patient.dob}` : '-';
+  byId('appointmentPatientPhone').textContent = patient.phone || '-';
+  byId('appointmentPatientEmail').textContent = patient.email || '-';
   byId('appointmentPatientDoctor').textContent = docName(patient.docId) || '-';
   byId('appointmentPatientCenter').textContent = centerName(patient.centerId) || '-';
   byId('appointmentPatientProtocol').textContent = protoName(patient.protoId) || '-';
-  byId('appointmentPatientRenewal').textContent = patient.renewal || '-';
+  byId('appointmentPatientRenewal').textContent = patient.renewalDate || '-';
 
   // Display quality score with progress bar
   const score = qScore(patient);
@@ -12305,10 +12323,12 @@ function displaySwitchPatientInfo(patientId) {
   // Populate patient info
   byId('switchPatientName').textContent = fullName(patient) || '-';
   byId('switchPatientDob').textContent = patient.dob ? `Né(e) le ${patient.dob}` : '-';
+  byId('switchPatientPhone').textContent = patient.phone || '-';
+  byId('switchPatientEmail').textContent = patient.email || '-';
   byId('switchPatientDoctor').textContent = docName(patient.docId) || '-';
   byId('switchPatientCenter').textContent = centerName(patient.centerId) || '-';
   byId('switchPatientProtocol').textContent = protoName(patient.protoId) || '-';
-  byId('switchPatientRenewal').textContent = patient.renewal || '-';
+  byId('switchPatientRenewal').textContent = patient.renewalDate || '-';
 
   // Display quality score with progress bar
   const score = qScore(patient);
