@@ -3868,6 +3868,19 @@ body {
     
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="showModal(false, 'patientDetailsModal')">Fermer</button>
+      <button class="btn" id="btnViewOrdonnance" style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: white;" onclick="openOrdonnanceFromDetails()" disabled>
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"></path>
+          <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"></path>
+        </svg>
+        Ordonnance
+      </button>
+      <button class="btn" id="btnGenerateFromDetails" style="background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%); color: white;" onclick="openGeneratePrescriptionFromDetails()">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd"></path>
+        </svg>
+        Générer Ordonnance
+      </button>
       <button class="btn btn-primary" id="btnEditFromDetails">
         <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
           <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
@@ -7810,7 +7823,10 @@ function newPatient() {
 function viewPatientDetails(id) {
   const patient = state.patients.find(p => p.id === id);
   if (!patient) return;
-  
+
+  // Stocker l'ID du patient pour les boutons d'ordonnance
+  currentPatientId = id;
+
   const score = qScore(patient);
   const scoreColor = score >= 80 ? 'var(--success)' : score >= 50 ? 'var(--warning)' : 'var(--danger)';
   const cycleInfo = getCycleFromDate(patient.renewalDate);
@@ -8009,6 +8025,42 @@ function viewPatientDetails(id) {
   };
   
   showModal(true, 'patientDetailsModal');
+
+  // Gérer l'état des boutons d'ordonnance
+  const btnViewOrdonnance = byId('btnViewOrdonnance');
+  const btnGenerateFromDetails = byId('btnGenerateFromDetails');
+
+  if (patient.patientCode) {
+    btnViewOrdonnance.disabled = false;
+  } else {
+    btnViewOrdonnance.disabled = true;
+  }
+}
+
+function openOrdonnanceFromDetails() {
+  const patient = state.patients.find(p => p.id === currentPatientId);
+
+  if (!patient) {
+    showToast('Patient non trouvé', 'error');
+    return;
+  }
+
+  if (!patient.patientCode) {
+    showToast('Code patient non défini', 'warning');
+    return;
+  }
+
+  const url = `https://documentsnhc.proginov.fr/fiche-patient/xpatient${patient.patientCode}.html`;
+  window.open(url, '_blank');
+  showToast('Ordonnance ouverte dans un nouvel onglet', 'success');
+}
+
+function openGeneratePrescriptionFromDetails() {
+  // Fermer le modal de détails
+  showModal(false, 'patientDetailsModal');
+
+  // Ouvrir le modal de génération d'ordonnance
+  openGeneratePrescriptionModal();
 }
 
 function openPatient(id) {
