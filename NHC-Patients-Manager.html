@@ -3147,6 +3147,13 @@ body {
                 Nouvelle tâche
               </button>
 
+              <button class="btn btn-secondary" onclick="exportTasksToCSV()">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                </svg>
+                Exporter CSV
+              </button>
+
               <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
                   <input type="radio" name="taskStatusFilter" value="all" checked onchange="renderTasks()">
@@ -10803,6 +10810,7 @@ function exportJson() {
     protos: state.protos?.length || 0,
     switches: state.switches?.length || 0,
     appointments: state.appointments?.length || 0,
+    tasks: state.tasks?.length || 0,
     patientHistoryEvents: patientHistoryCount,
     appointmentHistoryEvents: appointmentHistoryCount,
     totalHistoryEvents: totalHistoryEvents
@@ -10820,7 +10828,8 @@ function exportJson() {
   URL.revokeObjectURL(url);
 
   // Detailed success message
-  const message = `✅ Export réussi !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\nTotal: ${totalHistoryEvents} événements sauvegardés`;
+  const tasksCount = state.tasks?.length || 0;
+  const message = `✅ Export réussi !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches\nTotal: ${totalHistoryEvents} événements sauvegardés`;
   showToast(message, 'success');
 }
 
@@ -11527,6 +11536,95 @@ function exportToCSV(patients) {
     showToast(`✅ ${patients.length} patient(s) exporté(s) vers CSV`, 'success');
   } catch (error) {
     console.error('Error exporting to CSV:', error);
+    showToast('❌ Erreur lors de l\'export CSV: ' + error.message, 'error');
+  }
+}
+
+function exportTasksToCSV() {
+  try {
+    if (!state.tasks || state.tasks.length === 0) {
+      showToast('Aucune tâche à exporter', 'warning');
+      return;
+    }
+
+    // Créer le CSV avec BOM pour Excel
+    const BOM = '\uFEFF';
+    let csv = BOM + 'Titre;Description;Statut;Priorité;Date échéance;Heure échéance;Type de liaison;Élément lié;Tags;Date de création;Date de modification;Date de complétion\n';
+
+    const statusLabels = {
+      todo: 'À faire',
+      in_progress: 'En cours',
+      completed: 'Terminée'
+    };
+
+    const priorityLabels = {
+      low: 'Basse',
+      normal: 'Normale',
+      high: 'Haute',
+      urgent: 'Urgente'
+    };
+
+    const relationTypeLabels = {
+      patient: 'Patient',
+      doctor: 'Médecin',
+      center: 'Centre',
+      protocol: 'Protocole'
+    };
+
+    state.tasks.forEach(task => {
+      let relationLabel = '';
+      if (task.relationType && task.relationId) {
+        let relationName = '';
+        switch (task.relationType) {
+          case 'patient':
+            const patient = state.patients.find(p => p.id === task.relationId);
+            relationName = patient ? fullName(patient) : '';
+            break;
+          case 'doctor':
+            relationName = docName(task.relationId);
+            break;
+          case 'center':
+            relationName = centerName(task.relationId);
+            break;
+          case 'protocol':
+            relationName = protoName(task.relationId);
+            break;
+        }
+        relationLabel = relationName;
+      }
+
+      const row = [
+        task.title || '',
+        (task.description || '').replace(/"/g, '""').replace(/\n/g, ' '),
+        statusLabels[task.status] || task.status,
+        priorityLabels[task.priority] || task.priority,
+        task.dueDate || '',
+        task.dueTime || '',
+        task.relationType ? relationTypeLabels[task.relationType] : '',
+        relationLabel,
+        task.tags ? task.tags.join(', ') : '',
+        task.createdAt ? new Date(task.createdAt).toLocaleString('fr-FR') : '',
+        task.updatedAt ? new Date(task.updatedAt).toLocaleString('fr-FR') : '',
+        task.completedAt ? new Date(task.completedAt).toLocaleString('fr-FR') : ''
+      ];
+
+      csv += row.map(field => `"${field}"`).join(';') + '\n';
+    });
+
+    // Créer le fichier et le télécharger
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `taches-nhc-care-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    showToast(`✅ ${state.tasks.length} tâche(s) exportée(s) vers CSV`, 'success');
+  } catch (error) {
+    console.error('Error exporting tasks to CSV:', error);
     showToast('❌ Erreur lors de l\'export CSV: ' + error.message, 'error');
   }
 }
@@ -13701,6 +13799,7 @@ async function performAutoSave() {
       protos: state.protos?.length || 0,
       switches: state.switches?.length || 0,
       appointments: state.appointments?.length || 0,
+      tasks: state.tasks?.length || 0,
       patientHistoryEvents: patientHistoryCount,
       appointmentHistoryEvents: appointmentHistoryCount,
       totalHistoryEvents: totalHistoryEvents
@@ -15571,7 +15670,7 @@ function bindEvents() {
         }
 
         // Validate that arrays are actually arrays
-        const requiredFields = ['patients', 'docs', 'centers', 'protos', 'switches', 'appointments'];
+        const requiredFields = ['patients', 'docs', 'centers', 'protos', 'switches', 'appointments', 'tasks'];
         for (const field of requiredFields) {
           if (data[field] && !Array.isArray(data[field])) {
             throw new Error(`Le champ '${field}' doit être un tableau`);
@@ -15596,6 +15695,7 @@ function bindEvents() {
           protos: data.protos?.length || 0,
           switches: data.switches?.length || 0,
           appointments: data.appointments?.length || 0,
+          tasks: data.tasks?.length || 0,
           patientHistoryEvents: patientHistoryCount,
           appointmentHistoryEvents: appointmentHistoryCount,
           totalHistoryEvents: totalHistoryEvents
@@ -15608,13 +15708,16 @@ function bindEvents() {
             centers: data.centers || [],
             protos: data.protos || [],
             switches: data.switches || [],
-            appointments: data.appointments || []
+            appointments: data.appointments || [],
+            prescriptionTemplates: data.prescriptionTemplates || [],
+            tasks: data.tasks || []
           };
           saveDB();
           render();
 
           // Detailed success message
-          const message = `✅ Import réussi !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\nTotal: ${totalHistoryEvents} événements restaurés`;
+          const tasksCount = state.tasks?.length || 0;
+          const message = `✅ Import réussi !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches\nTotal: ${totalHistoryEvents} événements restaurés`;
           showToast(message, 'success');
         }
       } catch (error) {
