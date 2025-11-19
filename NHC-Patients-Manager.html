@@ -5520,6 +5520,28 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// Add an event to patient's event history
+function addPatientEvent(patientId, eventType, description, metadata = {}) {
+  const patient = state.patients.find(p => p.id === patientId);
+  if (!patient) return;
+
+  // Initialize events array if it doesn't exist
+  if (!patient.events) {
+    patient.events = [];
+  }
+
+  const event = {
+    id: generateId(),
+    type: eventType,
+    description: description,
+    date: Date.now(),
+    metadata: metadata
+  };
+
+  patient.events.push(event);
+  patient.updatedAt = Date.now();
+}
+
 function qsEl(selector) {
   return document.querySelector(selector);
 }
@@ -6129,10 +6151,20 @@ function validateAppointment(appointmentId) {
   // Marquer comme terminé
   appointment.status = 'completed';
   appointment.completedAt = Date.now();
-  
+
+  // Add event to patient history
+  const dateStr = appointment.exactDate || appointment.month || 'date inconnue';
+  const timeStr = appointment.time ? ` à ${appointment.time}` : '';
+  addPatientEvent(appointment.patientId, 'appointment_completed', `Rendez-vous effectué (${dateStr}${timeStr})`, {
+    appointmentId: appointmentId,
+    date: appointment.exactDate || appointment.month,
+    time: appointment.time || null,
+    completedAt: Date.now()
+  });
+
   saveDB();
   render();
-  
+
   showToast(`✅ Rendez-vous validé pour ${fullName(patient)}`, 'success');
 }
 
@@ -8836,6 +8868,70 @@ function viewPatientDetails(id) {
       </div>
       ` : ''}
       
+      <!-- Historique des événements -->
+      ${patient.events && patient.events.length > 0 ? `
+      <div class="info-section">
+        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.25rem;">
+          📋 Historique des événements
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          ${patient.events.slice().reverse().map(e => {
+            const date = new Date(e.date).toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+
+            let icon = '📝';
+            let color = 'var(--primary)';
+
+            if (e.type === 'appointment_created') {
+              icon = '📅';
+              color = '#3b82f6';
+            } else if (e.type === 'appointment_updated') {
+              icon = '📝';
+              color = '#8b5cf6';
+            } else if (e.type === 'appointment_completed') {
+              icon = '✅';
+              color = 'var(--success)';
+            } else if (e.type === 'switch_created') {
+              icon = '🔄';
+              color = '#f59e0b';
+            } else if (e.type === 'switch_updated') {
+              icon = '📝';
+              color = '#f59e0b';
+            } else if (e.type === 'switch_completed') {
+              icon = '✅';
+              color = 'var(--success)';
+            } else if (e.type === 'temporary_pause') {
+              icon = '⏸️';
+              color = '#f59e0b';
+            } else if (e.type === 'permanent_pause') {
+              icon = '⛔';
+              color = '#ef4444';
+            } else if (e.type === 'patient_reactivated') {
+              icon = '▶️';
+              color = 'var(--success)';
+            }
+
+            return `
+              <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius); border-left: 3px solid ${color}; display: flex; gap: 1rem; align-items: start;">
+                <span style="font-size: 1.5rem; flex-shrink: 0;">${icon}</span>
+                <div style="flex: 1;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                    <strong style="color: ${color};">${escapeHtml(e.description)}</strong>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">${date}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+      ` : ''}
+
       <!-- Historique des modifications -->
       ${patient.history && patient.history.length > 0 ? `
       <div class="info-section">
@@ -8844,17 +8940,17 @@ function viewPatientDetails(id) {
         </h3>
         <div style="display: flex; flex-direction: column; gap: 0.75rem;">
           ${patient.history.slice().reverse().map(h => {
-            const date = new Date(h.date).toLocaleDateString('fr-FR', { 
-              day: '2-digit', 
-              month: '2-digit', 
+            const date = new Date(h.date).toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
               year: 'numeric',
               hour: '2-digit',
               minute: '2-digit'
             });
-            
+
             let icon = '📝';
             let color = 'var(--primary)';
-            
+
             if (h.type === 'created') {
               icon = '✨';
               color = 'var(--success)';
@@ -8874,7 +8970,7 @@ function viewPatientDetails(id) {
               icon = '📅';
               color = 'var(--secondary)';
             }
-            
+
             return `
               <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius); border-left: 3px solid ${color}; display: flex; gap: 1rem; align-items: start;">
                 <span style="font-size: 1.5rem; flex-shrink: 0;">${icon}</span>
@@ -9207,16 +9303,25 @@ function pausePatient(patientId, pauseType) {
     }
     
     const selectedDate = new Date(dateInput.value + 'T12:00:00');
-    
+
     patient.status = pauseType;
     patient.pausedAt = selectedDate.getTime();
     patient.pauseReason = reasonInput.value.trim() || '';
     patient.updatedAt = Date.now();
-    
+
+    // Add event to patient history
+    const pauseLabel = pauseType === 'temporary_pause' ? 'Arrêt temporaire' : 'Arrêt définitif';
+    const reasonText = reasonInput.value.trim() ? ` - Raison : ${reasonInput.value.trim()}` : '';
+    addPatientEvent(patientId, pauseType, `${pauseLabel} du patient${reasonText}`, {
+      pauseType: pauseType,
+      pausedAt: selectedDate.getTime(),
+      pauseReason: reasonInput.value.trim() || ''
+    });
+
     saveDB();
     render();
     modal.remove();
-    
+
     showToast(`${icon} Patient mis en arrêt ${typeLabel}`, 'success');
   });
   
@@ -9316,19 +9421,30 @@ function reactivatePatient(patientId) {
     }
     
     const selectedDate = new Date(dateInput.value + 'T12:00:00');
-    
+
+    const previousStatus = patient.status;
     patient.status = 'active';
     patient.reactivatedAt = selectedDate.getTime();
     patient.reactivateNotes = notesInput.value.trim() || '';
     patient.updatedAt = Date.now();
-    
+
+    // Add event to patient history
+    const wasTemporary = previousStatus === 'temporary_pause';
+    const statusLabel = wasTemporary ? 'arrêt temporaire' : 'arrêt définitif';
+    const notesText = notesInput.value.trim() ? ` - ${notesInput.value.trim()}` : '';
+    addPatientEvent(patientId, 'patient_reactivated', `Réactivation du patient (après ${statusLabel})${notesText}`, {
+      previousStatus: previousStatus,
+      reactivatedAt: selectedDate.getTime(),
+      notes: notesInput.value.trim() || ''
+    });
+
     saveDB();
     render();
     modal.remove();
-    
+
     // Close status modal if open
     closeStatusModal();
-    
+
     showToast('✅ Patient réactivé', 'success');
   });
   
@@ -11995,12 +12111,23 @@ function saveSwitch() {
         oldProtoId: patient.protoId,
         updatedAt: Date.now()
       };
-      
+
+      // Add event to patient history
+      const timeStr = formData.time ? ` à ${formData.time}` : '';
+      addPatientEvent(formData.patientId, 'switch_updated', `Modification du switch prévu le ${formData.switchDate}${timeStr}`, {
+        switchId: currentSwitchId,
+        date: formData.switchDate,
+        time: formData.time || null,
+        newProtoId: formData.newProtoId,
+        oldProtoId: patient.protoId,
+        status: formData.status
+      });
+
       // If status changed to completed, update patient
       if (oldStatus !== 'completed' && formData.status === 'completed') {
         applySwitch(currentSwitchId);
       }
-      
+
       showToast('Switch modifié', 'success');
     }
   } else {
@@ -12012,14 +12139,25 @@ function saveSwitch() {
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
-    
+
     state.switches.push(newSwitch);
-    
+
+    // Add event to patient history
+    const timeStr = formData.time ? ` à ${formData.time}` : '';
+    addPatientEvent(formData.patientId, 'switch_created', `Switch planifié pour le ${formData.switchDate}${timeStr} (${protoName(patient.protoId)} → ${protoName(formData.newProtoId)})`, {
+      switchId: newSwitch.id,
+      date: formData.switchDate,
+      time: formData.time || null,
+      newProtoId: formData.newProtoId,
+      oldProtoId: patient.protoId,
+      status: formData.status
+    });
+
     // If status is completed, apply immediately
     if (formData.status === 'completed') {
       applySwitch(newSwitch.id);
     }
-    
+
     showToast('Switch créé', 'success');
   }
   
@@ -12219,11 +12357,25 @@ function applySwitchWithRenewalDate(switchId, renewalDate, hasPrescription) {
       state.patients[patientIndex].currentCycle = `C${cycleInfo.cycle}-${cycleInfo.year}`;
     }
   }
-  
+
   // Mark switch as completed
   sw.status = 'completed';
   sw.completedAt = now;
-  
+
+  // Add event to patient history
+  const timeStr = sw.time ? ` à ${sw.time}` : '';
+  const prescriptionInfo = hasPrescription ? ' (avec ordonnance initiale)' : ' (sans ordonnance initiale)';
+  addPatientEvent(sw.patientId, 'switch_completed', `Switch effectué${prescriptionInfo} : ${protoName(sw.oldProtoId)} → ${protoName(sw.newProtoId)}`, {
+    switchId: switchId,
+    date: sw.switchDate,
+    time: sw.time || null,
+    oldProtoId: sw.oldProtoId,
+    newProtoId: sw.newProtoId,
+    renewalDate: renewalDate,
+    hasPrescription: hasPrescription,
+    completedAt: now
+  });
+
   saveDB();
 }
 
@@ -12978,11 +13130,25 @@ function saveAppointment() {
         notes,
         updatedAt: Date.now()
       };
+
+      // Add event to patient history
+      const patient = state.patients.find(p => p.id === patientId);
+      if (patient) {
+        const dateStr = exactDate || month;
+        const timeStr = time ? ` à ${time}` : '';
+        addPatientEvent(patientId, 'appointment_updated', `Modification du rendez-vous du ${dateStr}${timeStr}`, {
+          appointmentId: currentAppointmentId,
+          date: exactDate || month,
+          time: time || null,
+          notes: notes
+        });
+      }
+
       showToast('Suivi modifié', 'success');
     }
   } else {
     // Create
-    state.appointments.push({
+    const newAppointment = {
       id: generateId(),
       patientId,
       exactDate,
@@ -12993,7 +13159,22 @@ function saveAppointment() {
       history: [],
       createdAt: Date.now(),
       updatedAt: Date.now()
-    });
+    };
+    state.appointments.push(newAppointment);
+
+    // Add event to patient history
+    const patient = state.patients.find(p => p.id === patientId);
+    if (patient) {
+      const dateStr = exactDate || month;
+      const timeStr = time ? ` à ${time}` : '';
+      addPatientEvent(patientId, 'appointment_created', `Rendez-vous planifié pour le ${dateStr}${timeStr}`, {
+        appointmentId: newAppointment.id,
+        date: exactDate || month,
+        time: time || null,
+        notes: notes
+      });
+    }
+
     showToast('Suivi planifié', 'success');
   }
   
