@@ -6580,6 +6580,7 @@ function renderDashboardCalendar() {
       visibleEvents.forEach(event => {
         const icon = event.type === 'appointment' ? '📅' : '🔄';
         const eventClass = event.type === 'appointment' ? 'appointment' : 'switch';
+        const displayText = event.time ? `${event.time} ${event.patientName}` : event.patientName;
 
         html += `
           <div class="calendar-event ${eventClass}"
@@ -6588,7 +6589,7 @@ function renderDashboardCalendar() {
                title="${escapeHtml(event.title)}"
                style="cursor: pointer;">
             <span class="calendar-event-icon">${icon}</span>
-            <span style="overflow: hidden; text-overflow: ellipsis;">${escapeHtml(event.patientName)}</span>
+            <span style="overflow: hidden; text-overflow: ellipsis;">${escapeHtml(displayText)}</span>
           </div>
         `;
       });
@@ -6639,6 +6640,7 @@ function getMonthEvents(year, month) {
                 type: 'appointment',
                 title: `RDV: ${fullName(patient)} - ${apt.type || 'Suivi'}${timeStr}`,
                 patientName: fullName(patient),
+                time: apt.time,
                 data: apt,
                 eventId: apt.id,
                 eventType: 'appointment'
@@ -6672,6 +6674,7 @@ function getMonthEvents(year, month) {
                 type: 'switch',
                 title: `Switch: ${fullName(patient)} - ${protoName(sw.oldProtoId)} → ${protoName(sw.newProtoId)}${timeStr}`,
                 patientName: fullName(patient),
+                time: sw.time,
                 data: sw,
                 eventId: sw.id,
                 eventType: 'switch'
