@@ -10946,8 +10946,9 @@ function exportJson() {
 
   // Count history events for verification
   const patientHistoryCount = state.patients.reduce((total, p) => total + (p.history?.length || 0), 0);
+  const patientEventsCount = state.patients.reduce((total, p) => total + (p.events?.length || 0), 0);
   const appointmentHistoryCount = state.appointments.reduce((total, a) => total + (a.history?.length || 0), 0);
-  const totalHistoryEvents = patientHistoryCount + appointmentHistoryCount;
+  const totalHistoryEvents = patientHistoryCount + patientEventsCount + appointmentHistoryCount;
 
   console.log('📦 Exporting backup with:', {
     version: backup.version,
@@ -10960,6 +10961,7 @@ function exportJson() {
     appointments: state.appointments?.length || 0,
     tasks: state.tasks?.length || 0,
     patientHistoryEvents: patientHistoryCount,
+    patientEvents: patientEventsCount,
     appointmentHistoryEvents: appointmentHistoryCount,
     totalHistoryEvents: totalHistoryEvents
   });
@@ -10977,7 +10979,7 @@ function exportJson() {
 
   // Detailed success message
   const tasksCount = state.tasks?.length || 0;
-  const message = `✅ Export réussi !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches\nTotal: ${totalHistoryEvents} événements sauvegardés`;
+  const message = `✅ Export réussi !\n${state.patients.length} patients (${patientHistoryCount} modif. + ${patientEventsCount} événements)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches\nTotal: ${totalHistoryEvents} événements sauvegardés`;
   showToast(message, 'success');
 }
 
@@ -16028,8 +16030,9 @@ function bindEvents() {
 
         // Count history events in the backup for verification
         const patientHistoryCount = (data.patients || []).reduce((total, p) => total + (p.history?.length || 0), 0);
+        const patientEventsCount = (data.patients || []).reduce((total, p) => total + (p.events?.length || 0), 0);
         const appointmentHistoryCount = (data.appointments || []).reduce((total, a) => total + (a.history?.length || 0), 0);
-        const totalHistoryEvents = patientHistoryCount + appointmentHistoryCount;
+        const totalHistoryEvents = patientHistoryCount + patientEventsCount + appointmentHistoryCount;
 
         console.log('📊 Data to import:', {
           patients: data.patients?.length || 0,
@@ -16040,6 +16043,7 @@ function bindEvents() {
           appointments: data.appointments?.length || 0,
           tasks: data.tasks?.length || 0,
           patientHistoryEvents: patientHistoryCount,
+          patientEvents: patientEventsCount,
           appointmentHistoryEvents: appointmentHistoryCount,
           totalHistoryEvents: totalHistoryEvents
         });
@@ -16060,7 +16064,7 @@ function bindEvents() {
 
           // Detailed success message
           const tasksCount = state.tasks?.length || 0;
-          const message = `✅ Import réussi !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches\nTotal: ${totalHistoryEvents} événements restaurés`;
+          const message = `✅ Import réussi !\n${state.patients.length} patients (${patientHistoryCount} modif. + ${patientEventsCount} événements)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches\nTotal: ${totalHistoryEvents} événements restaurés`;
           showToast(message, 'success');
         }
       } catch (error) {
