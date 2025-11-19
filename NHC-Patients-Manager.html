@@ -4335,7 +4335,12 @@ body {
           <label class="form-label">Date du RDV *</label>
           <input type="text" class="form-input" id="appointmentDate" placeholder="JJ/MM/AAAA" pattern="\d{2}/\d{2}/\d{4}">
         </div>
-        
+
+        <div class="form-group" id="appointmentTimeGroup">
+          <label class="form-label">Heure (optionnel)</label>
+          <input type="time" class="form-input" id="appointmentTime">
+        </div>
+
         <div class="form-group hidden" id="appointmentMonthGroup">
           <label class="form-label">Mois *</label>
           <input type="text" class="form-input" id="appointmentMonth" placeholder="MM/AAAA" pattern="\d{2}/\d{4}">
@@ -4516,7 +4521,12 @@ body {
           <label class="form-label">Date prévue du switch *</label>
           <input type="text" class="form-input" id="switchDate" placeholder="JJ/MM/AAAA" pattern="\d{2}/\d{2}/\d{4}" required>
         </div>
-        
+
+        <div class="form-group">
+          <label class="form-label">Heure (optionnel)</label>
+          <input type="time" class="form-input" id="switchTime">
+        </div>
+
         <div class="form-group">
           <label class="form-label">Statut</label>
           <select class="form-select" id="switchStatus">
@@ -6037,8 +6047,8 @@ function renderDashboardAppointments() {
         const parts = apt.exactDate.split('/');
         const aptDate = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
         diffDays = Math.ceil((aptDate - now) / (1000 * 60 * 60 * 24));
-        dateDisplay = apt.exactDate;
-        
+        dateDisplay = apt.exactDate + (apt.time ? ` à ${apt.time}` : '');
+
         if (diffDays < 0) {
           bgColor = '#fee2e2';
           borderColor = '#ef4444';
@@ -6374,7 +6384,7 @@ function renderDashboardSwitches() {
             <span style="background: ${borderColor}; color: white; padding: 0.25rem 0.5rem; border-radius: var(--radius); font-size: 0.75rem; font-weight: 700;">J-${diffDays}</span>
           </div>
           <div style="font-size: 0.9rem; color: var(--text-secondary);">
-            ${sw.switchDate} • ${protoName(sw.oldProtoId) || '?'} → ${protoName(sw.newProtoId)}
+            ${sw.switchDate}${sw.time ? ` à ${sw.time}` : ''} • ${protoName(sw.oldProtoId) || '?'} → ${protoName(sw.newProtoId)}
           </div>
         </div>
       `;
@@ -6623,10 +6633,11 @@ function getMonthEvents(year, month) {
           if (aptMonth === month && aptYear === year) {
             const patient = state.patients.find(p => p.id === apt.patientId);
             if (patient) {
+              const timeStr = apt.time ? ` à ${apt.time}` : '';
               events.push({
                 day: day,
                 type: 'appointment',
-                title: `RDV: ${fullName(patient)} - ${apt.type || 'Suivi'}`,
+                title: `RDV: ${fullName(patient)} - ${apt.type || 'Suivi'}${timeStr}`,
                 patientName: fullName(patient),
                 data: apt,
                 eventId: apt.id,
@@ -6655,10 +6666,11 @@ function getMonthEvents(year, month) {
           if (swMonth === month && swYear === year) {
             const patient = state.patients.find(p => p.id === sw.patientId);
             if (patient) {
+              const timeStr = sw.time ? ` à ${sw.time}` : '';
               events.push({
                 day: day,
                 type: 'switch',
-                title: `Switch: ${fullName(patient)} - ${protoName(sw.oldProtoId)} → ${protoName(sw.newProtoId)}`,
+                title: `Switch: ${fullName(patient)} - ${protoName(sw.oldProtoId)} → ${protoName(sw.newProtoId)}${timeStr}`,
                 patientName: fullName(patient),
                 data: sw,
                 eventId: sw.id,
@@ -11857,17 +11869,19 @@ function openSwitchModal(switchId = null) {
     updateSwitchOldProto();
     byId('switchNewProtoId').value = sw.newProtoId;
     byId('switchDate').value = sw.switchDate;
+    byId('switchTime').value = sw.time || '';
     byId('switchStatus').value = sw.status;
     byId('switchNotes').value = sw.notes || '';
   } else {
     // New mode
     byId('switchModalTitle').textContent = 'Nouveau Switch de Pompe';
     byId('btnDeleteSwitch').classList.add('hidden');
-    
+
     byId('switchPatientId').value = '';
     byId('switchOldProto').value = '';
     byId('switchNewProtoId').value = '';
     byId('switchDate').value = '';
+    byId('switchTime').value = '';
     byId('switchStatus').value = 'planned';
     byId('switchNotes').value = '';
   }
@@ -11904,6 +11918,7 @@ function saveSwitch() {
     patientId: byId('switchPatientId').value,
     newProtoId: byId('switchNewProtoId').value,
     switchDate: byId('switchDate').value.trim(),
+    time: byId('switchTime').value.trim() || null,
     status: byId('switchStatus').value,
     notes: byId('switchNotes').value.trim()
   };
@@ -12049,7 +12064,7 @@ function validateSwitch(switchId) {
   const info = `
     <strong>Patient :</strong> ${patient.firstName} ${patient.lastName}<br>
     <strong>Switch :</strong> ${protoName(sw.oldProtoId) || 'Non défini'} → ${protoName(sw.newProtoId)}<br>
-    <strong>Date prévue :</strong> ${sw.switchDate}
+    <strong>Date prévue :</strong> ${sw.switchDate}${sw.time ? ` à ${sw.time}` : ''}
   `;
   byId('validateSwitchInfo').innerHTML = info;
   
@@ -12397,7 +12412,7 @@ function renderTimeline() {
                   ${patient.firstName} ${patient.lastName}
                 </h4>
                 <div style="font-size: 13px; color: var(--text-secondary);">
-                  ${patient.patientCode || 'Code non défini'}
+                  ${patient.patientCode || 'Code non défini'}${sw.time ? ` • ${sw.time}` : ''}
                 </div>
               </div>
               ${isCompleted ? '<span class="badge badge-success">✅ Effectué</span>' : 
@@ -12569,7 +12584,7 @@ function renderSwitchList(containerId, switches, type) {
               <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
               </svg>
-              <span style="font-weight: 500;">${sw.switchDate}</span>
+              <span style="font-weight: 500;">${sw.switchDate}${sw.time ? ` à ${sw.time}` : ''}</span>
             </div>
 
             <!-- Notes -->
@@ -12743,7 +12758,7 @@ function checkExistingAppointments(patientId) {
   list.innerHTML = existingAppointments.map(apt => {
     let dateDisplay;
     if (apt.exactDate) {
-      dateDisplay = `📅 ${apt.exactDate}`;
+      dateDisplay = `📅 ${apt.exactDate}${apt.time ? ` à ${apt.time}` : ''}`;
     } else if (apt.month) {
       const parts = apt.month.split('/');
       const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
@@ -12797,7 +12812,7 @@ function checkExistingSwitches(patientId) {
   list.innerHTML = existingSwitches.map(sw => {
     return `
       <div style="padding: 0.5rem; background: rgba(255,255,255,0.5); border-radius: var(--radius-sm); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-weight: 600;">🔄 ${sw.switchDate}</span>
+        <span style="font-weight: 600;">🔄 ${sw.switchDate}${sw.time ? ` à ${sw.time}` : ''}</span>
         <span style="font-size: 0.875rem; color: var(--text-secondary);">${protoName(sw.oldProtoId)} → ${protoName(sw.newProtoId)}</span>
       </div>
     `;
@@ -12832,19 +12847,21 @@ function openAppointmentModal(appointmentId = null) {
       document.querySelector('input[name="appointmentType"][value="month"]').checked = true;
       byId('appointmentMonth').value = apt.month;
     }
-    
+
     toggleAppointmentType();
+    byId('appointmentTime').value = apt.time || '';
     byId('appointmentNotes').value = apt.notes || '';
   } else {
     // New mode
     byId('appointmentModalTitle').textContent = 'Planifier un suivi';
     byId('btnDeleteAppointment').classList.add('hidden');
-    
+
     byId('appointmentPatientId').value = '';
     byId('appointmentDate').value = '';
+    byId('appointmentTime').value = '';
     byId('appointmentMonth').value = '';
     byId('appointmentNotes').value = '';
-    
+
     document.querySelector('input[name="appointmentType"][value="date"]').checked = true;
     toggleAppointmentType();
   }
@@ -12866,14 +12883,16 @@ function openAppointmentModal(appointmentId = null) {
 
 function toggleAppointmentType() {
   const type = document.querySelector('input[name="appointmentType"]:checked').value;
-  
+
   if (type === 'date') {
     byId('appointmentDateGroup').classList.remove('hidden');
+    byId('appointmentTimeGroup').classList.remove('hidden');
     byId('appointmentMonthGroup').classList.add('hidden');
     byId('appointmentDate').required = true;
     byId('appointmentMonth').required = false;
   } else {
     byId('appointmentDateGroup').classList.add('hidden');
+    byId('appointmentTimeGroup').classList.add('hidden');
     byId('appointmentMonthGroup').classList.remove('hidden');
     byId('appointmentDate').required = false;
     byId('appointmentMonth').required = true;
@@ -12884,15 +12903,16 @@ function saveAppointment() {
   const patientId = byId('appointmentPatientId').value;
   const type = document.querySelector('input[name="appointmentType"]:checked').value;
   const notes = byId('appointmentNotes').value.trim();
-  
+  const time = byId('appointmentTime').value.trim();
+
   if (!patientId) {
     showToast('Veuillez sélectionner un patient', 'error');
     return;
   }
-  
+
   let exactDate = null;
   let month = null;
-  
+
   if (type === 'date') {
     exactDate = byId('appointmentDate').value.trim();
     if (!exactDate) {
@@ -12938,6 +12958,7 @@ function saveAppointment() {
         patientId,
         exactDate,
         month,
+        time: time || null,
         notes,
         updatedAt: Date.now()
       };
@@ -12950,6 +12971,7 @@ function saveAppointment() {
       patientId,
       exactDate,
       month,
+      time: time || null,
       notes,
       status: 'active',
       history: [],
@@ -13000,20 +13022,24 @@ function completeAppointment(appointmentId) {
       const month = parseInt(parts[1], 10) - 1;
       const year = parseInt(parts[2], 10);
       const date = new Date(year, month, day);
-      byId('completeAppointmentInfo').textContent = date.toLocaleDateString('fr-FR', {
+      let dateText = date.toLocaleDateString('fr-FR', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       });
+      if (apt.time) {
+        dateText += ` à ${apt.time}`;
+      }
+      byId('completeAppointmentInfo').textContent = dateText;
     } else {
-      byId('completeAppointmentInfo').textContent = apt.exactDate;
+      byId('completeAppointmentInfo').textContent = apt.exactDate + (apt.time ? ` à ${apt.time}` : '');
     }
   } else {
     // Parse MM/YYYY
     const parts = apt.month.split('/');
     if (parts.length === 2) {
-      const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+      const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
                           'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
       byId('completeAppointmentInfo').textContent = `${monthNames[parseInt(parts[0], 10) - 1]} ${parts[1]}`;
     } else {
@@ -13235,6 +13261,11 @@ function renderAppointments() {
         month: 'long',
         day: 'numeric'
       });
+
+      // Add time if specified
+      if (apt.time) {
+        dateDisplay += ` à ${apt.time}`;
+      }
       
       if (diffDays < 0) {
         badgeClass = 'badge-danger';
