@@ -5545,106 +5545,123 @@ function addPatientEvent(patientId, eventType, description, metadata = {}) {
 // Transform a select into a searchable dropdown
 function makeSelectSearchable(selectId, getOptions, getLabelFn, placeholderText = 'Rechercher...') {
   const originalSelect = byId(selectId);
-  if (!originalSelect || originalSelect.dataset.searchable === 'true') return;
-
-  originalSelect.dataset.searchable = 'true';
-  originalSelect.style.display = 'none';
-
-  const container = document.createElement('div');
-  container.className = 'searchable-select-container';
-  container.style.cssText = 'position: relative; width: 100%;';
-
-  const searchInput = document.createElement('input');
-  searchInput.type = 'text';
-  searchInput.placeholder = placeholderText;
-  searchInput.className = originalSelect.className;
-  searchInput.style.cssText = originalSelect.style.cssText;
-  searchInput.autocomplete = 'off';
-
-  const dropdown = document.createElement('div');
-  dropdown.className = 'searchable-select-dropdown';
-  dropdown.style.cssText = 'display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 300px; overflow-y: auto; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); z-index: 1000; margin-top: 2px;';
-
-  originalSelect.parentNode.insertBefore(container, originalSelect);
-  container.appendChild(searchInput);
-  container.appendChild(originalSelect);
-  container.appendChild(dropdown);
-
-  function updateDropdown(searchTerm = '') {
-    const options = getOptions();
-    const filtered = options.filter(opt => {
-      const label = getLabelFn(opt);
-      return label.toLowerCase().includes(searchTerm.toLowerCase());
-    });
-
-    if (filtered.length === 0) {
-      dropdown.innerHTML = '<div style="padding: 0.75rem; color: var(--text-muted); text-align: center;">Aucun résultat</div>';
-    } else {
-      dropdown.innerHTML = filtered.map(opt => {
-        const label = getLabelFn(opt);
-        return `<div class="searchable-select-option" data-value="${opt.id}" style="padding: 0.75rem; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'">${escapeHtml(label)}</div>`;
-      }).join('');
-    }
-
-    dropdown.style.display = 'block';
+  if (!originalSelect) {
+    console.warn(`makeSelectSearchable: select #${selectId} not found`);
+    return;
   }
 
-  searchInput.addEventListener('focus', () => {
-    updateDropdown(searchInput.value);
-  });
+  if (originalSelect.dataset.searchable === 'true') return;
 
-  searchInput.addEventListener('input', (e) => {
-    updateDropdown(e.target.value);
-  });
+  try {
+    // Check if parent exists
+    if (!originalSelect.parentNode) {
+      console.error(`makeSelectSearchable: select #${selectId} has no parent`);
+      return;
+    }
 
-  dropdown.addEventListener('click', (e) => {
-    const option = e.target.closest('.searchable-select-option');
-    if (option) {
-      const value = option.dataset.value;
-      originalSelect.value = value;
+    const container = document.createElement('div');
+    container.className = 'searchable-select-container';
+    container.style.cssText = 'position: relative; width: 100%;';
 
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = placeholderText;
+    searchInput.className = originalSelect.className;
+    searchInput.style.cssText = originalSelect.style.cssText + '; display: block;';
+    searchInput.autocomplete = 'off';
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'searchable-select-dropdown';
+    dropdown.style.cssText = 'display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 300px; overflow-y: auto; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); z-index: 1000; margin-top: 2px;';
+
+    originalSelect.parentNode.insertBefore(container, originalSelect);
+    container.appendChild(searchInput);
+    container.appendChild(originalSelect);
+    container.appendChild(dropdown);
+
+    function updateDropdown(searchTerm = '') {
       const options = getOptions();
-      const selected = options.find(opt => String(opt.id) === String(value));
-      if (selected) {
-        searchInput.value = getLabelFn(selected);
+      const filtered = options.filter(opt => {
+        const label = getLabelFn(opt);
+        return label.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+
+      if (filtered.length === 0) {
+        dropdown.innerHTML = '<div style="padding: 0.75rem; color: var(--text-muted); text-align: center;">Aucun résultat</div>';
+      } else {
+        dropdown.innerHTML = filtered.map(opt => {
+          const label = getLabelFn(opt);
+          return `<div class="searchable-select-option" data-value="${opt.id}" style="padding: 0.75rem; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'">${escapeHtml(label)}</div>`;
+        }).join('');
       }
 
-      dropdown.style.display = 'none';
-
-      // Trigger change event on original select
-      originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      dropdown.style.display = 'block';
     }
-  });
 
-  document.addEventListener('click', (e) => {
-    if (!container.contains(e.target)) {
-      dropdown.style.display = 'none';
-    }
-  });
+    searchInput.addEventListener('focus', () => {
+      updateDropdown(searchInput.value);
+    });
 
-  // Set initial value if select has one
-  if (originalSelect.value) {
-    const options = getOptions();
-    const selected = options.find(opt => String(opt.id) === String(originalSelect.value));
-    if (selected) {
-      searchInput.value = getLabelFn(selected);
-    }
-  }
+    searchInput.addEventListener('input', (e) => {
+      updateDropdown(e.target.value);
+    });
 
-  // Watch for programmatic changes to the original select
-  const observer = new MutationObserver(() => {
+    dropdown.addEventListener('click', (e) => {
+      const option = e.target.closest('.searchable-select-option');
+      if (option) {
+        const value = option.dataset.value;
+        originalSelect.value = value;
+
+        const options = getOptions();
+        const selected = options.find(opt => String(opt.id) === String(value));
+        if (selected) {
+          searchInput.value = getLabelFn(selected);
+        }
+
+        dropdown.style.display = 'none';
+
+        // Trigger change event on original select
+        originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target)) {
+        dropdown.style.display = 'none';
+      }
+    });
+
+    // Set initial value if select has one
     if (originalSelect.value) {
       const options = getOptions();
       const selected = options.find(opt => String(opt.id) === String(originalSelect.value));
       if (selected) {
         searchInput.value = getLabelFn(selected);
       }
-    } else {
-      searchInput.value = '';
     }
-  });
 
-  observer.observe(originalSelect, { attributes: true, attributeFilter: ['value'] });
+    // Watch for programmatic changes to the original select
+    const observer = new MutationObserver(() => {
+      if (originalSelect.value) {
+        const options = getOptions();
+        const selected = options.find(opt => String(opt.id) === String(originalSelect.value));
+        if (selected) {
+          searchInput.value = getLabelFn(selected);
+        }
+      } else {
+        searchInput.value = '';
+      }
+    });
+
+    observer.observe(originalSelect, { attributes: true, attributeFilter: ['value'] });
+
+    // Only hide and mark as searchable if everything succeeded
+    originalSelect.style.display = 'none';
+    originalSelect.dataset.searchable = 'true';
+
+  } catch (error) {
+    console.error(`makeSelectSearchable: error for #${selectId}:`, error);
+  }
 }
 
 function qsEl(selector) {
