@@ -3003,45 +3003,45 @@ body {
     
     <!-- Appointments/Follow-ups View -->
     <section id="appointments" class="view">
-      <!-- Dashboard RDV -->
-      <div class="kpi-grid mb-3">
-        <div class="kpi-card" style="border-left-color: var(--danger);">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, var(--danger), #dc2626);">
-            <svg width="24" height="24" fill="white" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
-          </div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpiAppointmentsThisMonth">0</div>
-            <div class="kpi-label">RDV ce mois</div>
-          </div>
-        </div>
-        
-        <div class="kpi-card" style="border-left-color: var(--warning);">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, var(--warning), #f59e0b);">
-            <svg width="24" height="24" fill="white" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path></svg>
-          </div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpiAppointmentsToCall">0</div>
-            <div class="kpi-label">À rappeler</div>
+      <!-- Dashboard RDV - Style moderne -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- RDV ce mois -->
+        <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); color: white; transition: var(--transition); cursor: pointer; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-xl)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-md)'">
+          <div style="position: absolute; top: -20px; right: -20px; font-size: 6rem; opacity: 0.2;">📅</div>
+          <div style="position: relative; z-index: 1;">
+            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">RDV ce mois</div>
+            <div style="font-size: 3rem; font-weight: 800; line-height: 1;" id="kpiAppointmentsThisMonth">0</div>
+            <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem;">Rendez-vous planifiés</div>
           </div>
         </div>
-        
-        <div class="kpi-card" style="border-left-color: var(--info);">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, var(--info), #0891b2);">
-            <svg width="24" height="24" fill="white" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
-          </div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpiAppointmentsNext30">0</div>
-            <div class="kpi-label">30 prochains jours</div>
+
+        <!-- À rappeler -->
+        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); color: white; transition: var(--transition); cursor: pointer; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-xl)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-md)'">
+          <div style="position: absolute; top: -20px; right: -20px; font-size: 6rem; opacity: 0.2;">📞</div>
+          <div style="position: relative; z-index: 1;">
+            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">À rappeler</div>
+            <div style="font-size: 3rem; font-weight: 800; line-height: 1;" id="kpiAppointmentsToCall">0</div>
+            <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem;">Patients à contacter</div>
           </div>
         </div>
-        
-        <div class="kpi-card" style="border-left-color: var(--success);">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, var(--success), #059669);">
-            <svg width="24" height="24" fill="white" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+
+        <!-- 30 prochains jours -->
+        <div style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); color: white; transition: var(--transition); cursor: pointer; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-xl)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-md)'">
+          <div style="position: absolute; top: -20px; right: -20px; font-size: 6rem; opacity: 0.2;">⏰</div>
+          <div style="position: relative; z-index: 1;">
+            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">30 prochains jours</div>
+            <div style="font-size: 3rem; font-weight: 800; line-height: 1;" id="kpiAppointmentsNext30">0</div>
+            <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem;">Suivis à venir</div>
           </div>
-          <div class="kpi-content">
-            <div class="kpi-value" id="kpiAppointmentsDone">0</div>
-            <div class="kpi-label">Réalisés (total)</div>
+        </div>
+
+        <!-- Réalisés -->
+        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); color: white; transition: var(--transition); cursor: pointer; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-xl)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-md)'">
+          <div style="position: absolute; top: -20px; right: -20px; font-size: 6rem; opacity: 0.2;">✅</div>
+          <div style="position: relative; z-index: 1;">
+            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">Réalisés</div>
+            <div style="font-size: 3rem; font-weight: 800; line-height: 1;" id="kpiAppointmentsDone">0</div>
+            <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem;">Total effectués</div>
           </div>
         </div>
       </div>
@@ -12518,46 +12518,84 @@ function renderSwitchList(containerId, switches, type) {
     const patient = state.patients.find(p => p.id === sw.patientId);
     if (!patient) return '';
     
-    const statusBadge = sw.status === 'completed' 
-      ? '<span class="badge badge-success">✅ Effectué</span>'
-      : '<span class="badge badge-warning">📅 Prévu</span>';
-    
+    const statusGradient = sw.status === 'completed'
+      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+      : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    const statusColor = sw.status === 'completed' ? '#10b981' : '#f59e0b';
+    const statusBadge = sw.status === 'completed' ? '✅ Effectué' : '📅 Prévu';
+
     return `
-      <div class="card mb-2" style="border-left: 4px solid ${sw.status === 'completed' ? 'var(--success)' : 'var(--warning)'};">
-        <div class="card-body">
-          <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
-            <div style="flex: 1;">
-              <h4 style="margin: 0 0 0.5rem 0; color: var(--primary);">${fullName(patient)}</h4>
-              <div style="display: grid; gap: 0.5rem; font-size: 0.9rem;">
-                <div>
-                  <strong>Ancien:</strong> ${protoName(sw.oldProtoId) || '—'}
-                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" style="vertical-align: middle; margin: 0 0.5rem;">
-                    <path fill-rule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                    <path fill-rule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                  </svg>
-                  <strong>Nouveau:</strong> ${protoName(sw.newProtoId)}
-                </div>
-                <div><strong>Date:</strong> ${sw.switchDate}</div>
-                ${sw.notes ? `<div class="text-muted" style="font-size: 0.85rem;"><em>${sw.notes}</em></div>` : ''}
+      <div style="position: relative; padding: 1.25rem; background: var(--bg-secondary); border-radius: var(--radius-lg); margin-bottom: 1rem; box-shadow: var(--shadow-sm); transition: var(--transition); overflow: hidden; border: 1px solid var(--border);"
+           onmouseover="this.style.boxShadow='var(--shadow-md)'; this.style.transform='translateY(-2px)'"
+           onmouseout="this.style.boxShadow='var(--shadow-sm)'; this.style.transform='translateY(0)'">
+
+        <!-- Status indicator bar -->
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: ${statusGradient};"></div>
+
+        <div style="display: flex; gap: 1rem;">
+          <!-- Switch icon -->
+          <div style="flex-shrink: 0;">
+            <div style="width: 48px; height: 48px; border-radius: var(--radius); background: ${statusGradient}; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; box-shadow: var(--shadow-sm);">
+              🔄
+            </div>
+          </div>
+
+          <!-- Main content -->
+          <div style="flex: 1; min-width: 0;">
+            <!-- Header with patient name and badge -->
+            <div style="display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 0.625rem;">
+              <h4 style="margin: 0; font-weight: 700; font-size: 1.125rem; color: var(--text);">${fullName(patient)}</h4>
+              <span style="flex-shrink: 0; padding: 0.375rem 0.875rem; background: ${statusColor}; color: white; border-radius: var(--radius-sm); font-size: 0.8125rem; font-weight: 700; white-space: nowrap; box-shadow: var(--shadow-sm);">${statusBadge}</span>
+            </div>
+
+            <!-- Protocol change info -->
+            <div style="display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.5rem; padding: 0.75rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%); border-radius: var(--radius); border: 1px solid rgba(139, 92, 246, 0.2);">
+              <div style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%); border-radius: var(--radius-sm); font-size: 0.875rem;">
+                <span style="font-weight: 600; color: #ef4444;">Ancien:</span>
+                <span style="color: var(--text);">${protoName(sw.oldProtoId) || '—'}</span>
+              </div>
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style="color: var(--primary); flex-shrink: 0;">
+                <path fill-rule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                <path fill-rule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              </svg>
+              <div style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%); border-radius: var(--radius-sm); font-size: 0.875rem;">
+                <span style="font-weight: 600; color: #10b981;">Nouveau:</span>
+                <span style="color: var(--text);">${protoName(sw.newProtoId)}</span>
               </div>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
-              ${statusBadge}
-              <div style="display: flex; gap: 0.5rem;">
-                ${sw.status === 'planned' ? `
-                  <button class="btn btn-success btn-sm" onclick="validateSwitch('${sw.id}')" title="Valider le switch">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                    </svg>
-                  </button>
-                ` : ''}
-                <button class="btn btn-secondary btn-sm" onclick="openSwitchModal('${sw.id}')" title="Modifier">
-                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                  </svg>
-                </button>
-              </div>
+
+            <!-- Date info -->
+            <div style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: var(--radius-sm); font-size: 0.875rem; color: var(--text-secondary);">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+              </svg>
+              <span style="font-weight: 500;">${sw.switchDate}</span>
             </div>
+
+            <!-- Notes -->
+            ${sw.notes ? `<div style="color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.5; margin-top: 0.75rem; font-style: italic;">${sw.notes}</div>` : ''}
+          </div>
+
+          <!-- Action buttons -->
+          <div style="flex-shrink: 0; display: flex; gap: 0.5rem;">
+            ${sw.status === 'planned' ? `
+              <button class="btn btn-sm" onclick="validateSwitch('${sw.id}')" title="Valider le switch"
+                      style="padding: 0.625rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: var(--transition);"
+                      onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='var(--shadow-md)'"
+                      onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='var(--shadow-sm)'">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                </svg>
+              </button>
+            ` : ''}
+            <button class="btn btn-sm" onclick="openSwitchModal('${sw.id}')" title="Modifier"
+                    style="padding: 0.625rem; background: linear-gradient(135deg, var(--primary) 0%, #5b21b6 100%); color: white; border: none; border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: var(--transition);"
+                    onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='var(--shadow-md)'"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='var(--shadow-sm)'">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -13233,45 +13271,77 @@ function renderAppointments() {
       }
     }
     
+    // Gradient colors based on urgency
+    const urgentGradient = isUrgent ?
+      'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' :
+      'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)';
+    const urgentIconBg = isUrgent ? '#f59e0b' : '#06b6d4';
+
     return `
-      <div class="card mb-2" style="border-left: 4px solid ${isUrgent ? 'var(--warning)' : 'var(--info)'};">
-        <div class="card-body">
-          <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
-            <div style="flex: 1;">
-              <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-                <h4 style="margin: 0; color: var(--primary);">${fullName(patient)}</h4>
-                <span class="badge ${badgeClass}">${badgeText}</span>
+      <div style="position: relative; padding: 1.25rem; background: var(--bg-secondary); border-radius: var(--radius-lg); margin-bottom: 1rem; box-shadow: var(--shadow-sm); transition: var(--transition); overflow: hidden; border: 1px solid var(--border);"
+           onmouseover="this.style.boxShadow='var(--shadow-md)'; this.style.transform='translateY(-2px)'"
+           onmouseout="this.style.boxShadow='var(--shadow-sm)'; this.style.transform='translateY(0)'">
+
+        <!-- Urgency indicator bar -->
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: ${urgentGradient};"></div>
+
+        <div style="display: flex; gap: 1rem;">
+          <!-- Patient icon -->
+          <div style="flex-shrink: 0;">
+            <div style="width: 48px; height: 48px; border-radius: var(--radius); background: ${urgentGradient}; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; box-shadow: var(--shadow-sm);">
+              👤
+            </div>
+          </div>
+
+          <!-- Main content -->
+          <div style="flex: 1; min-width: 0;">
+            <!-- Header with patient name and badge -->
+            <div style="display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 0.625rem;">
+              <h4 style="margin: 0; font-weight: 700; font-size: 1.125rem; color: var(--text);">${fullName(patient)}</h4>
+              <span style="flex-shrink: 0; padding: 0.375rem 0.875rem; background: ${urgentIconBg}; color: white; border-radius: var(--radius-sm); font-size: 0.8125rem; font-weight: 700; white-space: nowrap; box-shadow: var(--shadow-sm);">${badgeText}</span>
+            </div>
+
+            <!-- Date and type info -->
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: ${apt.history && apt.history.length > 0 ? '0.5rem' : '0'};">
+              <div style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: var(--radius-sm); font-size: 0.875rem; color: var(--text-secondary);">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                </svg>
+                <span style="font-weight: 500;">${dateDisplay}</span>
               </div>
-              <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
-                <div>
-                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" style="vertical-align: middle; margin-right: 0.25rem;">
-                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+
+              ${apt.history && apt.history.length > 0 ? `
+                <div style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-radius: var(--radius-sm); font-size: 0.875rem; color: var(--text-secondary);">
+                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
                   </svg>
-                  ${dateDisplay}
+                  <span style="font-weight: 500;">${apt.history.length} suivi${apt.history.length > 1 ? 's' : ''}</span>
                 </div>
-                ${apt.history && apt.history.length > 0 ? `
-                  <div class="text-muted">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" style="vertical-align: middle; margin-right: 0.25rem;">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                    </svg>
-                    ${apt.history.length} suivi${apt.history.length > 1 ? 's' : ''} réalisé${apt.history.length > 1 ? 's' : ''}
-                  </div>
-                ` : ''}
-              </div>
-              ${apt.notes ? `<div class="text-muted" style="font-size: 0.85rem; margin-top: 0.5rem;"><em>${apt.notes}</em></div>` : ''}
+              ` : ''}
             </div>
-            <div style="display: flex; gap: 0.5rem;">
-              <button class="btn btn-success btn-sm" onclick="completeAppointment('${apt.id}')" title="Marquer comme réalisé">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                </svg>
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="openAppointmentModal('${apt.id}')" title="Modifier">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
-                </svg>
-              </button>
-            </div>
+
+            <!-- Notes -->
+            ${apt.notes ? `<div style="color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.5; margin-top: 0.5rem; font-style: italic;">${apt.notes}</div>` : ''}
+          </div>
+
+          <!-- Action buttons -->
+          <div style="flex-shrink: 0; display: flex; gap: 0.5rem;">
+            <button class="btn btn-sm" onclick="completeAppointment('${apt.id}')" title="Marquer comme réalisé"
+                    style="padding: 0.625rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: var(--transition);"
+                    onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='var(--shadow-md)'"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='var(--shadow-sm)'">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+            <button class="btn btn-sm" onclick="openAppointmentModal('${apt.id}')" title="Modifier"
+                    style="padding: 0.625rem; background: linear-gradient(135deg, var(--primary) 0%, #5b21b6 100%); color: white; border: none; border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: var(--transition);"
+                    onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='var(--shadow-md)'"
+                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='var(--shadow-sm)'">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
