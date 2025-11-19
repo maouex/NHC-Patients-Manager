@@ -6564,6 +6564,19 @@ function renderDashboardCalendar() {
     const isToday = isCurrentMonth && day === todayDate;
     const dayEvents = monthEvents.filter(e => e.day === day);
 
+    // Sort events by time: events with time first (sorted chronologically), then events without time
+    dayEvents.sort((a, b) => {
+      // If both have time, sort by time
+      if (a.time && b.time) {
+        return a.time.localeCompare(b.time);
+      }
+      // Events with time come before events without time
+      if (a.time && !b.time) return -1;
+      if (!a.time && b.time) return 1;
+      // If neither has time, maintain original order
+      return 0;
+    });
+
     let dayClass = 'calendar-day';
     if (isToday) dayClass += ' today';
 
