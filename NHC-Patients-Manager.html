@@ -5604,7 +5604,7 @@ function makeSelectSearchable(selectId, getOptions, getLabelFn, placeholderText 
       originalSelect.value = value;
 
       const options = getOptions();
-      const selected = options.find(opt => opt.id === value);
+      const selected = options.find(opt => String(opt.id) === String(value));
       if (selected) {
         searchInput.value = getLabelFn(selected);
       }
@@ -5625,7 +5625,7 @@ function makeSelectSearchable(selectId, getOptions, getLabelFn, placeholderText 
   // Set initial value if select has one
   if (originalSelect.value) {
     const options = getOptions();
-    const selected = options.find(opt => opt.id === originalSelect.value);
+    const selected = options.find(opt => String(opt.id) === String(originalSelect.value));
     if (selected) {
       searchInput.value = getLabelFn(selected);
     }
@@ -5635,7 +5635,7 @@ function makeSelectSearchable(selectId, getOptions, getLabelFn, placeholderText 
   const observer = new MutationObserver(() => {
     if (originalSelect.value) {
       const options = getOptions();
-      const selected = options.find(opt => opt.id === originalSelect.value);
+      const selected = options.find(opt => String(opt.id) === String(originalSelect.value));
       if (selected) {
         searchInput.value = getLabelFn(selected);
       }
