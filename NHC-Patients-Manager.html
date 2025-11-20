@@ -607,6 +607,12 @@ body {
   flex: 1;
 }
 
+/* When sidebar is hidden, use single column layout */
+.modal-body-split:has(.patient-info-sidebar[style*="display: none"]),
+.modal-body-split:has(.patient-info-sidebar:not([style*="display: block"])) {
+  grid-template-columns: 1fr;
+}
+
 .patient-info-sidebar {
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
