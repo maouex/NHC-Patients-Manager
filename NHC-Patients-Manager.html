@@ -14915,49 +14915,49 @@ function displayCSVPreview() {
   const table = byId('csvPreviewTable');
   const maxRows = Math.min(10, csvImportState.parsedData.length);
 
-  // Helper function to detect if a value looks like a date
-  const looksLikeDate = (val) => {
-    if (!val) return false;
-    const asNumber = parseFloat(val);
-    // Check if it's an Excel date number
+  // Helper function to try converting any value that might be a date
+  const tryConvertDate = (val) => {
+    if (!val && val !== 0) return val;
+
+    // Convert to string if it's a number
+    const valStr = String(val).trim();
+    if (!valStr) return val;
+
+    // Test 1: Try to parse as number (Excel date format)
+    const asNumber = parseFloat(valStr);
     if (!isNaN(asNumber) && asNumber > 1000 && asNumber < 100000) {
-      return true;
+      // Likely an Excel date number - convert directly here
+      try {
+        const excelEpoch = new Date(1899, 11, 30);
+        const date = new Date(excelEpoch.getTime() + asNumber * 24 * 60 * 60 * 1000);
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear();
+          if (year >= 1900 && year <= 2100) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            return `${day}/${month}/${year}`;
+          }
+        }
+      } catch (e) {
+        // If conversion fails, continue to other methods
+      }
     }
-    // Check if it matches common date patterns
+
+    // Test 2: Check if it looks like a date pattern and try to convert
     const datePatterns = [
       /^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}$/,  // DD/MM/YYYY variants
       /^\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2}$/,    // YYYY-MM-DD variants
     ];
-    return datePatterns.some(pattern => pattern.test(String(val).trim()));
-  };
 
-  // Detect which columns contain dates (check first few rows)
-  const dateColumns = new Set();
-  const samplesToCheck = Math.min(5, csvImportState.parsedData.length);
-  for (let j = 0; j < csvImportState.headers.length; j++) {
-    const header = csvImportState.headers[j].toLowerCase();
-    // Check if header suggests it's a date column
-    const headerSuggestsDate = header.includes('date') || header.includes('naissance') ||
-                                header.includes('renouvellement') || header.includes('birth') ||
-                                header.includes('renewal');
-
-    if (headerSuggestsDate) {
-      dateColumns.add(j);
-    } else {
-      // Check if values in this column look like dates
-      let dateCount = 0;
-      for (let i = 0; i < samplesToCheck; i++) {
-        const val = csvImportState.parsedData[i]?.[j];
-        if (val && looksLikeDate(val)) {
-          dateCount++;
-        }
-      }
-      // If most values look like dates, treat as date column
-      if (dateCount >= samplesToCheck * 0.6) {
-        dateColumns.add(j);
-      }
+    const looksLikeDate = datePatterns.some(pattern => pattern.test(valStr));
+    if (looksLikeDate) {
+      const converted = convertDateFormat(valStr);
+      if (converted) return converted;
     }
-  }
+
+    // Not a date, return original value
+    return val;
+  };
 
   let html = '<div style="overflow-x: auto;"><table class="table"><thead><tr>';
 
@@ -14973,15 +14973,9 @@ function displayCSVPreview() {
     const row = csvImportState.parsedData[i];
     for (let j = 0; j < csvImportState.headers.length; j++) {
       const val = row[j] || '';
-      let displayVal = val;
 
-      // Try to format as date if this column is detected as a date column
-      if (dateColumns.has(j) && val) {
-        const formatted = convertDateFormat(val);
-        if (formatted) {
-          displayVal = formatted;
-        }
-      }
+      // Try to convert to date format for display
+      const displayVal = tryConvertDate(val);
 
       // Truncate if too long
       const truncatedVal = String(displayVal).length > 50 ? String(displayVal).substring(0, 47) + '...' : displayVal;
