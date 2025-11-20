@@ -16302,6 +16302,8 @@ function performSearch(query) {
 
 // ===== Purge Totale Functions =====
 function openPurgeTotaleModal() {
+  console.log('🔓 Ouverture du modal de purge totale...');
+
   // Update counts
   byId('purgePatientCount').textContent = state.patients?.length || 0;
   byId('purgeAppointmentCount').textContent = state.appointments?.length || 0;
@@ -16310,6 +16312,15 @@ function openPurgeTotaleModal() {
   byId('purgeCenterCount').textContent = state.centers?.length || 0;
   byId('purgeProtocolCount').textContent = state.protos?.length || 0;
 
+  console.log('📊 Compteurs mis à jour:', {
+    patients: state.patients?.length || 0,
+    appointments: state.appointments?.length || 0,
+    switches: state.switches?.length || 0,
+    doctors: state.docs?.length || 0,
+    centers: state.centers?.length || 0,
+    protocols: state.protos?.length || 0
+  });
+
   // Reset confirmations
   byId('purgeConfirm1').checked = false;
   byId('purgeConfirm2').checked = false;
@@ -16317,8 +16328,11 @@ function openPurgeTotaleModal() {
   byId('purgeConfirmText').value = '';
   byId('btnConfirmPurge').disabled = true;
 
+  console.log('🔄 Réinitialisaton des confirmations effectuée');
+
   // Open modal
   showModal(true, 'purgeTotaleModal');
+  console.log('✅ Modal de purge ouvert');
 }
 
 function exportBeforePurge() {
@@ -16362,10 +16376,15 @@ function exportBeforePurge() {
 }
 
 function executePurgeTotale() {
+  console.log('🚨 executePurgeTotale appelée!');
+
   // Final confirmation
   if (!confirm('⚠️ DERNIÈRE CONFIRMATION\n\nVous êtes sur le point de supprimer TOUTES les données.\nCette action est IRRÉVERSIBLE.\n\nContinuer ?')) {
+    console.log('❌ Purge annulée par l\'utilisateur');
     return;
   }
+
+  console.log('✅ Confirmation reçue, début de la purge...');
 
   try {
     // Clear all localStorage keys related to the app
@@ -16394,15 +16413,19 @@ function executePurgeTotale() {
     };
 
     // Save empty state
+    console.log('💾 Sauvegarde de l\'état vide...');
     saveDB();
 
     // Close modal
+    console.log('🚪 Fermeture du modal...');
     showModal(false, 'purgeTotaleModal');
 
     // Show success message
+    console.log('🎉 Affichage du message de succès...');
     showToast('🗑️ PURGE TOTALE EFFECTUÉE - Toutes les données ont été supprimées', 'success');
 
     // Refresh all views
+    console.log('🔄 Rafraîchissement des vues...');
     render();
     renderSwitches();
     renderAppointments();
@@ -16411,12 +16434,15 @@ function executePurgeTotale() {
     renderTasks();
 
     // Switch to dashboard
+    console.log('📊 Basculement vers le dashboard...');
     setTimeout(() => {
       switchView('dashboard');
     }, 1000);
 
+    console.log('✅ Purge totale terminée avec succès!');
+
   } catch (error) {
-    console.error('Erreur lors de la purge:', error);
+    console.error('❌ Erreur lors de la purge:', error);
     showToast('❌ Erreur lors de la purge : ' + error.message, 'error');
   }
 }
@@ -16776,17 +16802,57 @@ function bindEvents() {
     const confirm3 = byId('purgeConfirm3')?.checked || false;
     const confirmText = byId('purgeConfirmText')?.value.trim() || '';
 
+    console.log('🔍 Purge validation:', {
+      confirm1,
+      confirm2,
+      confirm3,
+      confirmText,
+      expected: 'PURGER TOUT'
+    });
+
     const allConfirmed = confirm1 && confirm2 && confirm3 && confirmText === 'PURGER TOUT';
     const btnConfirm = byId('btnConfirmPurge');
     if (btnConfirm) {
       btnConfirm.disabled = !allConfirmed;
+      console.log('✅ Bouton purge état:', allConfirmed ? 'ACTIVÉ' : 'DÉSACTIVÉ');
+    } else {
+      console.error('❌ Bouton btnConfirmPurge non trouvé!');
+    }
+
+    // Feedback visuel sur le champ texte
+    const textInput = byId('purgeConfirmText');
+    if (textInput) {
+      if (confirmText && confirmText !== 'PURGER TOUT') {
+        textInput.style.borderColor = '#ef4444';
+        textInput.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+      } else if (confirmText === 'PURGER TOUT') {
+        textInput.style.borderColor = '#10b981';
+        textInput.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+      } else {
+        textInput.style.borderColor = '#dc2626';
+        textInput.style.backgroundColor = 'transparent';
+      }
     }
   };
 
-  byId('purgeConfirm1')?.addEventListener('change', purgeValidation);
-  byId('purgeConfirm2')?.addEventListener('change', purgeValidation);
-  byId('purgeConfirm3')?.addEventListener('change', purgeValidation);
-  byId('purgeConfirmText')?.addEventListener('input', purgeValidation);
+  const purgeCheckboxes = ['purgeConfirm1', 'purgeConfirm2', 'purgeConfirm3'];
+  purgeCheckboxes.forEach(id => {
+    const element = byId(id);
+    if (element) {
+      element.addEventListener('change', purgeValidation);
+      console.log('✅ Event listener attaché à', id);
+    } else {
+      console.error('❌ Élément non trouvé:', id);
+    }
+  });
+
+  const purgeTextInput = byId('purgeConfirmText');
+  if (purgeTextInput) {
+    purgeTextInput.addEventListener('input', purgeValidation);
+    console.log('✅ Event listener attaché à purgeConfirmText');
+  } else {
+    console.error('❌ Élément purgeConfirmText non trouvé!');
+  }
   
   // Cycle tabs
   document.addEventListener('click', (e) => {
@@ -16834,6 +16900,8 @@ function bindEvents() {
 
   // Prescription start date change event
   byId('prescStartDate')?.addEventListener('change', updatePrescEndDate);
+
+  console.log('🎉 Tous les event listeners ont été attachés avec succès!');
 }
 
 // ===== Legacy Functions =====
