@@ -15445,6 +15445,68 @@ const CSV_FIELD_CONFIG = {
   notes: { label: 'Notes/Remarques', required: false }
 };
 
+// Helper function for validating dates in CSV import
+function csvIsValidDate(val) {
+  if (!val || typeof val !== 'string') return false;
+
+  val = val.trim();
+
+  // Check if it looks like a date format at all
+  // DD/MM/YYYY, DD-MM-YYYY, YYYY/MM/DD, YYYY-MM-DD
+  const formatDDMMYYYY = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/;
+  const formatYYYYMMDD = /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/;
+
+  let day, month, year;
+  let match;
+
+  // Try DD/MM/YYYY format
+  match = val.match(formatDDMMYYYY);
+  if (match) {
+    day = parseInt(match[1], 10);
+    month = parseInt(match[2], 10);
+    year = parseInt(match[3], 10);
+  }
+  // Try YYYY/MM/DD format
+  else {
+    match = val.match(formatYYYYMMDD);
+    if (match) {
+      year = parseInt(match[1], 10);
+      month = parseInt(match[2], 10);
+      day = parseInt(match[3], 10);
+    } else {
+      return false; // No valid format
+    }
+  }
+
+  // Validate ranges
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+
+  // Year should be reasonable (between 1900 and 2100)
+  if (year < 1900 || year > 2100) return false;
+
+  // Check days in month
+  const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+  // Handle leap years
+  const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  if (isLeapYear) {
+    daysInMonth[1] = 29;
+  }
+
+  if (day > daysInMonth[month - 1]) return false;
+
+  // Additional check: reject if it looks like other data types
+  // Reject pure numbers without separators
+  if (/^\d+$/.test(val)) return false;
+
+  // Reject if too many digits (like phone numbers)
+  const digitCount = (val.match(/\d/g) || []).length;
+  if (digitCount > 8) return false;
+
+  return true;
+}
+
 // Content patterns for auto-detection
 const CSV_CONTENT_PATTERNS = {
   lastName: {
@@ -15469,11 +15531,11 @@ const CSV_CONTENT_PATTERNS = {
   },
   dob: {
     keywords: ['naissance', 'birth', 'dob', 'date_naissance', 'date_of_birth', 'né'],
-    validator: (val) => /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(val) || /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(val)
+    validator: (val) => csvIsValidDate(val)
   },
   renewalDate: {
     keywords: ['renouvellement', 'renewal', 'ordonnance', 'date_renouvellement', 'renew'],
-    validator: (val) => /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(val) || /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(val)
+    validator: (val) => csvIsValidDate(val)
   },
   docName: {
     keywords: ['medecin', 'médecin', 'doctor', 'doc', 'docteur', 'dr'],
