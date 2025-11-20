@@ -2631,22 +2631,6 @@ body {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; align-items: start;">
         <!-- Colonne gauche -->
         <div style="display: flex; flex-direction: column; gap: 1.5rem; height: 100%;">
-          <!-- Rendez-vous à venir -->
-          <div class="card" style="display: flex; flex-direction: column; min-height: 400px;">
-            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; flex-shrink: 0;">
-              <h3 class="card-title" style="display: flex; align-items: center; gap: 0.5rem; margin: 0;">
-                <span>📅</span>
-                Rendez-vous ce mois
-              </h3>
-              <span class="badge" id="dashboardAppointmentsCount" style="background: rgba(255,255,255,0.3); color: white; font-weight: 700;">0</span>
-            </div>
-            <div class="card-body" style="padding: 0; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-              <div id="dashboardAppointmentsList" style="flex: 1; overflow-y: auto;">
-                <p class="text-muted text-center" style="padding: 2rem;">Aucun suivi prévu ce mois</p>
-              </div>
-            </div>
-          </div>
-
           <!-- Switchs à venir -->
           <div class="card" style="display: flex; flex-direction: column;">
             <div class="card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; flex-shrink: 0;">
@@ -4448,7 +4432,12 @@ body {
           <label class="form-label">Date du prochain RDV *</label>
           <input type="text" class="form-input" id="nextAppointmentDate" placeholder="JJ/MM/AAAA" pattern="\d{2}/\d{2}/\d{4}">
         </div>
-        
+
+        <div class="form-group" id="nextAppointmentTimeGroup">
+          <label class="form-label">Heure (optionnel)</label>
+          <input type="time" class="form-input" id="nextAppointmentTime">
+        </div>
+
         <div class="form-group hidden" id="nextAppointmentMonthGroup">
           <label class="form-label">Mois *</label>
           <input type="text" class="form-input" id="nextAppointmentMonth" placeholder="MM/AAAA" pattern="\d{2}/\d{4}">
@@ -6072,9 +6061,6 @@ function renderDashboard() {
   renderCalendarToCall();
   setupCalendarEventClicks();
 
-  // ===== Rendez-vous ce mois =====
-  renderDashboardAppointments();
-  
   // ===== Switchs à venir (60 jours) =====
   renderDashboardSwitches();
   
@@ -13491,9 +13477,10 @@ function completeAppointment(appointmentId) {
   
   byId('completeNotes').value = '';
   byId('nextAppointmentDate').value = '';
+  byId('nextAppointmentTime').value = '';
   byId('nextAppointmentMonth').value = '';
   byId('nextAppointmentNotes').value = '';
-  
+
   document.querySelector('input[name="nextAppointmentType"][value="date"]').checked = true;
   toggleNextAppointmentType();
   
@@ -13502,12 +13489,14 @@ function completeAppointment(appointmentId) {
 
 function toggleNextAppointmentType() {
   const type = document.querySelector('input[name="nextAppointmentType"]:checked').value;
-  
+
   if (type === 'date') {
     byId('nextAppointmentDateGroup').classList.remove('hidden');
+    byId('nextAppointmentTimeGroup').classList.remove('hidden');
     byId('nextAppointmentMonthGroup').classList.add('hidden');
   } else {
     byId('nextAppointmentDateGroup').classList.add('hidden');
+    byId('nextAppointmentTimeGroup').classList.add('hidden');
     byId('nextAppointmentMonthGroup').classList.remove('hidden');
   }
 }
@@ -13516,10 +13505,11 @@ function confirmCompleteAppointment() {
   const type = document.querySelector('input[name="nextAppointmentType"]:checked').value;
   const completeNotes = byId('completeNotes').value.trim();
   const nextNotes = byId('nextAppointmentNotes').value.trim();
-  
+  const nextTime = byId('nextAppointmentTime').value.trim();
+
   let nextExactDate = null;
   let nextMonth = null;
-  
+
   if (type === 'date') {
     nextExactDate = byId('nextAppointmentDate').value.trim();
     if (!nextExactDate) {
@@ -13543,12 +13533,12 @@ function confirmCompleteAppointment() {
       return;
     }
   }
-  
+
   const apt = state.appointments.find(a => a.id === currentAppointmentId);
   if (!apt) return;
-  
+
   const now = Date.now();
-  
+
   // Add to history
   if (!apt.history) apt.history = [];
   apt.history.push({
@@ -13557,13 +13547,14 @@ function confirmCompleteAppointment() {
     notes: completeNotes,
     type: apt.exactDate ? 'date' : 'month'
   });
-  
+
   // Update appointment with next occurrence
   apt.exactDate = nextExactDate;
   apt.month = nextMonth;
+  apt.time = nextTime || null;
   apt.notes = nextNotes;
   apt.updatedAt = now;
-  
+
   saveDB();
   renderAppointments();
   updateAppointmentStats();
