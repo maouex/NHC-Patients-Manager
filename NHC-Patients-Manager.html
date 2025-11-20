@@ -14925,6 +14925,12 @@ function displayCSVPreview() {
 
     // Test 1: Try to parse as number (Excel date format)
     const asNumber = parseFloat(valStr);
+
+    // Debug: log values that might be dates
+    if (!isNaN(asNumber) && asNumber > 100 && asNumber < 100000) {
+      console.log('CSV Preview - Potential date value:', valStr, 'as number:', asNumber);
+    }
+
     if (!isNaN(asNumber) && asNumber > 1000 && asNumber < 100000) {
       // Likely an Excel date number - convert directly here
       try {
@@ -14935,11 +14941,13 @@ function displayCSVPreview() {
           if (year >= 1900 && year <= 2100) {
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
-            return `${day}/${month}/${year}`;
+            const converted = `${day}/${month}/${year}`;
+            console.log('CSV Preview - Converted date:', valStr, '->', converted);
+            return converted;
           }
         }
       } catch (e) {
-        // If conversion fails, continue to other methods
+        console.error('CSV Preview - Date conversion error:', e);
       }
     }
 
