@@ -3638,6 +3638,21 @@ body {
             <button class="btn btn-warning" id="btnMigrateV1">📦 Migrer depuis v1</button>
             <button class="btn btn-danger" id="btnPurgeV1">🗑️ Purger v1</button>
           </div>
+
+          <hr style="margin: 2rem 0; border: none; border-top: 2px solid var(--border);">
+
+          <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: var(--radius-md); padding: 1.5rem;">
+            <h4 style="color: #ef4444; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.5rem;">⚠️</span>
+              Zone Dangereuse
+            </h4>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+              Cette action supprimera <strong>TOUTES</strong> les données de l'application de manière irréversible.
+            </p>
+            <button class="btn btn-danger" id="btnOpenPurgeModal" style="background: #dc2626; border-color: #dc2626;">
+              🗑️ PURGE TOTALE - Supprimer toutes les données
+            </button>
+          </div>
           <pre id="dbgOut" class="mt-3" style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); font-family: monospace; font-size: 0.875rem;"></pre>
         </div>
       </div>
@@ -4711,6 +4726,110 @@ body {
       <button class="btn btn-success" id="btnConfirmValidateSwitch" onclick="confirmValidateSwitch()" disabled>
         <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
         Valider le Switch
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Purge Totale Modal -->
+<div class="modal" id="purgeTotaleModal">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-header" style="background: linear-gradient(135deg, #dc2626, #991b1b); color: white;">
+      <h2 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 1.5rem;">⚠️</span>
+        PURGE TOTALE
+      </h2>
+      <button class="modal-close" onclick="showModal(false, 'purgeTotaleModal')" style="color: white;">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Avertissement -->
+      <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="color: #dc2626; margin: 0 0 1rem 0; font-size: 1.25rem;">
+          ⚠️ ATTENTION : Action irréversible
+        </h3>
+        <p style="margin: 0 0 0.5rem 0; color: var(--text-primary);">
+          Cette action supprimera <strong>TOUTES</strong> les données suivantes :
+        </p>
+        <ul style="margin: 0; padding-left: 1.5rem; color: var(--text-secondary);">
+          <li>Tous les patients (<strong id="purgePatientCount">0</strong>)</li>
+          <li>Tous les rendez-vous (<strong id="purgeAppointmentCount">0</strong>)</li>
+          <li>Tous les switchs (<strong id="purgeSwitchCount">0</strong>)</li>
+          <li>Tous les médecins (<strong id="purgeDoctorCount">0</strong>)</li>
+          <li>Tous les centres (<strong id="purgeCenterCount">0</strong>)</li>
+          <li>Tous les protocoles (<strong id="purgeProtocolCount">0</strong>)</li>
+          <li>Tous les templates</li>
+          <li>Toutes les tâches</li>
+          <li>Tout l'historique</li>
+        </ul>
+      </div>
+
+      <!-- Export avant purge -->
+      <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h4 style="margin: 0 0 1rem 0; color: var(--primary);">
+          💾 Sauvegarde recommandée
+        </h4>
+        <p style="margin: 0 0 1rem 0; color: var(--text-secondary);">
+          Avant de purger, il est fortement recommandé d'exporter vos données.
+        </p>
+        <button class="btn btn-primary" onclick="exportBeforePurge()" style="width: 100%;">
+          📥 Exporter toutes les données (JSON)
+        </button>
+      </div>
+
+      <!-- Confirmations -->
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="margin: 0 0 1rem 0; color: #dc2626;">
+          ✋ Confirmations requises
+        </h4>
+
+        <label style="display: flex; align-items: start; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius); margin-bottom: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="purgeConfirm1" style="margin-top: 0.25rem;">
+          <span style="color: var(--text-primary);">
+            Je comprends que cette action est <strong>irréversible</strong>
+          </span>
+        </label>
+
+        <label style="display: flex; align-items: start; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius); margin-bottom: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="purgeConfirm2" style="margin-top: 0.25rem;">
+          <span style="color: var(--text-primary);">
+            J'ai <strong>exporté mes données</strong> ou je n'en ai pas besoin
+          </span>
+        </label>
+
+        <label style="display: flex; align-items: start; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius); cursor: pointer;">
+          <input type="checkbox" id="purgeConfirm3" style="margin-top: 0.25rem;">
+          <span style="color: var(--text-primary);">
+            Je veux vraiment <strong>supprimer TOUTES les données</strong>
+          </span>
+        </label>
+      </div>
+
+      <!-- Confirmation finale par texte -->
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #dc2626;">
+          Tapez <code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: var(--radius); color: #dc2626; font-weight: 700;">PURGER TOUT</code> pour confirmer
+        </label>
+        <input
+          type="text"
+          id="purgeConfirmText"
+          class="form-input"
+          placeholder="PURGER TOUT"
+          style="border-color: #dc2626;"
+          autocomplete="off"
+        >
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="showModal(false, 'purgeTotaleModal')">
+        Annuler
+      </button>
+      <button class="btn btn-danger" id="btnConfirmPurge" onclick="executePurgeTotale()" disabled style="background: #dc2626; border-color: #dc2626;">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style="margin-right: 0.5rem;">
+          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+        PURGER TOUTES LES DONNÉES
       </button>
     </div>
   </div>
@@ -16070,6 +16189,127 @@ function performSearch(query) {
   showToast(`${filtered.length} résultat(s)`, 'info');
 }
 
+// ===== Purge Totale Functions =====
+function openPurgeTotaleModal() {
+  // Update counts
+  byId('purgePatientCount').textContent = state.patients?.length || 0;
+  byId('purgeAppointmentCount').textContent = state.appointments?.length || 0;
+  byId('purgeSwitchCount').textContent = state.switches?.length || 0;
+  byId('purgeDoctorCount').textContent = state.docs?.length || 0;
+  byId('purgeCenterCount').textContent = state.centers?.length || 0;
+  byId('purgeProtocolCount').textContent = state.protos?.length || 0;
+
+  // Reset confirmations
+  byId('purgeConfirm1').checked = false;
+  byId('purgeConfirm2').checked = false;
+  byId('purgeConfirm3').checked = false;
+  byId('purgeConfirmText').value = '';
+  byId('btnConfirmPurge').disabled = true;
+
+  // Open modal
+  showModal(true, 'purgeTotaleModal');
+}
+
+function exportBeforePurge() {
+  // Export all data to JSON
+  const exportData = {
+    version: '2.0',
+    exportDate: new Date().toISOString(),
+    data: {
+      patients: state.patients || [],
+      appointments: state.appointments || [],
+      switches: state.switches || [],
+      docs: state.docs || [],
+      centers: state.centers || [],
+      protos: state.protos || [],
+      templates: state.templates || [],
+      tasks: state.tasks || []
+    },
+    metadata: {
+      totalPatients: state.patients?.length || 0,
+      totalAppointments: state.appointments?.length || 0,
+      totalSwitches: state.switches?.length || 0,
+      totalDoctors: state.docs?.length || 0,
+      totalCenters: state.centers?.length || 0,
+      totalProtocols: state.protos?.length || 0,
+      totalTemplates: state.templates?.length || 0,
+      totalTasks: state.tasks?.length || 0
+    }
+  };
+
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `nhc-backup-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('✅ Export réussi ! Fichier téléchargé', 'success');
+}
+
+function executePurgeTotale() {
+  // Final confirmation
+  if (!confirm('⚠️ DERNIÈRE CONFIRMATION\n\nVous êtes sur le point de supprimer TOUTES les données.\nCette action est IRRÉVERSIBLE.\n\nContinuer ?')) {
+    return;
+  }
+
+  try {
+    // Clear all localStorage keys related to the app
+    const keysToRemove = [
+      DB_KEY,
+      DB_KEY + '-backup',
+      LEGACY_KEY,
+      'nhc_update_url',
+      'nhc_last_update_check'
+    ];
+
+    keysToRemove.forEach(key => {
+      localStorage.removeItem(key);
+    });
+
+    // Reset state to empty
+    state = {
+      patients: [],
+      appointments: [],
+      switches: [],
+      docs: [],
+      centers: [],
+      protos: [],
+      templates: [],
+      tasks: []
+    };
+
+    // Save empty state
+    saveDB();
+
+    // Close modal
+    showModal(false, 'purgeTotaleModal');
+
+    // Show success message
+    showToast('🗑️ PURGE TOTALE EFFECTUÉE - Toutes les données ont été supprimées', 'success');
+
+    // Refresh all views
+    render();
+    renderSwitches();
+    renderAppointments();
+    renderDashboard();
+    renderCatalogs();
+    renderTasks();
+
+    // Switch to dashboard
+    setTimeout(() => {
+      switchView('dashboard');
+    }, 1000);
+
+  } catch (error) {
+    console.error('Erreur lors de la purge:', error);
+    showToast('❌ Erreur lors de la purge : ' + error.message, 'error');
+  }
+}
+
 // ===== Event Bindings =====
 function bindEvents() {
   // Navigation
@@ -16414,6 +16654,28 @@ function bindEvents() {
       showToast('Base v1 supprimée', 'success');
     }
   });
+
+  // Purge Totale
+  byId('btnOpenPurgeModal')?.addEventListener('click', openPurgeTotaleModal);
+
+  // Validation des confirmations de purge
+  const purgeValidation = () => {
+    const confirm1 = byId('purgeConfirm1')?.checked || false;
+    const confirm2 = byId('purgeConfirm2')?.checked || false;
+    const confirm3 = byId('purgeConfirm3')?.checked || false;
+    const confirmText = byId('purgeConfirmText')?.value.trim() || '';
+
+    const allConfirmed = confirm1 && confirm2 && confirm3 && confirmText === 'PURGER TOUT';
+    const btnConfirm = byId('btnConfirmPurge');
+    if (btnConfirm) {
+      btnConfirm.disabled = !allConfirmed;
+    }
+  };
+
+  byId('purgeConfirm1')?.addEventListener('change', purgeValidation);
+  byId('purgeConfirm2')?.addEventListener('change', purgeValidation);
+  byId('purgeConfirm3')?.addEventListener('change', purgeValidation);
+  byId('purgeConfirmText')?.addEventListener('input', purgeValidation);
   
   // Cycle tabs
   document.addEventListener('click', (e) => {
