@@ -5573,13 +5573,13 @@ function makeSelectSearchable(selectId, getOptions, getLabelFn, placeholderText 
 
     const container = document.createElement('div');
     container.className = 'searchable-select-container';
-    container.style.cssText = 'position: relative; width: 100%;';
+    container.style.cssText = 'position: relative; display: block; width: 100%;';
 
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = placeholderText;
     searchInput.className = originalSelect.className;
-    searchInput.style.cssText = originalSelect.style.cssText + '; display: block;';
+    searchInput.style.cssText = 'width: 100%; display: block; box-sizing: border-box;';
     searchInput.autocomplete = 'off';
 
     const dropdown = document.createElement('div');
