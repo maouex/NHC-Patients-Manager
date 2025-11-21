@@ -5666,6 +5666,9 @@ function loadDB() {
       protos: state.protos.length,
       switches: state.switches.length,
       appointments: state.appointments.length,
+      tasks: state.tasks?.length || 0,
+      prescriptionTemplates: state.prescriptionTemplates?.length || 0,
+      shortcuts: state.shortcuts?.length || 0,
       patientHistoryEvents: patientHistoryCount,
       appointmentHistoryEvents: appointmentHistoryCount,
       totalHistoryEvents: patientHistoryCount + appointmentHistoryCount
@@ -11720,6 +11723,8 @@ function exportJson() {
     switches: state.switches?.length || 0,
     appointments: state.appointments?.length || 0,
     tasks: state.tasks?.length || 0,
+    prescriptionTemplates: state.prescriptionTemplates?.length || 0,
+    shortcuts: state.shortcuts?.length || 0,
     patientHistoryEvents: patientHistoryCount,
     patientEvents: patientEventsCount,
     appointmentHistoryEvents: appointmentHistoryCount,
@@ -11739,7 +11744,9 @@ function exportJson() {
 
   // Detailed success message
   const tasksCount = state.tasks?.length || 0;
-  const message = `✅ Export réussi !\n${state.patients.length} patients (${patientHistoryCount} modif. + ${patientEventsCount} événements)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches\nTotal: ${totalHistoryEvents} événements sauvegardés`;
+  const shortcutsCount = state.shortcuts?.length || 0;
+  const templatesCount = state.prescriptionTemplates?.length || 0;
+  const message = `✅ Export réussi !\n${state.patients.length} patients (${patientHistoryCount} modif. + ${patientEventsCount} événements)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches, ${shortcutsCount} raccourcis, ${templatesCount} modèles\nTotal: ${totalHistoryEvents} événements sauvegardés`;
   showToast(message, 'success');
 }
 
@@ -14944,6 +14951,8 @@ async function performAutoSave() {
       switches: state.switches?.length || 0,
       appointments: state.appointments?.length || 0,
       tasks: state.tasks?.length || 0,
+      prescriptionTemplates: state.prescriptionTemplates?.length || 0,
+      shortcuts: state.shortcuts?.length || 0,
       patientHistoryEvents: patientHistoryCount,
       appointmentHistoryEvents: appointmentHistoryCount,
       totalHistoryEvents: totalHistoryEvents
@@ -15048,7 +15057,10 @@ async function restoreFromAutoSave() {
       centers: data.centers || [],
       protos: data.protos || [],
       switches: data.switches || [],
-      appointments: data.appointments || []
+      appointments: data.appointments || [],
+      tasks: data.tasks || [],
+      prescriptionTemplates: data.prescriptionTemplates || [],
+      shortcuts: data.shortcuts || []
     };
 
     console.log('📊 Restored data:', {
@@ -15058,6 +15070,9 @@ async function restoreFromAutoSave() {
       protos: state.protos.length,
       switches: state.switches.length,
       appointments: state.appointments.length,
+      tasks: state.tasks.length,
+      prescriptionTemplates: state.prescriptionTemplates.length,
+      shortcuts: state.shortcuts.length,
       patientHistoryEvents: patientHistoryCount,
       appointmentHistoryEvents: appointmentHistoryCount,
       totalHistoryEvents: totalHistoryEvents
@@ -15067,7 +15082,7 @@ async function restoreFromAutoSave() {
     render();
 
     // Detailed success message
-    const message = `✅ Restauration réussie !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\nTotal: ${totalHistoryEvents} événements restaurés`;
+    const message = `✅ Restauration réussie !\n${state.patients.length} patients (${patientHistoryCount} événements historique)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${state.tasks.length} tâches, ${state.shortcuts.length} raccourcis, ${state.prescriptionTemplates.length} modèles\nTotal: ${totalHistoryEvents} événements restaurés`;
     showToast(message, 'success');
 
   } catch (err) {
@@ -16792,7 +16807,7 @@ function openPurgeTotaleModal() {
 function exportBeforePurge() {
   // Export all data to JSON
   const exportData = {
-    version: '2.0',
+    version: '4.0',
     exportDate: new Date().toISOString(),
     data: {
       patients: state.patients || [],
@@ -16801,8 +16816,9 @@ function exportBeforePurge() {
       docs: state.docs || [],
       centers: state.centers || [],
       protos: state.protos || [],
-      templates: state.templates || [],
-      tasks: state.tasks || []
+      prescriptionTemplates: state.prescriptionTemplates || [],
+      tasks: state.tasks || [],
+      shortcuts: state.shortcuts || []
     },
     metadata: {
       totalPatients: state.patients?.length || 0,
@@ -16811,8 +16827,9 @@ function exportBeforePurge() {
       totalDoctors: state.docs?.length || 0,
       totalCenters: state.centers?.length || 0,
       totalProtocols: state.protos?.length || 0,
-      totalTemplates: state.templates?.length || 0,
-      totalTasks: state.tasks?.length || 0
+      totalPrescriptionTemplates: state.prescriptionTemplates?.length || 0,
+      totalTasks: state.tasks?.length || 0,
+      totalShortcuts: state.shortcuts?.length || 0
     }
   };
 
@@ -16862,8 +16879,9 @@ function executePurgeTotale() {
       docs: [],
       centers: [],
       protos: [],
-      templates: [],
-      tasks: []
+      prescriptionTemplates: [],
+      tasks: [],
+      shortcuts: []
     };
 
     // Save empty state
@@ -16943,7 +16961,7 @@ function bindEvents() {
       case 'safeReset':
         if (confirm('Réinitialiser la base de données ?')) {
           localStorage.removeItem(DB_KEY);
-          state = { patients: [], docs: [], centers: [], protos: [] };
+          state = { patients: [], docs: [], centers: [], protos: [], switches: [], appointments: [], prescriptionTemplates: [], tasks: [], shortcuts: [] };
           initDemoData();
           render();
           showToast('Base réinitialisée', 'success');
@@ -16953,7 +16971,7 @@ function bindEvents() {
         if (confirm('⚠️ PURGE TOTALE - Cette action est irréversible. Continuer ?')) {
           if (confirm('Êtes-vous vraiment sûr ?')) {
             localStorage.clear();
-            state = { patients: [], docs: [], centers: [], protos: [] };
+            state = { patients: [], docs: [], centers: [], protos: [], switches: [], appointments: [], prescriptionTemplates: [], tasks: [], shortcuts: [] };
             saveDB();
             render();
             showToast('Purge totale effectuée', 'success');
@@ -17080,7 +17098,7 @@ function bindEvents() {
         }
 
         // Validate that arrays are actually arrays
-        const requiredFields = ['patients', 'docs', 'centers', 'protos', 'switches', 'appointments', 'tasks'];
+        const requiredFields = ['patients', 'docs', 'centers', 'protos', 'switches', 'appointments', 'tasks', 'prescriptionTemplates', 'shortcuts'];
         for (const field of requiredFields) {
           if (data[field] && !Array.isArray(data[field])) {
             throw new Error(`Le champ '${field}' doit être un tableau`);
@@ -17107,6 +17125,8 @@ function bindEvents() {
           switches: data.switches?.length || 0,
           appointments: data.appointments?.length || 0,
           tasks: data.tasks?.length || 0,
+          prescriptionTemplates: data.prescriptionTemplates?.length || 0,
+          shortcuts: data.shortcuts?.length || 0,
           patientHistoryEvents: patientHistoryCount,
           patientEvents: patientEventsCount,
           appointmentHistoryEvents: appointmentHistoryCount,
@@ -17122,14 +17142,17 @@ function bindEvents() {
             switches: data.switches || [],
             appointments: data.appointments || [],
             prescriptionTemplates: data.prescriptionTemplates || [],
-            tasks: data.tasks || []
+            tasks: data.tasks || [],
+            shortcuts: data.shortcuts || []
           };
           saveDB();
           render();
 
           // Detailed success message
           const tasksCount = state.tasks?.length || 0;
-          const message = `✅ Import réussi !\n${state.patients.length} patients (${patientHistoryCount} modif. + ${patientEventsCount} événements)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches\nTotal: ${totalHistoryEvents} événements restaurés`;
+          const shortcutsCount = state.shortcuts?.length || 0;
+          const templatesCount = state.prescriptionTemplates?.length || 0;
+          const message = `✅ Import réussi !\n${state.patients.length} patients (${patientHistoryCount} modif. + ${patientEventsCount} événements)\n${state.appointments.length} rendez-vous (${appointmentHistoryCount} événements)\n${tasksCount} tâches, ${shortcutsCount} raccourcis, ${templatesCount} modèles\nTotal: ${totalHistoryEvents} événements restaurés`;
           showToast(message, 'success');
         }
       } catch (error) {
