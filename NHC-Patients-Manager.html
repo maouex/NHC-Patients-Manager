@@ -5951,6 +5951,32 @@ function makeSelectSearchable(selectId, getOptions, getLabelFn, placeholderText 
   }
 }
 
+function syncSearchableSelect(selectId, getOptions, getLabelFn) {
+  const originalSelect = byId(selectId);
+  if (!originalSelect || originalSelect.dataset.searchable !== 'true') {
+    return;
+  }
+
+  const container = originalSelect.parentNode;
+  if (!container) return;
+
+  const searchInput = container.querySelector('input[type="text"]');
+  if (!searchInput) return;
+
+  // Synchronize the search input with the current select value
+  if (originalSelect.value) {
+    const options = getOptions();
+    const selected = options.find(opt => String(opt.id) === String(originalSelect.value));
+    if (selected) {
+      searchInput.value = getLabelFn(selected);
+    } else {
+      searchInput.value = '';
+    }
+  } else {
+    searchInput.value = '';
+  }
+}
+
 function qsEl(selector) {
   return document.querySelector(selector);
 }
@@ -9830,6 +9856,15 @@ function openPatient(id) {
     const el = byId(key);
     if (el) el.value = patient[key] || '';
   });
+
+  // IMPORTANT: Synchronize searchable select inputs after filling form data
+  // This ensures that the visible search inputs display the correct values
+  // The MutationObserver only watches attribute changes, not property changes
+  setTimeout(() => {
+    syncSearchableSelect('docId', () => state.docs, (d) => d.name);
+    syncSearchableSelect('centerId', () => state.centers, (c) => c.name);
+    syncSearchableSelect('protoId', () => state.protos, (p) => p.name);
+  }, 0);
 
   updateCycleInfo();
   showModal(true);
