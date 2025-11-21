@@ -7549,6 +7549,9 @@ function renderDashboardCalendar() {
         const completedClass = event.isCompleted ? ' completed' : '';
         const displayText = event.time ? `${event.time} ${event.patientName}` : event.patientName;
 
+        // Add location type icon for appointments
+        const locationIcon = event.type === 'appointment' && event.locationTypeIcon ? `<span style="margin-left: 2px;">${event.locationTypeIcon}</span>` : '';
+
         html += `
           <div class="calendar-event ${eventClass}${completedClass}"
                data-event-id="${event.eventId}"
@@ -7556,7 +7559,7 @@ function renderDashboardCalendar() {
                title="${escapeHtml(event.title)}"
                style="cursor: pointer;">
             <span class="calendar-event-icon">${icon}</span>
-            <span style="overflow: hidden; text-overflow: ellipsis;">${escapeHtml(displayText)}</span>
+            <span style="overflow: hidden; text-overflow: ellipsis;">${escapeHtml(displayText)}${locationIcon}</span>
           </div>
         `;
       });
@@ -7602,12 +7605,17 @@ function getMonthEvents(year, month) {
             const patient = state.patients.find(p => p.id === apt.patientId);
             if (patient) {
               const timeStr = apt.time ? ` à ${apt.time}` : '';
+              const locationTypeLabel = apt.locationType === 'telehealth' ? 'Télé-suivi' : 'Domicile';
+              const locationTypeIcon = apt.locationType === 'telehealth' ? '💻' : '🏠';
               events.push({
                 day: day,
                 type: 'appointment',
-                title: `RDV: ${fullName(patient)} - ${apt.type || 'Suivi'}${timeStr}`,
+                title: `RDV: ${fullName(patient)} - ${locationTypeLabel}${timeStr}`,
                 patientName: fullName(patient),
                 time: apt.time,
+                locationType: apt.locationType || 'home',
+                locationTypeLabel: locationTypeLabel,
+                locationTypeIcon: locationTypeIcon,
                 data: apt,
                 eventId: apt.id,
                 eventType: 'appointment'
