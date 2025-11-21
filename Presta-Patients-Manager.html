@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="logo-presta-icon.png">
 <title>Presta Patients Manager — Gestion Patients v1.4.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -122,9 +123,16 @@ body {
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: center;
   margin-bottom: 2rem;
-  padding: 0 0.5rem;
+  padding: 1rem 0.5rem;
+}
+
+.brand-logo {
+  width: 100%;
+  height: auto;
+  max-width: 240px;
+  object-fit: contain;
 }
 
 .logo {
@@ -2357,8 +2365,7 @@ body {
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="logo">PPM</div>
-      <div class="brand-title">Presta Patients Manager</div>
+      <img src="logo-presta-complet.png" alt="Presta Patients Manager" class="brand-logo">
     </div>
     
     <div class="nav-section">Navigation</div>
