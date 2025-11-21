@@ -27,7 +27,7 @@ Je soussigné {medecin_nom}, certifie avoir examiné {patient_nom_complet}
 - `{nom_complet}` - Prénom et nom complet (variante)
 - `{patient_date_naissance}` - Date de naissance du patient (format JJ/MM/AAAA)
 - `{date_naissance}` - Date de naissance (variante)
-- `{patient_id}` - Numéro d'identification NHC du patient
+- `{patient_id}` - Numéro d'identification du patient
 - `{cycle}` - Cycle actuel du patient
 
 ### Dates de l'Ordonnance

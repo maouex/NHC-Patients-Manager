@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NHC Patients Manager — Gestion Patients v1.4.0</title>
+<title>Presta Patients Manager — Gestion Patients v1.4.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -2357,8 +2357,8 @@ body {
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="logo">NPM</div>
-      <div class="brand-title">NHC Patients Manager</div>
+      <div class="logo">PPM</div>
+      <div class="brand-title">Presta Patients Manager</div>
     </div>
     
     <div class="nav-section">Navigation</div>
@@ -3738,7 +3738,7 @@ body {
               <label for="githubRawUrl">URL RAW sur GitHub (version.json recommandé)</label>
               <input type="text" id="githubRawUrl" class="form-control" placeholder="https://raw.githubusercontent.com/..." value="">
               <small class="text-muted">
-                Ex: https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/version.json<br>
+                Ex: https://raw.githubusercontent.com/maouex/Presta-Patients-Manager/main/version.json<br>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/></svg> Pour obtenir l'URL RAW : Ouvrez votre fichier sur GitHub → Cliquez sur "Raw" → Copiez l'URL
               </small>
             </div>
@@ -3818,7 +3818,7 @@ body {
     <section id="about" class="view">
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">À propos de NHC Patients Manager</h3>
+          <h3 class="card-title">À propos de Presta Patients Manager</h3>
         </div>
         <div class="card-body">
           <h4>Version 1.1.0</h4>
@@ -3848,7 +3848,7 @@ body {
             <li>💾 Sauvegarde automatique locale avec backup</li>
             <li>📱 Compatible mobile/tablette/desktop</li>
           </ul>
-          <p class="text-muted mt-3">© 2024 NHC Patients Manager - Tous droits réservés</p>
+          <p class="text-muted mt-3">© 2024 Presta Patients Manager - Tous droits réservés</p>
         </div>
       </div>
     </section>
@@ -5502,7 +5502,7 @@ body {
 (async function() {
   'use strict';
 
-  const DB_NAME = 'NHC_UpdateManager';
+  const DB_NAME = 'Presta_UpdateManager';
   const DB_VERSION = 1;
   const STORE_NAME = 'updates';
   const UPDATE_MARKER_KEY = 'nhc-active-update-version';
@@ -8792,7 +8792,7 @@ async function generateDefaultPrescriptionPDF(patient, startDate, endDate, durat
   y = pageHeight - 20;
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
-  doc.text('Document généré par NHC Patients Manager', pageWidth / 2, y, { align: 'center' });
+  doc.text('Document généré par Presta Patients Manager', pageWidth / 2, y, { align: 'center' });
   doc.text(`Le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, pageWidth / 2, y + 4, { align: 'center' });
 
   // Save PDF
@@ -12697,7 +12697,7 @@ function generatePDF(patients, comments) {
   // Compact title header
   doc.setFontSize(14);
   doc.setTextColor(59, 130, 246);
-  doc.text('NHC Patients Manager - Rapport Export', margin, yPosition);
+  doc.text('Presta Patients Manager - Rapport Export', margin, yPosition);
 
   const today = new Date();
   doc.setFontSize(8);
@@ -17864,7 +17864,7 @@ async function exportCurrentCycleToPDF() {
       doc.setPage(i);
       doc.setFontSize(7);
       doc.setTextColor(148, 163, 184);
-      doc.text(`NHC Patients Manager - Page ${i}/${pageCount}`, 10, 203);
+      doc.text(`Presta Patients Manager - Page ${i}/${pageCount}`, 10, 203);
       doc.text(`Document confidentiel`, 210, 203, { align: 'center' });
     }
     
@@ -17891,8 +17891,8 @@ function loadScript(src) {
 
 // ===== NOUVEAU SYSTÈME DE MISE À JOUR - IndexedDB + SHA-256 =====
 const APP_VERSION = '1.3.0';
-const GITHUB_CONFIG_KEY = 'nhc-github-config';
-const DB_NAME = 'NHC_UpdateManager';
+const GITHUB_CONFIG_KEY = 'presta-github-config';
+const DB_NAME = 'Presta_UpdateManager';
 const DB_VERSION = 1;
 const STORE_NAME = 'updates';
 const MAX_STORED_VERSIONS = 3;
@@ -18455,9 +18455,9 @@ function init() {
   }
   
   // Show welcome message if first time
-  if (state.patients.length === 0 && !localStorage.getItem('nhc-welcome-shown')) {
-    showToast('Bienvenue dans NHC Patients Manager ! 🎉', 'success');
-    localStorage.setItem('nhc-welcome-shown', 'true');
+  if (state.patients.length === 0 && !localStorage.getItem('presta-welcome-shown')) {
+    showToast('Bienvenue dans Presta Patients Manager ! 🎉', 'success');
+    localStorage.setItem('presta-welcome-shown', 'true');
   }
   
   // Show tutorial on first launch (unless disabled)
@@ -19150,7 +19150,7 @@ window.addSuccessAnimationToButton = addSuccessAnimationToButton;
 <div class="modal tutorial-modal" id="tutorialModal">
   <div class="modal-content">
     <div class="tutorial-header">
-      <h2>🎓 Bienvenue dans NHC Patients Manager</h2>
+      <h2>🎓 Bienvenue dans Presta Patients Manager</h2>
       <p>Découvrez toutes les fonctionnalités de l'application</p>
     </div>
     
@@ -19160,7 +19160,7 @@ window.addSuccessAnimationToButton = addSuccessAnimationToButton;
       <div class="tutorial-step active" data-step="1">
         <div class="tutorial-step-number">1</div>
         <h3>👋 Présentation de l'application</h3>
-        <p>NHC Patients Manager est une application complète pour gérer vos patients sous pompe à insuline. Elle vous permet de suivre les ordonnances, planifier les switchs de pompes, gérer les rendez-vous et bien plus encore.</p>
+        <p>Presta Patients Manager est une application complète pour gérer vos patients sous pompe à insuline. Elle vous permet de suivre les ordonnances, planifier les switchs de pompes, gérer les rendez-vous et bien plus encore.</p>
         
         <div class="tutorial-feature">
           <h4>
@@ -19521,7 +19521,7 @@ window.addSuccessAnimationToButton = addSuccessAnimationToButton;
       <div class="tutorial-step" data-step="11">
         <div class="tutorial-step-number">✓</div>
         <h3>🎉 Vous êtes prêt !</h3>
-        <p>Vous connaissez maintenant toutes les fonctionnalités principales de NHC Patients Manager.</p>
+        <p>Vous connaissez maintenant toutes les fonctionnalités principales de Presta Patients Manager.</p>
         
         <div class="tutorial-feature">
           <h4>

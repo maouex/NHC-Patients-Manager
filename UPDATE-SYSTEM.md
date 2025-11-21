@@ -1,6 +1,6 @@
 # 🔄 Système de Mise à Jour Automatique
 
-Ce document explique comment fonctionne le système de mise à jour automatique de l'application NHC Patients Manager.
+Ce document explique comment fonctionne le système de mise à jour automatique de l'application Presta Patients Manager.
 
 ## 📋 Vue d'ensemble
 
@@ -19,8 +19,8 @@ Le fichier `version.json` est le cœur du système. Il contient les métadonnée
 ```json
 {
   "version": "1.0.0",
-  "fileName": "NHC-Patients-Manager-v1.0.html",
-  "downloadUrl": "https://raw.githubusercontent.com/username/repo/main/NHC-Patients-Manager-v1.0.html",
+  "fileName": "Presta-Patients-Manager-v1.0.html",
+  "downloadUrl": "https://raw.githubusercontent.com/username/repo/main/Presta-Patients-Manager-v1.0.html",
   "releaseDate": "2025-01-13",
   "releaseNotes": {
     "fr": [
@@ -52,7 +52,7 @@ Le fichier `version.json` est le cœur du système. Il contient les métadonnée
 
 3. **Configurer l'URL** :
    ```
-   https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/version.json
+   https://raw.githubusercontent.com/maouex/Presta-Patients-Manager/main/version.json
    ```
 
 4. **Activer** "Vérifier automatiquement les mises à jour au démarrage"
@@ -63,7 +63,7 @@ Le fichier `version.json` est le cœur du système. Il contient les métadonnée
 
 Si vous préférez l'ancienne méthode, vous pouvez toujours utiliser l'URL directe du fichier HTML :
 ```
-https://raw.githubusercontent.com/username/repo/main/NHC-Patients-Manager.html
+https://raw.githubusercontent.com/username/repo/main/Presta-Patients-Manager.html
 ```
 
 ⚠️ **Limitation** : Si vous renommez le fichier HTML, vous devrez reconfigurer l'URL.
@@ -83,7 +83,7 @@ const APP_VERSION = '1.1.0'; // Anciennement '1.0.0'
 
 Si vous voulez changer le nom :
 ```
-NHC-Patients-Manager-v1.0.html → NHC-Patients-Manager-v1.1.html
+Presta-Patients-Manager-v1.0.html → Presta-Patients-Manager-v1.1.html
 ```
 
 #### c. Mettre à jour `version.json`
@@ -91,8 +91,8 @@ NHC-Patients-Manager-v1.0.html → NHC-Patients-Manager-v1.1.html
 ```json
 {
   "version": "1.1.0",
-  "fileName": "NHC-Patients-Manager-v1.1.html",
-  "downloadUrl": "https://raw.githubusercontent.com/maouex/NHC-Patients-Manager/main/NHC-Patients-Manager-v1.1.html",
+  "fileName": "Presta-Patients-Manager-v1.1.html",
+  "downloadUrl": "https://raw.githubusercontent.com/maouex/Presta-Patients-Manager/main/Presta-Patients-Manager-v1.1.html",
   "releaseDate": "2025-01-15",
   "releaseNotes": {
     "fr": [
@@ -148,17 +148,17 @@ MAJEUR.MINEUR.PATCH
 ## 📊 Exemple de Migration v1 → v2
 
 ### Avant (v1.0.0)
-- Fichier : `NHC-Patients-Manager-v1.0.html`
-- URL configurée : `...main/NHC-Patients-Manager-v1.0.html`
+- Fichier : `Presta-Patients-Manager-v1.0.html`
+- URL configurée : `...main/Presta-Patients-Manager-v1.0.html`
 
 ### Après (v2.0.0)
-1. Créer `NHC-Patients-Manager-v2.0.html`
+1. Créer `Presta-Patients-Manager-v2.0.html`
 2. Mettre à jour `version.json` :
    ```json
    {
      "version": "2.0.0",
-     "fileName": "NHC-Patients-Manager-v2.0.html",
-     "downloadUrl": "https://raw.githubusercontent.com/.../NHC-Patients-Manager-v2.0.html",
+     "fileName": "Presta-Patients-Manager-v2.0.html",
+     "downloadUrl": "https://raw.githubusercontent.com/.../Presta-Patients-Manager-v2.0.html",
      ...
    }
    ```
