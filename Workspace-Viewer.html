@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workspace Viewer - Presta Patients Manager</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --secondary: #64748b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border: #e2e8f0;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+      --radius: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --transition: all 0.2s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      color: white;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1rem;
+    }
+
+    .import-section {
+      background: var(--bg-primary);
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .import-section.hidden {
+      display: none;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+      box-shadow: var(--shadow);
+    }
+
+    .file-label:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .workspace-info {
+      background: var(--bg-primary);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      border-left: 4px solid var(--primary);
+    }
+
+    .workspace-info.hidden {
+      display: none;
+    }
+
+    .workspace-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .meta-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .meta-value {
+      font-size: 1.125rem;
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .search-bar {
+      background: var(--bg-primary);
+      padding: 1rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .search-bar.hidden {
+      display: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .patients-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .patients-grid.hidden {
+      display: none;
+    }
+
+    .patient-card {
+      background: var(--bg-primary);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      transition: var(--transition);
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .patient-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+
+    .patient-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .patient-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .patient-name {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .patient-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .events-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-tertiary);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      margin-top: 1rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: start;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      max-width: 900px;
+      width: 100%;
+      margin: 2rem auto;
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 1.5rem;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .modal-body {
+      padding: 2rem;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .detail-section {
+      margin-bottom: 2rem;
+    }
+
+    .detail-section h3 {
+      font-size: 1.25rem;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      background: var(--bg-secondary);
+      padding: 1rem;
+      border-radius: var(--radius);
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .detail-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .detail-value {
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    .event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .event-card {
+      background: var(--bg-secondary);
+      padding: 1rem;
+      border-radius: var(--radius);
+      border-left: 4px solid var(--primary);
+    }
+
+    .event-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .event-icon {
+      font-size: 1.5rem;
+    }
+
+    .event-title {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .event-date {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .event-description {
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+    }
+
+    .steps-list {
+      margin-top: 1rem;
+      padding-left: 1rem;
+      border-left: 2px dashed var(--border);
+    }
+
+    .step-item {
+      padding: 0.5rem 0;
+      display: flex;
+      align-items: start;
+      gap: 0.5rem;
+    }
+
+    .step-number {
+      background: var(--primary);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-description {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .step-date {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state svg {
+      opacity: 0.3;
+      margin-bottom: 1rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--bg-primary);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      z-index: 2000;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.info { border-left: 4px solid var(--info); }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .badge-primary { background: rgba(59, 130, 246, 0.1); color: var(--primary); }
+    .badge-success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
+          <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+        </svg>
+        Workspace Viewer
+      </h1>
+      <p>Visualisation en lecture seule des données d'un workspace</p>
+    </div>
+
+    <!-- Import Section -->
+    <div class="import-section" id="importSection">
+      <svg width="64" height="64" fill="currentColor" viewBox="0 0 20 20" style="opacity: 0.3; margin-bottom: 1rem;">
+        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+      </svg>
+      <h2 style="margin-bottom: 1rem;">Importer un fichier workspace</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+        Sélectionnez un fichier JSON exporté depuis Presta Patients Manager
+      </p>
+      <div class="file-input-wrapper">
+        <input type="file" id="fileInput" class="file-input" accept=".json">
+        <label for="fileInput" class="file-label">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+          Sélectionner un fichier
+        </label>
+      </div>
+    </div>
+
+    <!-- Workspace Info -->
+    <div class="workspace-info hidden" id="workspaceInfo">
+      <h2 id="workspaceName">Workspace</h2>
+      <div class="workspace-meta">
+        <div class="meta-item">
+          <span class="meta-label">Type</span>
+          <span class="meta-value" id="workspaceType">-</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Patients</span>
+          <span class="meta-value" id="patientsCount">0</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Date d'export</span>
+          <span class="meta-value" id="exportDate">-</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Exporté par</span>
+          <span class="meta-value" id="exportedBy">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar hidden" id="searchBar">
+      <input
+        type="text"
+        id="searchInput"
+        class="search-input"
+        placeholder="Rechercher un patient par nom, prénom, code..."
+      >
+    </div>
+
+    <!-- Patients Grid -->
+    <div class="patients-grid hidden" id="patientsGrid"></div>
+
+    <!-- Empty State -->
+    <div class="empty-state hidden" id="emptyState">
+      <svg width="96" height="96" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+      </svg>
+      <h3>Aucun patient trouvé</h3>
+      <p>Essayez de modifier votre recherche</p>
+    </div>
+  </div>
+
+  <!-- Patient Details Modal -->
+  <div class="modal" id="patientModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalPatientName">Patient</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    let workspaceData = null;
+    let allPatients = [];
+    let filteredPatients = [];
+
+    // File input handler
+    document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+    document.getElementById('searchInput').addEventListener('input', handleSearch);
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          workspaceData = JSON.parse(e.target.result);
+          validateAndLoadData();
+        } catch (error) {
+          showToast('Erreur: Fichier JSON invalide', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function validateAndLoadData() {
+      if (!workspaceData || !workspaceData.metadata || !workspaceData.patients) {
+        showToast('Erreur: Format de fichier invalide', 'error');
+        return;
+      }
+
+      allPatients = workspaceData.patients;
+      filteredPatients = [...allPatients];
+
+      // Hide import section
+      document.getElementById('importSection').classList.add('hidden');
+
+      // Show workspace info
+      const info = workspaceData.metadata;
+      document.getElementById('workspaceInfo').classList.remove('hidden');
+      document.getElementById('workspaceName').textContent = info.workspaceName;
+      document.getElementById('workspaceType').textContent = info.workspaceType === 'personal' ? 'Personnel' : 'Collègue';
+      document.getElementById('patientsCount').textContent = info.patientsCount;
+      document.getElementById('exportDate').textContent = new Date(info.exportDate).toLocaleDateString('fr-FR');
+      document.getElementById('exportedBy').textContent = info.exportedBy;
+
+      // Show search and patients
+      document.getElementById('searchBar').classList.remove('hidden');
+      document.getElementById('patientsGrid').classList.remove('hidden');
+
+      renderPatients();
+      showToast(`Workspace chargé: ${allPatients.length} patients`, 'success');
+    }
+
+    function handleSearch(event) {
+      const query = event.target.value.toLowerCase().trim();
+
+      if (!query) {
+        filteredPatients = [...allPatients];
+      } else {
+        filteredPatients = allPatients.filter(p => {
+          const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+          const code = (p.patientCode || '').toLowerCase();
+          return fullName.includes(query) || code.includes(query);
+        });
+      }
+
+      renderPatients();
+    }
+
+    function renderPatients() {
+      const grid = document.getElementById('patientsGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      if (filteredPatients.length === 0) {
+        grid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      grid.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+
+      grid.innerHTML = filteredPatients.map(patient => {
+        const eventsCount = (patient.events || []).length;
+        const initials = `${patient.firstName[0]}${patient.lastName[0]}`.toUpperCase();
+
+        return `
+          <div class="patient-card" onclick="viewPatient('${patient.id}')">
+            <div class="patient-header">
+              <div class="patient-avatar">${initials}</div>
+              <div style="flex: 1;">
+                <div class="patient-name">${patient.firstName} ${patient.lastName}</div>
+                ${patient.patientCode ? `<div style="font-size: 0.875rem; color: var(--text-secondary);">Code: ${patient.patientCode}</div>` : ''}
+              </div>
+            </div>
+            <div class="patient-info">
+              ${patient.dob ? `<div class="info-row">📅 Né(e) le ${new Date(patient.dob).toLocaleDateString('fr-FR')}</div>` : ''}
+              ${patient.phone ? `<div class="info-row">📞 ${patient.phone}</div>` : ''}
+              ${patient.email ? `<div class="info-row">📧 ${patient.email}</div>` : ''}
+            </div>
+            <div class="events-count">
+              📋 ${eventsCount} acte${eventsCount > 1 ? 's' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function viewPatient(patientId) {
+      const patient = allPatients.find(p => p.id === patientId);
+      if (!patient) return;
+
+      const modal = document.getElementById('patientModal');
+      const modalBody = document.getElementById('modalBody');
+      document.getElementById('modalPatientName').textContent = `${patient.firstName} ${patient.lastName}`;
+
+      // Patient details
+      let html = `
+        <div class="detail-section">
+          <h3>
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+            </svg>
+            Informations personnelles
+          </h3>
+          <div class="detail-grid">
+            ${patient.patientCode ? `<div class="detail-item"><span class="detail-label">Code patient</span><span class="detail-value">${patient.patientCode}</span></div>` : ''}
+            ${patient.dob ? `<div class="detail-item"><span class="detail-label">Date de naissance</span><span class="detail-value">${new Date(patient.dob).toLocaleDateString('fr-FR')}</span></div>` : ''}
+            ${patient.phone ? `<div class="detail-item"><span class="detail-label">Téléphone</span><span class="detail-value">${patient.phone}</span></div>` : ''}
+            ${patient.email ? `<div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">${patient.email}</span></div>` : ''}
+            ${patient.address ? `<div class="detail-item"><span class="detail-label">Adresse</span><span class="detail-value">${patient.address}</span></div>` : ''}
+          </div>
+        </div>
+      `;
+
+      // Events
+      const events = (patient.events || []).sort((a, b) => b.date - a.date);
+      if (events.length > 0) {
+        html += `
+          <div class="detail-section">
+            <h3>
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+              </svg>
+              Historique des actes (${events.length})
+            </h3>
+            <div class="event-list">
+              ${events.map(event => {
+                const eventDate = new Date(event.date);
+                const steps = event.steps || [];
+                return `
+                  <div class="event-card">
+                    <div class="event-header">
+                      <span class="event-icon">${event.icon || '📌'}</span>
+                      <div style="flex: 1;">
+                        <div class="event-title">${event.description}</div>
+                        <div class="event-date">${eventDate.toLocaleDateString('fr-FR')} à ${eventDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+                      </div>
+                    </div>
+                    ${steps.length > 0 ? `
+                      <div class="steps-list">
+                        <div style="font-size: 0.875rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;">Étapes:</div>
+                        ${steps.map((step, idx) => {
+                          const stepDate = step.timestamp ? new Date(step.timestamp) : null;
+                          return `
+                            <div class="step-item">
+                              <div class="step-number">${idx + 1}</div>
+                              <div class="step-content">
+                                <div class="step-description">${step.description}</div>
+                                ${stepDate ? `<div class="step-date">${stepDate.toLocaleDateString('fr-FR')} à ${stepDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>` : ''}
+                              </div>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      modalBody.innerHTML = html;
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('patientModal').classList.remove('active');
+    }
+
+    // Close modal on outside click
+    document.getElementById('patientModal').addEventListener('click', (e) => {
+      if (e.target.id === 'patientModal') {
+        closeModal();
+      }
+    });
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
